@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { randomBytes } from 'node:crypto';
+import { createHash, randomBytes } from 'node:crypto';
 import { dirname, resolve } from 'node:path';
 import { mkdirSync, lstatSync, existsSync, writeFileSync, renameSync } from 'node:fs';
 import { validateConfig, postFields } from './workload.js';
@@ -75,7 +75,10 @@ export async function verifyFixture(config, fixture, createClient) {
   assert.equal(fixture.status, 'ready', 'Fixture must be ready, not partial or previously used');
   assert.deepEqual(fixture.config, config, 'Fixture configuration mismatch; reset/reseed');
   assert.equal(fixture.users.length, config.dataset.users);
-  const ids = new Set();
+  const ids = new Set(), logical = createHash('sha256');
+  const postIds = fixture.users.flatMap(user => user.posts);
+  assert.equal(new Set(postIds).size, config.dataset.users * config.dataset.postsPerUser, 'Duplicate/missing fixture posts');
+  logical.update('api-verified-logical-baseline-v1\n');
   let posts = 0, likes = 0, minCreatedAt = Infinity, maxCreatedAt = -Infinity;
   for (const [i, user] of fixture.users.entries()) {
     const client = createClient();
@@ -85,6 +88,7 @@ export async function verifyFixture(config, fixture, createClient) {
       assert.equal(client.user()?.id, user.id, 'Fixture identity mismatch');
       assert.equal(client.user()?.username, user.username, 'Fixture username mismatch');
       assert.ok(!ids.has(user.id), 'Duplicate fixture identity'); ids.add(user.id);
+      logical.update(JSON.stringify(['user', i]) + '\n');
       const own = await client.records('posts').list({ pagination: { limit: 100 }, filters: [{ column: 'author', value: user.id }], count: true });
       assert.equal(own.total_count, config.dataset.postsPerUser);
       assert.equal(own.records.length, own.total_count);
@@ -93,6 +97,7 @@ export async function verifyFixture(config, fixture, createClient) {
         assert.ok(post && post.author === user.id, 'Post ownership/ID mismatch');
         const fields = postFields(config, i, j);
         assert.equal(post.title, fields.title); assert.equal(post.body, fields.body);
+        logical.update(JSON.stringify(['post', i, j, post.title, post.body]) + '\n');
         assert.ok(Number.isInteger(post.created_at) && Number.isInteger(post.updated_at));
         minCreatedAt = Math.min(minCreatedAt, post.created_at); maxCreatedAt = Math.max(maxCreatedAt, post.created_at);
       }
@@ -102,13 +107,18 @@ export async function verifyFixture(config, fixture, createClient) {
       assert.equal(ownLikes.records.length, ownLikes.total_count);
       assert.equal(user.likes.length, config.dataset.likesPerUser);
       assert.equal(new Set(user.likes.map(l => l.post)).size, user.likes.length);
-      for (const like of user.likes) assert.ok(ownLikes.records.some(l => l.id === like.id && l.post === like.post && l.user === user.id), 'Like ownership/ID mismatch');
+      for (const [j, like] of user.likes.entries()) {
+        assert.ok(ownLikes.records.some(l => l.id === like.id && l.post === like.post && l.user === user.id), 'Like ownership/ID mismatch');
+        const target = ((i + 1) * config.dataset.postsPerUser + j) % postIds.length;
+        assert.equal(like.post, postIds[target], 'Like recipe mismatch');
+        logical.update(JSON.stringify(['like', i, target]) + '\n');
+      }
       posts += own.records.length; likes += ownLikes.records.length;
     } finally { if (client.user()) assert.ok(await client.logout(), 'Verification logout failed'); }
   }
   const global = await createClient().records('posts').list({ pagination: { limit: 1 }, count: true });
   assert.equal(global.total_count, posts, 'Unexpected public data in benchmark deployment');
-  return { users: ids.size, posts, likes, minCreatedAt, maxCreatedAt, timestampUnit: 'seconds', retries: 0 };
+  return { users: ids.size, posts, likes, minCreatedAt, maxCreatedAt, timestampUnit: 'seconds', retries: 0, logicalHash: logical.digest('hex') };
 }
 
 export async function deleteFixture(fixture, createClient, persist = () => {}) {

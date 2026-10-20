@@ -11,6 +11,8 @@
     "build": "node scripts/build.js",
     "test:pilot": "node --test tests/pilot.integration.js",
     "test:social": "node --test tests/social.integration.js",
+    "test:baseline": "node --test tests/baseline.integration.js",
+    "baseline:prove": "docker compose build trailbase runner && node scripts/baseline.js",
     "dataset:prepare": "node scripts/social.js prepare",
     "dataset:reset": "node scripts/social.js reset",
     "workload:run": "node scripts/social.js run",

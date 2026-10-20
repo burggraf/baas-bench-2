@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { existsSync, mkdirSync, mkdtempSync, readFileSync, writeFileSync, openSync, closeSync, unlinkSync, lstatSync } from 'node:fs';
 import { resolve } from 'node:path';
-import { initClient } from 'trailbase';
+import { controllerClient } from './client.js';
 import { validateConfig } from '../src/workload.js';
 import { seedFixture, verifyFixture, deleteFixture, savePrivate } from '../src/fixtures.js';
 import { summarize } from '../src/report.js';
@@ -19,20 +19,7 @@ const handlers = Object.fromEntries(['SIGINT', 'SIGTERM'].map(signal => [signal,
   cancellation.abort();
 }]));
 for (const [signal, handler] of Object.entries(handlers)) process.on(signal, handler);
-// Fixed local pilot origin: remote or arbitrary targets require a separate deployment contract.
-const createClient = () => {
-  let logoutFailed = false;
-  const client = initClient(undefined, { transport: { async fetch(path, init) {
-    try {
-      const response = await fetch(new URL(path, 'http://127.0.0.1:4000'), { ...init, redirect: 'error', signal: AbortSignal.any([AbortSignal.timeout(10000), cancellation.signal]) });
-      if (path.endsWith('/logout') && !response.ok) logoutFailed = true;
-      return response;
-    } catch (error) { if (path.endsWith('/logout')) logoutFailed = true; throw error; }
-  } } });
-  const logout = client.logout.bind(client);
-  client.logout = async () => { cancellation.signal.throwIfAborted(); logoutFailed = false; await logout(); if (logoutFailed) throw new Error('Native logout failed'); return true; };
-  return client;
-};
+const createClient = () => controllerClient(cancellation.signal);
 const json = (path, data) => writeFileSync(path, JSON.stringify(data, null, 2));
 
 async function endCounts(fixture) {
@@ -66,7 +53,7 @@ try {
   lock = openSync('.fixtures/operation.lock', 'wx', 0o600);
   const operation = { version: 1, pid: process.pid, command, startedAt: new Date().toISOString() };
   writeFileSync(lock, JSON.stringify(operation));
-  const runtime = runtimeManifest(['package-lock.json', 'compose.yaml', 'backends/trailbase/Dockerfile', 'backends/trailbase/configuration/config.textproto', 'backends/trailbase/configuration/migrations/main/U1792454400__social_schema.sql', 'src/fixtures.js', 'src/workload.js', 'src/actions.js', 'src/report.js', 'src/resources.js', 'scripts/social.js', 'scripts/runtime.js', 'scripts/monitor.js', 'scripts/recovery.js', configPath]);
+  const runtime = runtimeManifest(['package-lock.json', 'compose.yaml', 'backends/trailbase/Dockerfile', 'backends/trailbase/configuration/config.textproto', 'backends/trailbase/configuration/migrations/main/U1792454400__social_schema.sql', 'src/fixtures.js', 'src/workload.js', 'src/actions.js', 'src/report.js', 'src/resources.js', 'scripts/social.js', 'scripts/client.js', 'scripts/runtime.js', 'scripts/monitor.js', 'scripts/recovery.js', configPath]);
   const volume = JSON.parse(capture('docker', ['inspect', capture('docker', ['compose', 'ps', '-q', 'trailbase'])]))[0].Mounts.find(m => m.Destination === '/app/traildepot');
   assert.equal(volume?.Name, 'baas-bench-2-pilot_trailbase-data', 'Refuse non-pilot deployment');
   if (command === 'prepare') {

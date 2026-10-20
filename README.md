@@ -2,7 +2,7 @@
 
 API-only, SDK-based capacity benchmarks for self-hosted backend-as-a-service systems. Start with [the benchmark plan](BENCHMARK_PLAN.md). To resume development, read [PROGRESS.md](PROGRESS.md) for the current checkpoint, verified work, and next steps.
 
-**Current milestone: API-only fixtures, an exploratory fixed-VU workload, backend/runner observability and interruption/recovery—not capacity certification.** TrailBase conformance and the stateful workload use **17% likes / 5% unlikes**. Resource observations do not certify generator headroom. Capacity search, repeatability certification, and natural-expiry coverage remain deferred.
+**Current milestone: API-only fixtures, an exploratory fixed-VU workload, observability, interruption/recovery and repeated fresh-deployment logical baseline proof—not capacity certification.** TrailBase conformance and the stateful workload use **17% likes / 5% unlikes**. Resource observations do not certify generator headroom. Capacity search, repeatability certification, and natural-expiry coverage remain deferred.
 
 ## Requirements
 
@@ -115,6 +115,24 @@ npm run dataset:reset -- configs/smoke.json
 
 Do not run seeding, conformance, or another workload concurrently against the same backend. Controller operations acquire an exclusive local lock, but standalone conformance commands and other machines are not coordinated by it.
 
+### Repeated fresh-deployment baseline proof
+
+With the pilot stopped and no fixture/operation/recovery lock outstanding:
+
+```sh
+npm run baseline:prove                       # three fresh pilot-small preparations
+# Or a small correctness integration (images must already be built):
+npm run test:baseline
+```
+
+The proof uses the same fixed Compose project, loopback API, image pins and resource budget, but creates **three separately named, labeled local volumes**. An explicit external-volume override selects each new volume; the retained `baas-bench-2-pilot_trailbase-data` is never mounted or deleted. Existing project containers/networks or active private fixtures are refused. Compose may warn that the retained project volume differs from the override and is left untouched; that is expected—do not follow its generic removal suggestion. The ordinary workload controller's pilot-volume guard is unchanged: this is preparation proof, not a new campaign runner or arbitrary-target option.
+
+Each trial registers/seeds/verifies through the official SDK, then independently verifies again. `verifyFixture` computes an incremental SHA-256 over API-observed post titles/bodies, logical user/post indexes and verified like edges (`api-verified-logical-baseline-v1`). It checks the deterministic like recipe, not just counts or agreement with a possibly modified fixture. Native IDs, passwords, usernames and timestamps are excluded from this logical hash; native identities must differ across the three trials. Seed durations and timestamp spans are recorded separately. Equivalent logical graphs do not promise identical latest-feed ties, physical allocation, host caches or performance.
+
+Evidence is in ignored `results/baseline-<suffix>/`: exact Compose overrides, per-trial runtime/source hashes, API counts/logical hashes, native-identity hashes and a final `report.json`. A success requires three matching logical hashes, separate volumes/identities, unchanged retained-pilot metadata, zero public posts after explicit SDK account deletion, and checked backend shutdown. No JWTs or refresh tokens are saved; credentials remain private until successful API deletion.
+
+**Trial volumes are retained, not deleted.** They have been API-cleaned and are no longer pristine baselines; do not reuse them for performance comparisons. Their exact names/ownership labels are recorded in the report. Interrupted/failed preparation retains private credentials and failed evidence; inspect the recorded trial volume rather than pointing the ordinary reset command at it. Uncertain resource cleanup retains the operation lock. `recover` can release a supported stale lock but does not repair partial data or clean up these trial backends/volumes. No existing volume is automatically removed. This proof does not certify capacity, generator headroom or host/daemon crash recovery.
+
 ### Credentials, sessions, and failure recovery
 
 - Credentials and API-returned IDs live only in ignored `.fixtures/trailbase.json` (0600) inside `.fixtures/` (0700). That directory is also excluded from Docker build contexts. It is mounted read-only only for the workload runner; never publish it.
@@ -165,4 +183,4 @@ Reports label per-action tails **insufficient samples** below 1,000 observations
 
 ## Next milestone
 
-Prove repeated fresh-deployment baselines, cover longer-lived authentication, and calibrate generator headroom before adding capacity discovery, repeated certification, and soak tests. Catchable interruption and SIGKILL recovery have dedicated tests; host/daemon power-loss and exhaustive failure injection are not claimed. Remote-host automation and other BaaS adapters remain deferred.
+Repeated fresh-deployment preparation has been verified at both smoke and 1,000-account scale (see [PROGRESS.md](PROGRESS.md)). Next cover longer-lived native authentication and calibrate generator headroom before adding capacity discovery, repeated performance certification and soak tests. Future campaigns must explicitly integrate owned fresh deployments; the ordinary workload controller remains restricted to its original pilot volume. Catchable interruption and SIGKILL recovery have dedicated tests; host/daemon power-loss and exhaustive failure injection are not claimed. Remote-host automation and other BaaS adapters remain deferred.

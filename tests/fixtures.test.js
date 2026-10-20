@@ -59,6 +59,25 @@ test('API seeding verifies exact rows, stores no tokens, logs out, and API delet
   assert.equal(backend.sessions(), 0);
 });
 
+test('API-verified logical baseline hashes ignore native identities/times but reject changed like recipes', async () => {
+  const backend = memoryClients();
+  const first = await seedFixture(config, backend.factory, () => {});
+  assert.match(first.baseline.logicalHash ?? '', /^[a-f0-9]{64}$/);
+  await deleteFixture(first, backend.factory);
+  const second = await seedFixture(config, backend.factory, () => {});
+  assert.notEqual(first.users[0].id, second.users[0].id);
+  assert.notEqual(first.users[0].password, second.users[0].password);
+  for (const post of backend.posts.values()) post.created_at = post.updated_at = 200;
+  assert.equal((await verifyFixture(config, second, backend.factory)).logicalHash, first.baseline.logicalHash);
+  const like = second.users[0].likes[0];
+  like.post = second.users[0].posts[0];
+  backend.likes.get(like.id).post = like.post;
+  await assert.rejects(() => verifyFixture(config, second, backend.factory), /Like recipe/);
+  await deleteFixture(second, backend.factory);
+  const changed = await seedFixture({ ...config, seed: config.seed + 1 }, backend.factory, () => {});
+  assert.notEqual(changed.baseline.logicalHash, first.baseline.logicalHash, 'different API-observed payloads must change the digest');
+});
+
 test('partial seeds remain failed, keep credentials for cleanup, and cannot verify as a baseline', async () => {
   const backend = memoryClients();
   let saved;
