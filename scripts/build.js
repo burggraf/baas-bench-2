@@ -1,7 +1,7 @@
 import { build } from 'esbuild';
 
 await build({
-  entryPoints: ['src/k6/conformance.js'],
+  entryPoints: ['src/k6/conformance.js', 'src/k6/social.js'],
   outdir: 'dist',
   bundle: true,
   format: 'esm',

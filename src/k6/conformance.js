@@ -7,11 +7,12 @@ import URL from 'core-js-pure/actual/url/index.js';
 import URLSearchParams from 'core-js-pure/actual/url-search-params/index.js';
 import { initClient } from 'trailbase';
 import { createTransport } from './transport.js';
+import { createAtob } from '../base64.js';
 import { conformance } from '../../tests/conformance.js';
 
 globalThis.URL = URL;
 globalThis.URLSearchParams = URLSearchParams;
-globalThis.atob = value => String.fromCharCode(...new Uint8Array(encoding.b64decode(value, 'std')));
+globalThis.atob = createAtob((value, format) => encoding.b64decode(value, format));
 
 const completed = new Counter('conformance_completed');
 export const options = {
