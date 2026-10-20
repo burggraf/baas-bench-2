@@ -5,11 +5,15 @@ import { controllerClient } from './client.js';
 import { validateConfig } from '../src/workload.js';
 import { seedFixture, verifyFixture, deleteFixture, savePrivate } from '../src/fixtures.js';
 import { summarize } from '../src/report.js';
+import { summarizeAuth } from '../src/auth.js';
 import { capture, hash, runtimeManifest, runRunner } from './runtime.js';
 import { startMonitor } from './monitor.js';
 import { recoverOperation, stopOwnedRunner } from './recovery.js';
 
 const [command, configPath = 'configs/pilot-small.json', ...extra] = process.argv.slice(2);
+const authCheck = ['auth', 'auth-smoke'].includes(command);
+const authMode = command === 'auth' ? 'natural' : 'smoke';
+const bundle = authCheck ? 'auth' : 'social';
 const path = '.fixtures/trailbase.json';
 let lock, directory, loadedFixture, interrupted;
 let retainLock = false;
@@ -38,7 +42,7 @@ async function endCounts(fixture) {
 const storageBytes = () => Number(capture('docker', ['compose', 'exec', '-T', 'trailbase', 'du', '-sk', '/app/traildepot']).split(/\s+/)[0]) * 1024;
 
 try {
-  assert.ok(['prepare', 'run', 'reset', 'recover'].includes(command) && !extra.length, 'Usage: node scripts/social.js prepare|run|reset|recover [config.json]');
+  assert.ok(['prepare', 'run', 'auth', 'auth-smoke', 'reset', 'recover'].includes(command) && !extra.length, 'Usage: node scripts/social.js prepare|run|auth|auth-smoke|reset|recover [config.json]');
   const config = validateConfig(JSON.parse(readFileSync(configPath)));
   mkdirSync('.fixtures', { recursive: true, mode: 0o700 });
   const parent = lstatSync('.fixtures');
@@ -51,9 +55,9 @@ try {
   } else {
   assert.ok(!existsSync('.fixtures/recovery.lock'), 'Recovery is active or stale: inspect before another operation');
   lock = openSync('.fixtures/operation.lock', 'wx', 0o600);
-  const operation = { version: 1, pid: process.pid, command, startedAt: new Date().toISOString() };
+  const operation = { version: 1, pid: process.pid, command: authCheck ? 'run' : command, ...(authCheck ? { kind: 'native-sdk-auth-correctness', mode: authMode } : {}), startedAt: new Date().toISOString() };
   writeFileSync(lock, JSON.stringify(operation));
-  const runtime = runtimeManifest(['package-lock.json', 'compose.yaml', 'backends/trailbase/Dockerfile', 'backends/trailbase/configuration/config.textproto', 'backends/trailbase/configuration/migrations/main/U1792454400__social_schema.sql', 'src/fixtures.js', 'src/workload.js', 'src/actions.js', 'src/report.js', 'src/resources.js', 'scripts/social.js', 'scripts/client.js', 'scripts/runtime.js', 'scripts/monitor.js', 'scripts/recovery.js', configPath]);
+  const runtime = runtimeManifest(['package-lock.json', 'compose.yaml', 'backends/trailbase/Dockerfile', 'backends/trailbase/configuration/config.textproto', 'backends/trailbase/configuration/migrations/main/U1792454400__social_schema.sql', 'src/fixtures.js', 'src/workload.js', 'src/actions.js', 'src/report.js', 'src/resources.js', 'src/auth.js', 'src/k6/auth.js', 'src/k6/transport.js', 'src/base64.js', 'scripts/build.js', 'scripts/social.js', 'scripts/client.js', 'scripts/runtime.js', 'scripts/monitor.js', 'scripts/recovery.js', configPath]);
   const volume = JSON.parse(capture('docker', ['inspect', capture('docker', ['compose', 'ps', '-q', 'trailbase'])]))[0].Mounts.find(m => m.Destination === '/app/traildepot');
   assert.equal(volume?.Name, 'baas-bench-2-pilot_trailbase-data', 'Refuse non-pilot deployment');
   if (command === 'prepare') {
@@ -79,7 +83,7 @@ try {
       directory = mkdtempSync('results/social-');
       const id = directory.split('/').at(-1);
       const start = { ...baseline, storageBytes: storageBytes() };
-      json(`${directory}/manifest.json`, { kind: 'fixed-vu-exploratory', ...runtime, config, hashes: { ...runtime.hashes, 'dist/social.js': hash('dist/social.js') }, fixtureHash: hash(path), seedSeconds: fixture.seedSeconds, preparation: fixture.preparation, baseline });
+      json(`${directory}/manifest.json`, { kind: authCheck ? 'native-sdk-auth-correctness' : 'fixed-vu-exploratory', ...(authCheck ? { mode: authMode } : {}), ...runtime, config, hashes: { ...runtime.hashes, [`dist/${bundle}.js`]: hash(`dist/${bundle}.js`) }, fixtureHash: hash(path), seedSeconds: fixture.seedSeconds, preparation: fixture.preparation, baseline });
       json(`${directory}/fixtures.json`, { recipe: config.dataset, seed: config.seed, baseline, fixtureHash: hash(path) });
       json(`${directory}/config.json`, config);
       // Consume before launching: crashes/failed runs must never silently reuse a mutated baseline.
@@ -93,7 +97,7 @@ try {
       try {
         operation.monitorPid = monitor.pid; savePrivate('.fixtures/operation.lock', operation);
         // Retain this labeled runner only until the monitor records its final exit state.
-        status = await runRunner(directory, 'k6', ['k6', 'run', '--out', `json=/results/${id}/k6-metrics.json.gz`, '--summary-export', `/results/${id}/k6-summary.json`, '/scripts/social.js'], ['--name', runnerName, '--label', `baas-bench-2.run=${id}`, '-v', `${resolve(path)}:/private/fixture.json:ro`, '-v', `${resolve(configPath)}:/config/run.json:ro`], { remove: false, signal: cancellation.signal });
+        status = await runRunner(directory, 'k6', ['k6', 'run', '--out', `json=/results/${id}/k6-metrics.json.gz`, '--summary-export', `/results/${id}/k6-summary.json`, `/scripts/${bundle}.js`], [...(authCheck ? ['-e', `AUTH_CHECK_MODE=${authMode}`] : []), '--name', runnerName, '--label', `baas-bench-2.run=${id}`, '-v', `${resolve(path)}:/private/fixture.json:ro`, '-v', `${resolve(configPath)}:/config/run.json:ro`], { remove: false, signal: cancellation.signal });
       } finally {
         let failure;
         try { await stopOwnedRunner(id, runtime.runnerImageId, { remove: false }); }
@@ -105,12 +109,15 @@ try {
         if (failure) { retainLock = true; throw new Error('Run resource cleanup failed; inspect saved evidence and explicitly recover'); }
       }
       const summary = JSON.parse(readFileSync(`${directory}/k6-summary.json`));
-      const workload = summarize(summary, config);
-      const report = { ...workload, workloadValid: workload.valid, valid: !interrupted && workload.valid && resources.valid, interrupted: interrupted ?? null, resources, exitStatus: status, start, end: interrupted ? null : { ...await endCounts(fixture), storageBytes: storageBytes() } };
+      const workload = authCheck ? summarizeAuth(summary, config.vus, authMode) : summarize(summary, config);
+      const end = interrupted ? null : { ...await endCounts(fixture), storageBytes: storageBytes() };
+      const unchanged = !authCheck || (end?.posts === start.posts && end?.likes === start.likes);
+      const report = { ...workload, workloadValid: workload.valid, valid: !interrupted && status === 0 && workload.valid && resources.valid && unchanged, interrupted: interrupted ?? null, resources, exitStatus: status, start, end };
+      if (authCheck) report.naturalExpiryCovered = report.valid && workload.naturalExpiryCovered;
       json(`${directory}/report.json`, report);
-      const lines = ['# Exploratory fixed-VU smoke report', '', '**Not a capacity result.**', '', `Dataset: ${config.dataset.profile}; VUs: ${config.vus}; measurement: ${config.measurementSeconds}s.`, `Workload validity: ${report.valid}; sample evidence: ${report.sloEvidence}; k6 exit: ${status}.`, '', '| Action | Completed | Failed | Observed % | p95 ms | SLO evidence |', '|---|---:|---:|---:|---:|---|', ...Object.entries(report.actions).map(([name, a]) => `| ${name} | ${a.count} | ${a.failures} | ${a.observedPercent.toFixed(2)} | ${a.p95Ms ?? 'n/a'} | ${a.slo} |`), '', `Posts: ${report.start.posts} -> ${report.end?.posts ?? 'unavailable'}; likes: ${report.start.likes} -> ${report.end?.likes ?? 'unavailable'}.`, '', ...report.limitations.map(l => `- ${l}`), `- Resource evidence valid: ${resources.valid}; stability: ${resources.stability}; generator headroom: ${resources.generatorHeadroom}.`, ...resources.issues.map(issue => `- Resource issue: ${issue}`), ...resources.limitations.map(l => `- ${l}`), '- Natural token expiry not certified.'];
+      const lines = authCheck ? ['# Native SDK authentication correctness', '', '**Not a capacity/SLO/soak result.**', '', `Mode: ${authMode}; valid: ${report.valid}; natural expiry covered: ${report.naturalExpiryCovered}.`, ...report.limitations.map(l => `- ${l}`)] : ['# Exploratory fixed-VU smoke report', '', '**Not a capacity result.**', '', `Dataset: ${config.dataset.profile}; VUs: ${config.vus}; measurement: ${config.measurementSeconds}s.`, `Workload validity: ${report.valid}; sample evidence: ${report.sloEvidence}; k6 exit: ${status}.`, '', '| Action | Completed | Failed | Observed % | p95 ms | SLO evidence |', '|---|---:|---:|---:|---:|---|', ...Object.entries(report.actions).map(([name, a]) => `| ${name} | ${a.count} | ${a.failures} | ${a.observedPercent.toFixed(2)} | ${a.p95Ms ?? 'n/a'} | ${a.slo} |`), '', `Posts: ${report.start.posts} -> ${report.end?.posts ?? 'unavailable'}; likes: ${report.start.likes} -> ${report.end?.likes ?? 'unavailable'}.`, '', ...report.limitations.map(l => `- ${l}`), `- Resource evidence valid: ${resources.valid}; stability: ${resources.stability}; generator headroom: ${resources.generatorHeadroom}.`, ...resources.issues.map(issue => `- Resource issue: ${issue}`), ...resources.limitations.map(l => `- ${l}`), '- Natural token expiry not certified.'];
       writeFileSync(`${directory}/report.md`, lines.join('\n') + '\n');
-      console.log(`Workload evidence: ${directory}; insufficient samples are not SLO passes.`);
+      console.log(`${authCheck ? 'Authentication' : 'Workload'} evidence: ${directory}; not capacity certification.`);
       assert.equal(status, 0, 'k6 thresholds/execution failed; original evidence retained');
       assert.ok(report.valid, 'Workload validity failed; inspect report and raw metrics');
     }
@@ -125,7 +132,7 @@ try {
   process.exitCode = 1;
 } finally {
   if (interrupted) {
-    if (command === 'run' && loadedFixture?.status === 'ready') { loadedFixture.status = 'used'; savePrivate(path, loadedFixture); }
+    if ((command === 'run' || authCheck) && loadedFixture?.status === 'ready') { loadedFixture.status = 'used'; savePrivate(path, loadedFixture); }
     if (directory) json(`${directory}/interruption.json`, { signal: interrupted, at: new Date().toISOString(), valid: false });
     process.exitCode = interrupted === 'SIGINT' ? 130 : 143;
   }

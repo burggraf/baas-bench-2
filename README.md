@@ -2,7 +2,7 @@
 
 API-only, SDK-based capacity benchmarks for self-hosted backend-as-a-service systems. Start with [the benchmark plan](BENCHMARK_PLAN.md). To resume development, read [PROGRESS.md](PROGRESS.md) for the current checkpoint, verified work, and next steps.
 
-**Current milestone: API-only fixtures, an exploratory fixed-VU workload, observability, interruption/recovery and repeated fresh-deployment logical baseline proof—not capacity certification.** TrailBase conformance and the stateful workload use **17% likes / 5% unlikes**. Resource observations do not certify generator headroom. Capacity search, repeatability certification, and natural-expiry coverage remain deferred.
+**Current milestone: API-only fixtures, exploratory weighted workload, observability/recovery, fresh-deployment logical baseline proof and separate real-TTL SDK authentication verification—not capacity certification.** TrailBase conformance and the stateful workload use **17% likes / 5% unlikes**. Two-user natural refresh/continuity is verified separately; resource observations do not certify generator headroom. Capacity search, repeated performance certification and soak remain deferred.
 
 ## Requirements
 
@@ -133,13 +133,32 @@ Evidence is in ignored `results/baseline-<suffix>/`: exact Compose overrides, pe
 
 **Trial volumes are retained, not deleted.** They have been API-cleaned and are no longer pristine baselines; do not reuse them for performance comparisons. Their exact names/ownership labels are recorded in the report. Interrupted/failed preparation retains private credentials and failed evidence; inspect the recorded trial volume rather than pointing the ordinary reset command at it. Uncertain resource cleanup retains the operation lock. `recover` can release a supported stale lock but does not repair partial data or clean up these trial backends/volumes. No existing volume is automatically removed. This proof does not certify capacity, generator headroom or host/daemon crash recovery.
 
+### Separate long-lived authentication check
+
+With the pilot stopped and no active fixture/operation, run the native tests first:
+
+```sh
+npm run pilot:up
+npm run test:auth                 # prepares/resets its own small fixture; about 10 seconds
+node scripts/social.js prepare configs/smoke.json
+npm run auth:check                # real default TTL; about 61 minutes, not a smoke/performance test
+node scripts/social.js reset configs/smoke.json
+npm run pilot:down
+```
+
+`auth:check` uses the **same guarded k6 runner, official SDK transport, private fixture and recovery/telemetry lifecycle**, with two distinct users. Each logs in once, reads its protected own-like collection every five seconds, lets the SDK automatically refresh, crosses the original token's actual expiry, checks identity/data, then logs out. Default TTLs/clocks, weighted-workload session policy and backend resource settings are unchanged. The pinned SDK refreshes within 60 seconds **before** expiry; this checks natural refresh and continuity past original expiry, not sending an expired JWT or manually forcing refresh.
+
+A separate five-second `node scripts/social.js auth-smoke configs/smoke.json` exercises the path cheaply but **cannot claim natural expiry**. Both consume the fixture before launch. Reports remain `certified: false`; a natural pass requires every VU to verify the one-hour TTL, sufficient elapsed runner time, timely successful automatic refresh, a changed/extended token, protected reads after original expiry, stable identity and successful logout. Missing/failed/resource-interrupted evidence fails closed. Keep the host awake throughout; interrupted/invalid runs require explicit reset/reseed, never a retry on the used fixture. `recover` uses the existing run ownership checks and never repairs application data.
+
+Evidence is under ignored `results/social-<suffix>/`, with `kind: native-sdk-auth-correctness`, explicit `mode`, and `naturalExpiryCovered`. Raw `auth_check_session` points carry per-VU ordinal tags and numeric claim/timing/refresh/read/logout evidence for independent replay. No token values or native identities are added to auth metrics. This is not the weighted workload, a throughput/SLO result, or an overnight memory/soak qualification. The two-user real-TTL proof passed in **`results/social-OO5e3J/`**: 3,600-second TTL, one natural refresh per user, 14 protected reads after original expiry, successful logout and SDK cleanup, zero auth/HTTP failures. Raw-session/source/privacy audits and resource replay passed. See **PROGRESS.md** for exact evidence and source provenance; these ignored artifacts are local, so fresh clones must rerun the check.
+
 ### Credentials, sessions, and failure recovery
 
 - Credentials and API-returned IDs live only in ignored `.fixtures/trailbase.json` (0600) inside `.fixtures/` (0700). That directory is also excluded from Docker build contexts. It is mounted read-only only for the workload runner; never publish it.
 - JWTs and refresh tokens stay in memory and are **not persisted**. Preparation logs out; each VU logs in afresh with a distinct account. k6 `SharedArray` loads the fixture once and each VU copies only its own mutable state.
 - Each VU keeps its SDK client between actions. Native SDK token refresh remains enabled. Users renew sessions via logout/login after 5–15 minutes, while think time is 1–5 seconds. Separate deterministic PRNG streams control action selection, pacing, session lengths, and targets.
 - User arrivals ramp over 30 seconds, followed by 60 seconds of warm-up and 120 seconds of constant-VU measurement in the default config. Initial login is warm-up; subsequent login/logout/refresh requests are tagged and measured separately. SDK refresh/prerequisite calls triggered during an action remain inside action latency.
-- Normal completion attempts logout for every VU. Forced interruption can prevent cleanup. Actual access-token TTL ranges and observed refresh-request counts are reported; the default one-hour token TTL exceeds the configured session lengths, so natural refresh is not claimed. Conformance tests forced refresh separately.
+- Normal completion attempts logout for every VU. Forced interruption can prevent cleanup. Actual access-token TTL ranges and observed refresh-request counts are reported; the default one-hour token TTL exceeds the weighted workload's configured session lengths, so those runs do not claim natural refresh. Conformance tests forced refresh; the separate long-lived check above verifies natural automatic refresh/continuity.
 - The fixture is marked **used before** k6 launches, including failed runs. A second run is refused until reset/reseed. Normal API reset checks *all* fixture identities before deleting any and checks identity again for each deletion. Credentials are retained if cleanup fails.
 - `SIGINT`/`SIGTERM` cancel controller API requests and stop the asynchronous Docker client. The controller then checks the runner's exact run label, project, service, name and original image, pins cleanup to its inspected container ID, sends SIGINT with a 10-second stop grace, captures final monitoring state and removes only that runner. Exit codes are 130/143. Normal lock release waits for cleanup; cleanup failures retain the operation lock for explicit investigation/recovery.
 - Interrupted workload artifacts include `interruption.json` (`valid: false`), original streamed stdout/stderr and available metrics/failure metadata. A report, if available, cannot be valid after interruption. Force-stopped k6 may leave missing summaries or truncated gzip streams; these remain original failed evidence, not repaired/fabricated results. JWT revocation/logout is best-effort under interruption.
@@ -183,4 +202,4 @@ Reports label per-action tails **insufficient samples** below 1,000 observations
 
 ## Next milestone
 
-Repeated fresh-deployment preparation has been verified at both smoke and 1,000-account scale (see [PROGRESS.md](PROGRESS.md)). Next cover longer-lived native authentication and calibrate generator headroom before adding capacity discovery, repeated performance certification and soak tests. Future campaigns must explicitly integrate owned fresh deployments; the ordinary workload controller remains restricted to its original pilot volume. Catchable interruption and SIGKILL recovery have dedicated tests; host/daemon power-loss and exhaustive failure injection are not claimed. Remote-host automation and other BaaS adapters remain deferred.
+Repeated fresh-deployment preparation has been verified at both smoke and 1,000-account scale (see [PROGRESS.md](PROGRESS.md)). Separate long-lived native authentication is also verified. Next calibrate generator headroom and confirm on a larger/separate runner before adding capacity discovery, repeated performance certification and soak tests. Future campaigns must explicitly integrate owned fresh deployments; the ordinary workload controller remains restricted to its original pilot volume. Catchable interruption and SIGKILL recovery have dedicated tests; host/daemon power-loss and exhaustive failure injection are not claimed. Remote-host automation and other BaaS adapters remain deferred.

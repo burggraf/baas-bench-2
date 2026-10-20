@@ -4,11 +4,49 @@ Read this file first when resuming, then `README.md` for commands and `BENCHMARK
 
 ## Current state
 
-**Milestone:** TrailBase conformance, API-only fixtures, weighted workload, observability, interruption/recovery and **repeated fresh-deployment logical baseline proof** are implemented and verified. Three independent fresh volumes each produced 1,000 accounts / 10,000 posts / 10,000 likes with the same API-verified logical hash and different native identities. No maximum-user capacity result exists.
+**Milestone:** TrailBase conformance, API-only fixtures, weighted workload, observability, interruption/recovery, fresh-deployment logical baseline proof and **separate real-TTL automatic refresh/continuity verification** are implemented and verified. Two SDK/k6 users crossed the original one-hour access-token expiry with natural refresh and protected reads. Normal weighted sessions remain 5–15 minutes; no maximum-user capacity result exists.
 
-**Current implementation:** the commit containing this checkpoint adds verified fresh-deployment baseline proof on top of **`5b30028f74bbfe543671fd8478b95355e97e352c`** (observability/recovery); prior independent main updates are preserved. Resolve the publication commit with `git log -1 --format='%h %s'` and verify actual remote tips. Baseline-proof manifests record `5b30028`, dirty true, plus matching source/config hashes. Historical performance runs predate these changes and do not certify the new controller.
+**Current implementation:** the commit containing this checkpoint adds verified real-TTL SDK authentication checks on top of **`49fa4c9e3a43d7c2d613a220b4b7dfc546eeb48a`** (fresh-baseline proof) and `5b30028` (observability/recovery); prior independent updates are preserved. Resolve the publication commit with `git log -1 --format='%h %s'` and verify actual remote tips. The authentication manifest records `49fa4c9`, dirty true, and matching source/config/bundle hashes. Historical performance runs do not certify this changed controller.
 
-**Publication/checkpoint:** the user explicitly requested committing/pushing this completed fresh-baseline milestone, following the earlier observability/recovery publication. This request does not authorize automatic publication of subsequent work. Verify actual git tips/status on restart; do not infer publication from prose alone. Resume with “Read PROGRESS.md and continue from the checkpoint.”
+**Publication/checkpoint:** the user explicitly requested committing/pushing this completed authentication milestone, following the earlier fresh-baseline and observability/recovery publications. This request does not authorize automatic publication of subsequent work. Verify actual git tips/status on restart; do not infer publication from prose alone. Resume with “Read PROGRESS.md and continue from the checkpoint.”
+
+## Long-lived native authentication (verified)
+
+Restart confirmed clean local/origin/actual remote `main` at **`49fa4c9e3a43d7c2d613a220b4b7dfc546eeb48a`**. The user subsequently explicitly authorized committing/pushing this completed milestone.
+
+- Added `src/auth.js` with numeric/boolean per-session evidence gates and a fail-closed separate correctness report. Three new unit tests were observed red against stubs, then green: reject short elapsed time, clock/TTL changes, early/absent refresh, unchanged tokens, missing post-expiry reads/identity/logout, failures and missing/partial summaries. Five-second smoke never claims natural expiry.
+- Added `tests/auth.integration.js`; native red test **`auth-smoke-red-native-test` (`proc_ad58`)** failed for the expected missing `auth-smoke` command, then its finally block SDK-reset the ready fixture and stopped the pilot. Original logs retained.
+- Implemented separate `src/k6/auth.js` entry (two users with the existing smoke fixture; **not** accelerated token/session policy). One login per VU, protected own-like reads every five seconds, SDK automatic refresh only, real 3,600-second TTL and original expiry+30 seconds, identity/row checks, changed/extended token, successful logout. Uses runner elapsed time as well as wall clock; no fake clocks, manual refresh, HTTP-only fallback or alternate runner.
+- Pinned SDK source (`node_modules/trailbase/dist/index.js`) confirms automatic refresh when `exp - 60 < now`; natural proof must observe refresh no earlier than this window and subsequent protected reads beyond the original expiry. It is not an expired-JWT rejection test.
+- New `auth|auth-smoke` controller paths reuse original fixture, expected pilot volume, lock, runner ownership, resource monitor, cancellation/recovery and single-use guards. Recovery lock command stays the existing generic `run`, with explicit auth kind/mode metadata. Normal workload sessions/weights are unchanged. Build includes the separate bundle; manifests hash its sources/transport/build/bundle. No dependency added.
+- **`auth-check-full-native-regression` (`proc_a096`) exited 0 after 104 seconds**: all **45 unit tests**, bundles/images, three-fresh-smoke proof, original conformance, all six social/signal cases, and native auth smoke passed, followed by pilot shutdown. Auth smoke **`results/social-aqEMmo/`**: two logins, zero refreshes, TTL exactly 3,600 seconds, per-session elapsed 5.03 seconds, valid resource evidence, unchanged application counts, `naturalExpiryCovered: false`. Source/config/bundle hashes matched; integration scanned all public artifacts including compressed metrics against actual fresh passwords and proved SDK reset/zero posts.
+- **`auth-per-vu-evidence-red` (`proc_5d21`) failed as expected** (missing independent per-VU numeric evidence), with SDK reset/pilot shutdown successful. Added raw `auth_check_session` numeric points, tagged only by VU ordinal and fixed field names: claim times, runner/wall timing, refresh/read/failure counts and identity/logout/token-change booleans. No tokens, credentials/native IDs or raw errors. Missing/non-numeric values use an explicit -1 sentinel, not fabricated zero. **`auth-per-vu-evidence-green` (`proc_dd79`) exited 0 after 18 seconds**: all 45 units and the strengthened native auth integration passed, followed by pilot shutdown. The native test verified both VUs' raw numeric fields and rescanned all public/compressed artifacts against actual fresh passwords.
+
+Immediately before publication, **`natural-auth-precommit-verification` (`proc_ee97`) passed all 45 unit tests**. The hour-long proof's implementation/config/bundle hashes were freshly compared with current files and still matched; both audited sessions passed `sessionValid` again. Only documentation changed after native verification. Private fixtures, raw results and generated bundles remain excluded from the commit.
+
+### Real-TTL proof: `results/social-OO5e3J/`
+
+**`natural-one-hour-sdk-auth-proof` (`proc_7927`) exited 0 after 3,642 seconds**: pilot startup, four-account fixture preparation, two-VU k6/SDK natural auth check, independent raw-session/source/privacy audit, explicit SDK reset, zero-public-post verification and pilot shutdown. Temporary `caffeinate -i` assertion ended with the job. No implementation/config/bundle was changed during the proof; hashes were rechecked after completion.
+
+| Evidence | Result |
+|---|---|
+| Native TTL (initial and refreshed) | 3,600 seconds, unchanged |
+| Active users / initial logins | 2 / 2, separate clients/jars/identities |
+| Actual elapsed per VU | 3,629.594 / 3,629.595 seconds |
+| Automatic refreshes | 1 per VU, 2 total; no manual refresh/re-login |
+| Refresh timing | about 3,543.358s after login, **56.206s before original expiry** |
+| Protected own-like reads | 726 per VU, 1,452 total |
+| Reads after original expiry | 7 per VU, 14 total |
+| Auth/HTTP failures | 0 / 1,458 requests |
+| Completion | both original sessions preserved identity, changed/extended tokens, logged out; zero interrupted iterations |
+| Application counts before/after | unchanged: 4 accounts, 40 posts, 40 likes |
+
+- `report.json`: `kind: native-sdk-auth-correctness`, `mode: natural`, `valid: true`, `naturalExpiryCovered: true`, **`certified: false`**. This proves natural SDK pre-expiry refresh plus authenticated continuity beyond the **original** expiry, not sending/rejecting an expired JWT, a weighted-workload capacity/SLO result, or overnight soak qualification.
+- `audit.json`: both sessions reconstructed from original compressed raw `auth_check_session` points and independently passed `sessionValid`; all manifest source/config/bundle hashes matched. Before credential deletion, every public artifact/compressed metric was checked against actual current fixture passwords and password/auth-token/refresh-token fields. No JWT/refresh token persisted.
+- SDK 0.14.3, runner linux/arm64; backend actual Docker/cgroup budget verified **1 CPU / 4 GiB / no swap**. **26,385** original resource observations; fresh replay with `summarizeResources` exactly matched both saved resource summary and report. No observed restart/OOM/health/policy loss, zero OOM/throttle deltas, final runner exit 0, no rejected coverage gaps; generator headroom remains **unverified**.
+- Allocated service storage 239,296,512 -> 241,643,520 bytes while application counts stayed unchanged. This includes auth/WAL/allocation effects, not application payload growth; no specific cause or capacity inference is claimed.
+- Final SDK reset removed the generated accounts/application rows and private active fixture; a separate SDK public count proved **zero posts** before shutdown. Inspection confirmed no project containers/retained runners, monitor/Docker-stats processes, active fixture/operation/recovery locks or sleep assertion. Two original failed-baseline credential archives remain private/ignored; no retained volume was deleted.
+- Final `npm test` **`natural-auth-final-unit-verification` (`proc_9059`) exited 0** after completion; implementation remains unchanged. Publication was subsequently explicitly requested by the user.
 
 ## Fresh-baseline milestone (verified)
 
@@ -38,7 +76,7 @@ Immediately before publication, `fresh-baseline-precommit-unit-verification` (`p
 - Final report is `valid: true`, `certified: false`. All three SDK resets proved zero public posts before checked backend shutdown. `seedSeconds` includes initial verification, not the second verification/cleanup; none of these durations is a performance-capacity measurement.
 - Public evidence had no password/auth-token/refresh-token fields or archived failed-test passwords. Original CLI output, exact overrides, per-trial manifests, original failed attempts and private failed fixtures are retained. No source implementation changed after this verification.
 
-**Current cleanup:** no running managed jobs, project containers/retained runners, monitor/Docker-stats processes, active `.fixtures/trailbase.json`, operation lock or recovery claim. Two original failed-test fixtures remain archived privately under `.fixtures/archive/` (0600 files/0700 directories); their owned namespaces were separately SDK-cleaned and verified empty. New trial volumes are intentionally retained, never deleted; they are API-cleaned and **not pristine reusable baselines**. The original named pilot volume/images also remain. No physical snapshot, cold-host-cache equivalence, workload repeatability or capacity/headroom certification is claimed.
+**Post-baseline cleanup (before the active authentication work above):** no running managed jobs, project containers/retained runners, monitor/Docker-stats processes, active `.fixtures/trailbase.json`, operation lock or recovery claim. Two original failed-test fixtures remain archived privately under `.fixtures/archive/` (0600 files/0700 directories); their owned namespaces were separately SDK-cleaned and verified empty. New trial volumes are intentionally retained, never deleted; they are API-cleaned and **not pristine reusable baselines**. The original named pilot volume/images also remain. No physical snapshot, cold-host-cache equivalence, workload repeatability or capacity/headroom certification is claimed.
 
 ## Previous final verification and resource state
 
@@ -100,7 +138,7 @@ Prior read-only cleanup proof **`observability-final-cleanup-proof` (`proc_cce9`
 - Ignored `.fixtures/trailbase.json` contains credentials and API-returned IDs, never JWTs/refresh tokens. Directory 0700, file 0600; excluded from Git **and Docker build contexts**. Workload mounts it read-only and loads via k6 SharedArray; each VU copies only its own state.
 - Every run performs fresh native logins, one distinct account per VU. Reuse the SDK client/tokens only in memory between actions; default native refresh remains enabled.
 - Session renewal is logout/login as the same account; initial logins belong to warm-up. Renewals/auth HTTP requests are tagged separately; refresh and prerequisites triggered by an action stay inside its latency.
-- Reports record actual numeric access-token TTL ranges and observed refresh-request counts, not tokens. Observed TrailBase access TTL is 3,600 seconds. Default sessions are shorter; do **not** claim natural-expiry coverage. Forced refresh remains separately tested in conformance.
+- Reports record numeric access-token TTL ranges and refresh-request counts, not tokens. TrailBase access TTL is 3,600 seconds. Default weighted sessions are shorter; do **not** infer their refresh coverage from duration. Forced refresh is tested in conformance; the separate two-user real-TTL check above now verifies natural automatic refresh/continuity.
 - Normal end attempts logout; forced interruption may prevent it. The fixture is marked `used` **before launch**, including failed runs; a second run requires explicit reset/reseed.
 
 ## Implemented files
@@ -120,7 +158,7 @@ Prior read-only cleanup proof **`observability-final-cleanup-proof` (`proc_cce9`
 - `scripts/monitor.js`: independent Node collector, timestamped stats/cgroup/lifecycle observations for both roles, unchanged raw stats, selected-field inspection (never environment/health-log bodies), bounded commands/stop escalation and parent-IPC-loss shutdown. Verified runner exit between inspection/cgroup read is recorded as a terminal transition, not silently treated as zero counters or a collector error.
 - New `src/resources.js`: parser and conservative evidence summary. Observed CPU cores, sampled memory/current vs lifetime peak, OOM/throttling deltas, identity/policy/restart/health/exit checks; missing/bad/gapped samples fail closed. Generator headroom stays **unverified**, even with low utilization.
 - Top-level report `valid` combines `workloadValid` and `resources.valid`; it is not capacity certification. k6 exit **99** denotes completed threshold failures, not a runner crash. Other abnormal exits invalidate resource evidence. Raw reason/role records distinguish collector/backend/runner failures.
-- `tests/*.test.js`: 42 current Docker-free tests (20,000-pool regression, resource/parser/exit-race tests, asynchronous runner/abort/escalation tests and ownership/stale-lock refusal/recovery tests). `tests/pilot.integration.js`: original Node/k6 conformance. `tests/social.integration.js`: six cases—native exit-99 probe; full SDK/resource smoke; active-workload SIGINT, SIGTERM and SIGKILL+explicit recovery; and SIGTERM during native API preparation. Interrupt artifacts are checked for passwords/tokens, used baselines are refused, credentials survive recovery unchanged, and explicit SDK cleanup confirms zero public posts.
+- `tests/*.test.js`: 45 current Docker-free tests (20,000-pool regression, resource/parser/exit-race tests, asynchronous runner/abort/escalation tests and ownership/stale-lock refusal/recovery tests). `tests/pilot.integration.js`: original Node/k6 conformance. `tests/social.integration.js`: six cases—native exit-99 probe; full SDK/resource smoke; active-workload SIGINT, SIGTERM and SIGKILL+explicit recovery; and SIGTERM during native API preparation. Interrupt artifacts are checked for passwords/tokens, used baselines are refused, credentials survive recovery unchanged, and explicit SDK cleanup confirms zero public posts.
 
 ## Interruption/recovery verification (local, passed)
 
@@ -216,7 +254,7 @@ Raw evidence: **`results/social-gADSpc/`**, including `report.json`, `report.md`
 
 ## Known limits / traps
 
-- No capacity discovery, repeated certifications, soak, headroom proof, or natural-expiry coverage yet. Short fixed-VU evidence is not a maximum-user result.
+- No capacity discovery, repeated performance certification, soak or headroom proof yet. Natural refresh/continuity is verified only in the separate two-user real-TTL correctness check; default weighted sessions do not themselves reach expiry. Short fixed-VU evidence is not a maximum-user result.
 - Reports require >=1,000 samples **per action** and measurement-phase login evidence for tail conclusions; tiny/default fixed-VU runs intentionally remain insufficient evidence. k6 can show green percentile thresholds with zero samples; the report must still say insufficient.
 - Requested-mix sanity is only checked after 1,000 measurement actions (five-sigma binomial bound). Tiny runs exercise the generator but cannot certify exact percentages.
 - Like target search is explicitly bounded (current visible pool plus <=4 feed-page requests, <=5 native own-like probes per pool). It can report unavailable targets despite eligible rows elsewhere; such a run is invalid, not a backend capacity loss. Unlike fetches real own-like targets; no silent action substitution/no-op counting.
@@ -235,9 +273,9 @@ Raw evidence: **`results/social-gADSpc/`**, including `report.json`, `report.md`
 
 ## Next actions
 
-1. Fresh-deployment logical baseline proof is complete and committed at the user's request. Confirm publication against actual git tips/status; preserve raw evidence/private failure archives and retained volumes. Do not automatically commit/push subsequent work.
-2. Next bounded milestone: **long-lived native authentication**, preserving the default 3,600-second TTL and official SDK refresh behavior. Shortened smoke sessions/forced conformance refresh are not natural-expiry coverage; do not fake clocks/TTLs to claim it. Keep it separate from capacity certification and preserve the SDK/fallback approval boundary.
-3. Then generator calibration/larger-or-separate-runner confirmation before capacity search/other adapters. Future performance campaigns need explicit owned fresh-deployment integration; the ordinary workload controller still deliberately refuses these non-pilot proof volumes. Never bypass that guard or reuse the API-cleaned proof volumes as pristine baselines. Utilization is not headroom/capacity certification. Host/daemon power-loss, exhaustive fault injection and overnight-soak support remain unverified.
+1. Long-lived native authentication is complete and committed at the user's request. Confirm publication against actual git tips/status; preserve original proof/audit/raw evidence and private failure archives/retained volumes. Do not automatically commit/push subsequent work.
+2. Next bounded milestone: **generator calibration and larger-or-separate-runner confirmation**, keeping the official SDK/k6 contract and separating calibration from backend capacity. Plan against actual available hardware; ask before remote automation, a new runner/topology or any HTTP-only/different-runner fallback. Local low utilization and this two-user auth check are not headroom proof.
+3. Complete that evidence before capacity search/other adapters. Future performance campaigns need explicit owned fresh-deployment integration; the ordinary workload controller still deliberately refuses these non-pilot proof volumes. Never bypass that guard or reuse the API-cleaned proof volumes as pristine baselines. Utilization is not headroom/capacity certification. Host/daemon power-loss, exhaustive fault injection and overnight-soak support remain unverified.
 4. Run applicable suites after code changes, avoid overlapping tests/workloads, preserve original evidence, update this checkpoint with exact resource state and do not print secrets. Historical passes do not certify changed source.
 
 ## Restart commands
