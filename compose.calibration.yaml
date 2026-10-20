@@ -1,0 +1,36 @@
+name: baas-bench-2-calibration
+services:
+  target:
+    image: baas-bench-2-pilot-runner
+    cpus: 1.0
+    mem_limit: 256m
+    memswap_limit: 256m
+    command: ["node", "/work/src/calibration-target.js"]
+    volumes:
+      - ./src:/work/src:ro
+    labels:
+      baas-bench-2.run: ${CALIBRATION_RUN:?}
+    healthcheck:
+      test: ["CMD", "node", "-e", "require('http').get('http://127.0.0.1:4000/health',r=>process.exit(r.statusCode===200?0:1)).on('error',()=>process.exit(1))"]
+      interval: 2s
+      timeout: 2s
+      retries: 10
+    logging:
+      driver: json-file
+      options: {max-size: "1m", max-file: "1"}
+  runner:
+    image: baas-bench-2-pilot-runner
+    cpus: 2.0
+    mem_limit: 1g
+    memswap_limit: 1g
+    volumes:
+      - ./dist:/scripts:ro
+      - ./src/calibration-runner.js:/work/calibration-runner.js:ro
+      - ${CALIBRATION_RESULTS:?}:/results
+    labels:
+      baas-bench-2.run: ${CALIBRATION_RUN:?}
+networks:
+  default:
+    internal: true
+    labels:
+      baas-bench-2.run: ${CALIBRATION_RUN:?}

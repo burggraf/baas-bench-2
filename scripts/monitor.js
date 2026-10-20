@@ -1,6 +1,6 @@
 import { spawn, execFile } from 'node:child_process';
 import { promisify, stripVTControlCharacters } from 'node:util';
-import { appendFileSync, closeSync, openSync, readFileSync, writeFileSync } from 'node:fs';
+import { appendFileSync, closeSync, existsSync, openSync, readFileSync, writeFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { summarizeResources } from '../src/resources.js';
 
@@ -15,13 +15,25 @@ export function isTerminalSamplingRace(role, state, error) {
     new RegExp(`^Error response from daemon: container ${state.id} is not running\\s*$`, 'i').test(error.stderr ?? '');
 }
 
+export function parseRunnerCgroups(text, consumed, capturedMs, running) {
+  const lines = text.split('\n'), tail = lines.pop(), rows = lines.filter(Boolean).map(JSON.parse);
+  if (rows.length < consumed || (!running && (tail || rows.at(-1)?.final !== true))) throw new Error('Incomplete self cgroups');
+  const added = rows.slice(consumed);
+  for (const row of added) {
+    if (!Number.isFinite(Date.parse(row.at)) || !Number.isFinite(row.elapsedMs) || row.elapsedMs < 0 || row.elapsedMs < capturedMs ||
+        (capturedMs >= 0 && row.elapsedMs - capturedMs > 5000) || typeof row.source !== 'string' || typeof row.final !== 'boolean') throw new Error('Malformed/gapped self cgroups');
+    capturedMs = row.elapsedMs;
+  }
+  return { rows: added, consumed: rows.length, capturedMs };
+}
+
 const execute = promisify(execFile);
 const inspection = '{"id":{{json .Id}},"status":{{json .State.Status}},"running":{{json .State.Running}},"oomKilled":{{json .State.OOMKilled}},"exitCode":{{json .State.ExitCode}},"startedAt":{{json .State.StartedAt}},"finishedAt":{{json .State.FinishedAt}},"restarts":{{json .RestartCount}},"health":{{if index .State "Health"}}{{json .State.Health.Status}}{{else}}null{{end}},"run":{{json (index .Config.Labels "baas-bench-2.run")}},"nanoCpus":{{json .HostConfig.NanoCpus}},"cpuQuota":{{json .HostConfig.CpuQuota}},"cpuPeriod":{{json .HostConfig.CpuPeriod}},"cpuset":{{json .HostConfig.CpusetCpus}},"memoryLimit":{{json .HostConfig.Memory}},"memorySwap":{{json .HostConfig.MemorySwap}}}';
 const cgroupCommand = 'for f in cpu.stat memory.current memory.peak memory.events; do printf "\\n[%s]\\n" "$f"; cat "/sys/fs/cgroup/$f" 2>/dev/null || printf "unavailable\\n"; done';
 
-export async function startMonitor(directory, backendId, runnerName) {
+export async function startMonitor(directory, backendId, runnerName, runnerCgroupFile) {
   const err = openSync(`${directory}/monitor-stderr.log`, 'w');
-  const child = spawn(process.execPath, [fileURLToPath(import.meta.url), directory, backendId, runnerName], { stdio: ['ignore', 'ignore', err, 'ipc'] });
+  const child = spawn(process.execPath, [fileURLToPath(import.meta.url), directory, backendId, runnerName, ...(runnerCgroupFile ? [runnerCgroupFile] : [])], { stdio: ['ignore', 'ignore', err, 'ipc'] });
   closeSync(err);
   const ended = new Promise(resolve => {
     child.once('error', () => resolve({ status: null, error: 'spawn_failed' }));
@@ -41,7 +53,7 @@ export async function startMonitor(directory, backendId, runnerName) {
   } };
 }
 
-async function collect(directory, backendId, runnerName) {
+async function collect(directory, backendId, runnerName, runnerCgroupFile) {
   const began = process.hrtime.bigint(), records = [], streams = new Map();
   const errorFd = openSync(`${directory}/docker-stats-stderr.log`, 'w');
   writeFileSync(`${directory}/inspect-stderr.log`, '');
@@ -80,7 +92,18 @@ async function collect(directory, backendId, runnerName) {
     });
     streams.set(role, { child, ended });
   };
-  let runnerSeen = false;
+  let runnerSeen = false, consumed = 0, capturedMs = -1;
+  const selfCgroups = state => {
+    if (!existsSync(runnerCgroupFile)) {
+      if (!state.running) record('error', 'runner', null, { operation: 'self_cgroup_missing' });
+      return;
+    }
+    try {
+      const next = parseRunnerCgroups(readFileSync(runnerCgroupFile, 'utf8'), consumed, capturedMs, state.running);
+      for (const row of next.rows) record('cgroup', 'runner', row.source, { collection: 'container-self', capturedAt: row.at, capturedElapsedMs: row.elapsedMs, capturedFinal: row.final });
+      consumed = next.consumed; capturedMs = next.capturedMs;
+    } catch { record('error', 'runner', null, { operation: 'self_cgroup_invalid' }); }
+  };
   const sample = async (role, target) => {
     let state;
     try { state = JSON.parse((await docker(['inspect', '--format', inspection, target])).stdout); }
@@ -95,6 +118,11 @@ async function collect(directory, backendId, runnerName) {
     }
     if (state.status === 'created') { record('discovery', role, state); return; }
     record('lifecycle', role, state);
+    if (role === 'runner' && runnerCgroupFile) {
+      if (state.running) stats(role, state.id);
+      selfCgroups(state);
+      return;
+    }
     if (state.running) {
       stats(role, state.id);
       try { record('cgroup', role, (await docker(['exec', state.id, 'sh', '-c', cgroupCommand])).stdout); }

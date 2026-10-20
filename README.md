@@ -2,7 +2,7 @@
 
 API-only, SDK-based capacity benchmarks for self-hosted backend-as-a-service systems. Start with [the benchmark plan](BENCHMARK_PLAN.md). To resume development, read [PROGRESS.md](PROGRESS.md) for the current checkpoint, verified work, and next steps.
 
-**Current milestone: API-only fixtures, exploratory weighted workload, observability/recovery, fresh-deployment logical baseline proof and separate real-TTL SDK authentication verification—not capacity certification.** TrailBase conformance and the stateful workload use **17% likes / 5% unlikes**. Two-user natural refresh/continuity is verified separately; resource observations do not certify generator headroom. Capacity search, repeated performance certification and soak remain deferred.
+**Current milestone: API-only fixtures, exploratory weighted workload, observability/recovery, fresh-deployment logical baseline proof and separate real-TTL SDK authentication verification—not capacity certification.** TrailBase conformance and the stateful workload use **17% likes / 5% unlikes**. Two-user natural refresh/continuity and a separate partial local SDK read calibration are verified; neither resource observations nor synthetic reads certify full generator headroom. Capacity search, repeated performance certification and soak remain deferred.
 
 ## Requirements
 
@@ -200,6 +200,47 @@ Reports label per-action tails **insufficient samples** below 1,000 observations
 
 `resources.generatorHeadroom` is always **unverified** at this milestone. Low observed CPU/memory does not exclude per-VU/single-thread limits, host/OrbStack contention, socket pressure, thermal throttling or output/monitoring overhead. Controlled generator calibration and confirmation using a larger/separate runner near a real backend boundary are still required. Sampled stability means no instability was *observed*, not a soak/recovery certification. The pilot collector retains observations in memory while also writing raw files; bounded-memory aggregation is required before overnight soaks.
 
+## Local SDK/k6 calibration (separate synthetic target)
+
+This checks **the traffic generator, not TrailBase**. With the pilot stopped and no active fixture/operation/recovery claim:
+
+```sh
+npm run build
+# Builds the existing pinned Node/k6 image only; does not start TrailBase.
+docker compose build runner
+npm run test:calibration          # small native SDK/resource test and SIGTERM cleanup regression
+npm run calibration:run           # bounded four-rate experiment, about two minutes
+```
+
+The separate `baas-bench-2-calibration` project has an internal network, no published ports and **no persistent volumes**. It uses the existing image, official SDK and unchanged k6 transport. A small synthetic server returns an uncompressed static page of 20 posts with deterministic 1,024-byte bodies; every field of every returned row is validated. Warm-up as well as measurement validation failures are counted. No users, credentials, JWTs, database, writes or fake authentication are involved. Auth routes, mutations, arbitrary queries and requests carrying auth/cookies are rejected. The real TrailBase deployment/data is never mounted; retained pilot-volume metadata is compared before/after.
+
+The open-model experiment offers **25, 100, 400 and 1,600 SDK page reads/second**, sequentially, each with 5 seconds warm-up, 1 second drain and 20 seconds measurement. Each scenario has 32 preallocated/max VUs. The target gets 1 CPU/256 MiB; the runner gets 2 CPUs/1 GiB, both no swap, checked against Docker/cgroup evidence. These allocations are calibration conditions, **not a change to the backend's 1-CPU/4-GiB profile**. `node scripts/calibrate.js --smoke` uses 10/40 reads/s and shorter windows for integration testing. The controller accepts no arbitrary URL/rate/target options and refuses remote Docker or existing resources.
+
+Ignored `results/calibration-<suffix>/` holds source/image/runtime hashes, target limits, original Docker streams, per-rate k6 summaries/compressed raw points/stdout/stderr/exits, runner limits, original `runner-cgroups.jsonl`, monitor evidence and `report.json`. The monitor's `backend` role means **synthetic target**, never TrailBase. Failed evidence is retained. A usable trial requires validated SDK payloads, no logical failures, valid telemetry and normal exit. `rateDelivered` additionally requires no dropped measurement iterations and the scheduled count within one iteration; a delivery miss is not automatically attributed to k6 or TrailBase. Missing evidence remains invalid. Short-window p95s are descriptive, not SLO passes.
+
+Runner cgroups are captured by a small **OS-only Node supervisor inside the runner container**, periodically and after k6 exits, before the supervisor/container exits. Its CPU/RAM cost shares the declared runner budget; all API traffic is still direct SDK/k6, not a Node HTTP bridge. The external collector independently verifies Docker lifecycle/stats and ingests the original cgroup snapshots with capture/receipt times. Missing final snapshots, malformed data or gaps fail closed. This avoids launching short-lived `docker exec` readers exactly when the runner terminates; auxiliary nonzero exits are **not** silently suppressed. Other pilot workloads retain their original collection path.
+
+Run the timed experiment on AC power with sleep prevented; record power conditions. Logical timing includes SDK work and response validation. The paired per-request **non-HTTP residual** subtracts that request's HTTP duration before aggregation, clips timer-resolution negatives to zero, and includes connection/queueing plus SDK/validation and millisecond quantization. It is **not isolated SDK overhead**; do not subtract unrelated percentiles. Raw output and monitoring remain enabled, so results apply to that configuration.
+
+Every report remains `certified: false`, `generatorHeadroom: unverified`: a fast synthetic page cannot prove the cost of authenticated sessions, writes, stateful target search, host contention or a real BaaS boundary. Open-model VUs/iterations are not concurrent active humans. Larger/separate-runner confirmation near a real backend boundary remains pending; no capacity search follows automatically.
+
+Normal and catchable-signal cleanup checks exact project/run/service/image ownership and removes only ephemeral containers/network. An uncatchable death or uncertain cleanup retains a private **`command: calibration`** operation lock and requires manual inspection of the recorded exact resources and dead owner/monitor. The social controller's `recover` does **not** support this command: never blindly delete the lock, force-remove containers, or apply pilot recovery to calibration resources. No retained volume is removed.
+
+### Local observation (not capacity)
+
+The AC-powered, fixed-32-VU ladder completed with independently audited evidence in **`results/calibration-lxJZLK/`**:
+
+| Offered SDK page reads/s | Completed/s over 20s | Dropped measured iterations | Strict zero-drop delivery |
+|---:|---:|---:|---|
+| 25 | 25.05 | 0 | yes (one-iteration endpoint tolerance) |
+| 100 | 100.00 | 0 | yes |
+| 400 | 399.95 | 1 | **no** |
+| 1,600 | 1,056.70 | 10,867 | **no** |
+
+All started reads validated; resource evidence was valid, including original final cgroup counters. Raw count/quantile/resource replay, source hashes, public privacy scan and cleanup checks passed. AC was verified before/after, not continuously. Earlier collection failures are retained as invalid evidence, not repaired or promoted.
+
+k6 reported exhausting the 32-VU allocation at the higher rates. **Do not call 100/s a general maximum or equate these reads with active users.** VU allocation, runner/target/host scheduling and output/monitoring effects are not isolated. A focused allocation comparison is the next useful local experiment; a larger/separate runner near a real backend boundary is still needed before claiming full generator headroom. See **PROGRESS.md** for exact provenance, failed attempts and limitations. Raw artifacts remain ignored/local; fresh clones must rerun.
+
 ## Next milestone
 
-Repeated fresh-deployment preparation has been verified at both smoke and 1,000-account scale (see [PROGRESS.md](PROGRESS.md)). Separate long-lived native authentication is also verified. Next calibrate generator headroom and confirm on a larger/separate runner before adding capacity discovery, repeated performance certification and soak tests. Future campaigns must explicitly integrate owned fresh deployments; the ordinary workload controller remains restricted to its original pilot volume. Catchable interruption and SIGKILL recovery have dedicated tests; host/daemon power-loss and exhaustive failure injection are not claimed. Remote-host automation and other BaaS adapters remain deferred.
+Repeated fresh-deployment preparation has been verified at both smoke and 1,000-account scale (see [PROGRESS.md](PROGRESS.md)). Separate long-lived native authentication is also verified. The partial SDK read calibration above now records a delivery limit under its fixed 32-VU allocation. Next isolate that allocation limit without changing backend/workload semantics, then confirm full generator headroom with a larger/separate runner near a real boundary before adding capacity discovery, repeated performance certification and soak tests. Future campaigns must explicitly integrate owned fresh deployments; the ordinary workload controller remains restricted to its original pilot volume. Catchable interruption and SIGKILL recovery have dedicated tests; host/daemon power-loss and exhaustive failure injection are not claimed. Remote-host automation and other BaaS adapters remain deferred.
