@@ -12,6 +12,14 @@ test('approved defaults and smoke config validate', () => {
   assert.equal(config.weights.unlike, 5);
 });
 
+test('custom identity pools support up to 20000 distinct active users', () => {
+  for (const users of [10000, 10001, 15000, 20000]) {
+    const custom = { ...config, dataset: { ...config.dataset, profile: 'custom', users }, vus: users };
+    assert.equal(validateConfig(custom), custom);
+    assert.throws(() => validateConfig({ ...custom, vus: users + 1 }), /distinct identity pool/);
+  }
+});
+
 test('rejects unknown fields/actions, invalid weights/ranges, and undersized identity pools', () => {
   const invalid = [
     { mystery: 1 }, { weights: { ...config.weights, mystery: 0 } },
@@ -21,7 +29,7 @@ test('rejects unknown fields/actions, invalid weights/ranges, and undersized ide
     { dataset: { ...config.dataset, users: 1 } }, { dataset: { ...config.dataset, likesPerUser: 10001 } },
     { dataset: { ...config.dataset, postsPerUser: 0 } },
     { dataset: { ...config.dataset, users: 2000 } },
-    { dataset: { ...config.dataset, profile: 'custom', users: 10001 } },
+    { dataset: { ...config.dataset, profile: 'custom', users: 20001 } },
   ];
   for (const patch of invalid) assert.throws(() => validateConfig({ ...config, ...patch }), JSON.stringify(patch));
 });

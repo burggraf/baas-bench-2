@@ -14,7 +14,7 @@ export function validateConfig(c) {
   require(keys(c.dataset, ['profile', 'users', 'postsPerUser', 'likesPerUser']), 'dataset fields');
   require(typeof c.dataset.profile === 'string' && /^[a-z][a-z0-9-]{0,40}$/.test(c.dataset.profile), 'dataset profile');
   for (const name of ['users', 'postsPerUser', 'likesPerUser']) require(Number.isSafeInteger(c.dataset[name]) && c.dataset[name] > 0, name);
-  require(c.dataset.users >= 2 && c.dataset.users <= 10000 && c.vus <= c.dataset.users, 'distinct identity pool (2–10000)');
+  require(c.dataset.users >= 2 && c.dataset.users <= 20000 && c.vus <= c.dataset.users, 'distinct identity pool (2–20000)');
   if (['pilot-small', 'social-baseline'].includes(c.dataset.profile)) {
     require(c.dataset.users === (c.dataset.profile === 'pilot-small' ? 1000 : 10000) && c.dataset.postsPerUser === 10 && c.dataset.likesPerUser === 10, 'named dataset profile counts');
   }
