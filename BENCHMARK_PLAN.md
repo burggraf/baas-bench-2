@@ -191,8 +191,8 @@ The mix below is a **read-heavy synthetic social workload**, not an empirically 
 | List own latest posts | 15% | Server-side author filter, first 20 |
 | Read one post | 15% | Select a known visible post |
 | Create a post | 5% | Approximately 1-KiB body |
-| Like a post | 12% | Visible post not already liked by this user |
-| Unlike a post | 10% | Remove an existing like owned by this user |
+| Like a post | 17% | Visible post not already liked by this user |
+| Unlike a post | 5% | Remove an existing like owned by this user |
 | Edit own post | 8% | Update body/title, preserve author/creation time |
 | **Total** | **100%** | |
 

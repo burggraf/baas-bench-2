@@ -1,0 +1,40 @@
+name: baas-bench-2-pilot
+services:
+  trailbase:
+    build: ./backends/trailbase
+    cpus: 1.0
+    mem_limit: 4g
+    memswap_limit: 4g
+    environment:
+      RUST_LOG: warn
+    command: ["/app/trail", "--data-dir", "/app/traildepot", "run", "--address", "0.0.0.0:4000", "--admin-address", "127.0.0.1:4001"]
+    ports:
+      - "127.0.0.1:4000:4000"
+    volumes:
+      - trailbase-data:/app/traildepot
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "--silent", "http://127.0.0.1:4000/api/healthcheck"]
+      interval: 2s
+      timeout: 2s
+      retries: 30
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "2"
+  runner:
+    build:
+      context: .
+      dockerfile: runner/Dockerfile
+    profiles: ["test"]
+    environment:
+      BASE_URL: http://trailbase:4000
+    volumes:
+      - ./dist:/scripts:ro
+      - ./results:/results
+    command: ["k6", "run", "/scripts/conformance.js"]
+    depends_on:
+      trailbase:
+        condition: service_healthy
+volumes:
+  trailbase-data:

@@ -1,0 +1,25 @@
+{
+  "name": "baas-bench-2",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=24.11.0"
+  },
+  "scripts": {
+    "test": "node --test tests/*.test.js",
+    "build": "node scripts/build.js",
+    "test:pilot": "node --test tests/pilot.integration.js",
+    "pilot:up": "docker compose build trailbase runner && docker compose up -d --wait trailbase",
+    "pilot:node": "docker compose run --rm runner node scripts/conformance.js",
+    "pilot:conformance": "node scripts/run-k6.js",
+    "pilot:down": "docker compose down"
+  },
+  "dependencies": {
+    "core-js-pure": "3.51.0",
+    "trailbase": "0.14.3"
+  },
+  "devDependencies": {
+    "esbuild": "0.28.2"
+  }
+}
