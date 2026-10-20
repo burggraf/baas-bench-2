@@ -4,11 +4,35 @@ Read this file first when resuming, then `README.md` for commands and `BENCHMARK
 
 ## Current state
 
-**Milestone:** TrailBase conformance, API-only dataset preparation/reset, and the weighted fixed-VU workload are implemented and verified. Both the tiny end-to-end smoke and the full 1,000-account `pilot-small` exploratory run passed. No maximum-user capacity result exists.
+**Milestone:** TrailBase conformance, API-only fixtures, weighted fixed-VU workload, observability and **interruption/recovery hardening** are implemented and verified locally. Final tests cover SIGINT/SIGTERM during measurement, SIGKILL with explicit recovery, interrupted preparation, and repeated normal completion. The normal-exit sampling race was fixed with narrow regression coverage. No maximum-user capacity result exists.
 
-**Current implementation:** the fixture/workload milestone and this checkpoint are committed together on `main` in https://github.com/burggraf/baas-bench-2 (public). Resolve its hash with `git log -1 --format='%h %s'` when resuming. The preceding conformance milestone is `e609a22`.
+**Current implementation:** the commit containing this checkpoint includes both observability and interruption/recovery hardening, on `main` in https://github.com/burggraf/baas-bench-2 (public). Resolve its hash with `git log -1 --format='%h %s'`. Prior main commits `b7906ad` (resume prompt), `ed06e89` (20,000 custom identity pool), and `06ed6b1` (fixtures/workload) are preserved. The historical full observability run records revision `ed06e89`, dirty true, and predates recovery changes; the later signal/normal smoke manifests match the current implementation.
 
-**Publication/checkpoint:** the user explicitly requested committing and pushing this milestone before `/compact`, then resuming with “Read PROGRESS.md and continue from the checkpoint.” Verify `git status --short --branch` and local/remote tips on restart; do not infer publication from prose alone. This authorization does not require automatic commits/pushes for subsequent work.
+**Publication/checkpoint:** the user explicitly requested committing and pushing both completed observability/recovery milestones. Verify `git status --short --branch` and actual local/remote tips on restart; do not infer publication from prose alone. This request does not authorize automatic commits/pushes of subsequent work. Resume with “Read PROGRESS.md and continue from the checkpoint.”
+
+## Final verification and current resource state
+
+Managed process **`interrupt-recovery-measurement-regression` (`proc_2ca4`)** exited **0 after 95 seconds**:
+
+```sh
+npm test && npm run pilot:up && npm run test:pilot && npm run test:social \
+  && node --test --test-name-pattern='^API-only' tests/social.integration.js
+# Finally: pilot:down; preserve the actual exit code.
+```
+
+**39 unit tests passed**, original conformance passed (45 native SDK / 90 k6 checks), **all six social integration cases passed**, and the additional normal SDK smoke passed. Signal tests wait at least six seconds of sampled runner time and require actual measurement actions in partial reports, not only warm-up traffic.
+
+Immediately before publication, **`observability-recovery-precommit-verification` (`proc_645b`) exited 0 after 97 seconds**: all 39 unit tests, image builds/startup, original conformance, all six social integration cases and the additional normal smoke passed again, followed by `pilot:down`. No implementation changed between that verification and publication; only checkpoint publication notes were updated.
+
+Cleanup inspected after completion: **no running managed jobs, no Compose-project containers/retained runners, no monitor/Docker-stats processes, and an empty private `.fixtures/` directory** (no credentials, operation lock or recovery claim). Tests explicitly confirmed zero public posts through the native SDK after each reset/partial-seed cleanup. Named data volume/images and ignored artifacts remain; the volume is not a cold physical baseline.
+
+## Previous resource-state proof
+
+Managed process **`observability-final-regression-and-pilot-small` (`proc_190e`)** exited **0** after 419 seconds: unit tests, image builds/startup, conformance, expanded social tests, 1,000-account preparation, full workload, native API reset and `pilot:down`.
+
+Inspection confirmed no private fixture/operation lock, no managed jobs, no Compose-project containers (including retained runners), and no monitor/Docker-stats processes left. The named volume/images and ignored artifacts remain; that volume is not a cold physical baseline.
+
+Prior read-only cleanup proof **`observability-final-cleanup-proof` (`proc_cce9`) exited 0**: restarted the retained volume, asserted **zero public posts through the native SDK**, then stopped/removed the pilot again. The newer interruption/recovery verification also completed and cleaned up, as recorded above.
 
 ## Confirmed decisions
 
@@ -60,12 +84,59 @@ Read this file first when resuming, then `README.md` for commands and `BENCHMARK
 - `src/base64.js`: tested browser-compatible atob padding over k6's strict decoder; shared with conformance.
 - `src/report.js`: observed mix, failure counts, action/login tails, insufficient-sample labels, TTL/refresh evidence. Reports are always exploratory, `certified: false`.
 - `scripts/social.js`: `prepare|run|reset` controller with private operation lock, expected pilot-volume checks, baseline verification/consumption, raw artifacts, backend Docker stats, API start/end row counts and allocated storage, JSON/Markdown report.
-- `scripts/runtime.js`: common source/runtime manifests, actual resource-limit verification and runner output preservation. Existing conformance runner now reuses it.
-- `tests/*.test.js`: 23 current Docker-free tests. `tests/pilot.integration.js`: original Node/k6 conformance/artifacts. `tests/social.integration.js`: real four-account API seed, static pagination, all actions, fresh sessions/renewal, artifact privacy, used-baseline rejection, API reset.
+- `scripts/runtime.js`: common manifests/limit verification and **asynchronous** runner execution with live, original stdout/stderr files, exit records, abort-before-start guard and bounded Docker-client termination/escalation. All callers await it; conformance runners still auto-remove. Synchronous preflight captures now have a 30-second command timeout.
+- New `scripts/recovery.js`: private versioned lock recovery, live-PID refusal, exact run/project/service/name/image checks, and container-ID-pinned SIGINT/10-second stop then removal. Normal shutdown quiesces, records final monitor state, then removes; explicit stale recovery never changes credentials or application rows.
+- `scripts/social.js` handles SIGINT/SIGTERM via AbortController, cancels native controller API requests, records interrupted/invalid evidence and exits 130/143. Used fixtures stay used; partial seed status remains failed. Cleanup failure retains the lock; explicit `recover` handles dead owners but refuses live/reused/inaccessible PIDs and unknown/corrupt/insecure records. SIGKILL leaves a stale record; no arbitrary OS PIDs are killed.
+- `scripts/monitor.js`: independent Node collector, timestamped stats/cgroup/lifecycle observations for both roles, unchanged raw stats, selected-field inspection (never environment/health-log bodies), bounded commands/stop escalation and parent-IPC-loss shutdown. Verified runner exit between inspection/cgroup read is recorded as a terminal transition, not silently treated as zero counters or a collector error.
+- New `src/resources.js`: parser and conservative evidence summary. Observed CPU cores, sampled memory/current vs lifetime peak, OOM/throttling deltas, identity/policy/restart/health/exit checks; missing/bad/gapped samples fail closed. Generator headroom stays **unverified**, even with low utilization.
+- Top-level report `valid` combines `workloadValid` and `resources.valid`; it is not capacity certification. k6 exit **99** denotes completed threshold failures, not a runner crash. Other abnormal exits invalidate resource evidence. Raw reason/role records distinguish collector/backend/runner failures.
+- `tests/*.test.js`: 39 current Docker-free tests (20,000-pool regression, resource/parser/exit-race tests, asynchronous runner/abort/escalation tests and ownership/stale-lock refusal/recovery tests). `tests/pilot.integration.js`: original Node/k6 conformance. `tests/social.integration.js`: six cases—native exit-99 probe; full SDK/resource smoke; active-workload SIGINT, SIGTERM and SIGKILL+explicit recovery; and SIGTERM during native API preparation. Interrupt artifacts are checked for passwords/tokens, used baselines are refused, credentials survive recovery unchanged, and explicit SDK cleanup confirms zero public posts.
 
-## Verified evidence
+## Interruption/recovery verification (local, passed)
 
-Final successful regression command **after** the larger run:
+- `interrupt-recovery-first-regression` (`proc_1f3d`) exited 0 with the initial implementation, original conformance and SIGINT/SIGTERM/SIGKILL recovery tests.
+- Expanded `interrupt-recovery-final-regression` (`proc_336a`) passed all 38 then-current unit tests, conformance, native exit probe, all three active-workload signal cases, and early-preparation cancellation. Its normal smoke correctly rejected telemetry due to a **real sampling race**, not application failures: `results/social-BWnIyY/resources.jsonl` recorded a cgroup read after k6 had exited.
+- Native diagnostic `runner-terminal-race-diagnostic` (`proc_7981`) proved Docker exec returns exit 1 with `container <id> is not running` for a stopped container; raw output is in **`results/exit-race-KgsJcV/`**. The new unit test was observed red before the fix, then all seven resource tests passed.
+- Fix re-inspects the same runner ID and accepts only that exact native error plus verified exited/nonrunning state as a terminal lifecycle transition. Backend failure, timeout, permission error, still-running state and wrong ID remain errors; exit 137/OOM/restart still fail normal stability gates. Native cgroup stderr is now retained separately. Failed evidence is untouched.
+- Fake-Docker unit coverage proves exact-label/project/service/image/name ownership, ID-pinned stop/remove, no forced removal, absent-vs-daemon-error distinction, active-PID refusal, stale recovery preserving credential bytes, and legacy/corrupt lock refusal. Runner tests prove event-loop progress and forced termination of an explicitly uncooperative client after SIGTERM.
+- **`interrupt-recovery-verified-regression` (`proc_e393`) exited 0 after 83 seconds:** all 39 unit tests, conformance, all six social integration cases and an extra normal SDK smoke passed. The signal cases at this point interrupted active warm-up traffic. All five run manifests matched the current implementation/config/bundle hashes. Normal reports `results/social-9jXhCE/` and `results/social-5bln1m/` were valid/exploratory (283/282 measurement actions); SIGINT/SIGTERM reports `social-dz5Hg3`/`social-cMWwBj` were invalid; killed run `social-otGaqQ` had no success report and explicit recovery in `results/recovery-KiDIxB/recovery.json`. Cleanup inspection found no fixtures/locks/claims/owned containers/monitor/stats jobs.
+- Tests were strengthened to interrupt after measurement starts. Final fresh **`proc_2ca4` passed all 39 unit tests, conformance, six social cases and an extra normal smoke**. Current-source evidence:
+  - **`results/social-vFFxsr/`**: normal valid/exploratory SDK smoke, 283 measurement actions.
+  - **`results/social-Sfwrub/`**: SIGINT, 85 measurement actions, invalid report, controller exit 130 and native k6 external-abort exit 105.
+  - **`results/social-HiyJ4o/`**: SIGTERM, 86 measurement actions, invalid report, controller exit 143 and native k6 exit 105.
+  - **`results/social-zwsnQn/`**: controller SIGKILL, no fabricated success report; **`results/recovery-1uxvva/recovery.json`** records checked removal of the owned runner/stale lock. Fixture credentials remained byte-for-byte unchanged until explicit SDK reset.
+  - **`results/social-Rftms5/`**: second normal valid/exploratory smoke, 281 measurement actions, zero action failures.
+  - SIGTERM during native preparation preserved a 0600 `failed` fixture, blocked run/reset, and released its lock. The test then explicitly deleted only its own generated accounts through authenticated SDK calls; the production CLI still refuses partial-seed data repair.
+- All five final run manifests matched current source/config/bundle hashes. Checked public text had no password/auth-token/refresh-token fields; integration tests also compared actual live fixture passwords against interrupted artifacts. `git diff --check` and cleanup inspection passed. Original failed evidence/diagnostics were retained unchanged.
+- The earlier 1,000-account observability run below predates these controller changes; it is not current-source interruption or capacity certification.
+
+## Prior observability verification (local, passed)
+
+Final process `proc_190e` ran all applicable suites and the larger profile on the unchanged implementation:
+
+- **30 unit tests passed**, zero failed/skipped.
+- Original conformance integration passed: **45 native SDK checks and 90 k6 checks across two VUs**.
+- Both social integration tests passed: pinned k6's native threshold-exit-99 diagnostic, then the full SDK smoke (about 22 seconds) covering actions/sessions, both resource roles, timestamps/cgroups/final exit, owned-runner removal, artifact privacy, baseline-reuse refusal and API reset.
+- Earlier corrected smoke/conformance process `proc_6f43` also exited 0 before the exit-code distinction was added.
+- Unit tests were observed red before implementing parsers/evidence gates, then green. They cover missing/malformed/gapped data, counter rollback, OOM/restart/health/policy changes, nonzero exit, and never inferring headroom from low CPU/memory.
+- Initial Docker attempts were correctly rejected as invalid monitoring despite successful application actions. Exact diagnostic evidence in `results/social-USDjMo/` exposed native stats terminal controls and Go-template failure on a runner with no health-check field. The parser uses Node's standard `stripVTControlCharacters`; raw bytes remain separate and unchanged. Inspection now guards missing `Health`, and expected pre-creation `no such object` detection is case-insensitive. Both old failed artifacts remain retained.
+- A completed threshold-failure exit 99 remains distinct from a crash (137 etc.). The final native k6 Counter-only diagnostic proved pinned exit behavior (and preserved stdout/stderr/exit under `results/threshold-exit-*/`); this is not an HTTP/SDK fallback or performance measurement.
+
+### New full-profile evidence: `results/social-gJZifM/`
+
+- Native API seeded/verified **1,000 users, 10,000 posts and 10,000 likes in 82.31 seconds**. Native SDK workload: 10 VUs, normal think time, 30s ramp + 60s warm-up + 120s measurement.
+- **408 measurement actions, zero logical/action/HTTP/auth failures**. All seven actions executed: public list 142, own list 58, read 79, create 15, like 64, unlike 25, edit 25. All 10 VUs completed without interruption; zero unavailable targets/invalid responses.
+- Ten fresh warm-up logins; no measurement-phase logins or natural refresh. TTL remains 3,600s. Shortened-session renewals are covered separately by the tiny smoke.
+- `valid: true`, `workloadValid: true`, `resources.valid: true`, `certified: false`; mix/tail evidence remains **insufficient_samples**, and generator headroom remains **unverified**.
+- **1,552 timestamped observations**, including 429 backend and 425 runner stats points. Backend cgroup/lifecycle samples: 176/176; runner: 172/174. No evidence gaps rejected, no observed restart/health loss/OOM, unchanged resource settings, final runner exit 0. OOM and observed CPU-throttling deltas were zero for both roles.
+- Observed sampled peaks (startup/warm-up/measurement/cleanup combined): backend **0.3733 CPU cores / 262.98 MiB** current memory; runner **3.291 CPU cores / 87.38 MiB**. Do not call the larger cgroup lifetime memory peak a run-only peak, or infer generator headroom from these numbers.
+- Native API end counts before reset: **10,030 posts and 10,074 likes**, including warm-up writes. Allocated service storage 519,319,552 -> 242,749,440 bytes; this includes auth/WAL/allocation effects, not just payloads.
+- At that observability milestone, source/config/bundle hashes matched its full-profile manifest. Every resource line had valid UTC/monotonic receipt time; recomputing the summary from raw resource rows exactly reproduced the saved summary. The compressed k6 metric stream parsed as JSON lines. Checked public artifacts/raw metric text contained no password/auth-token/refresh-token fields. Normal API reset removed credentials, and owned runner/collector/stats/container cleanup was inspected.
+- Original raw logs, failed trials and manifests remain ignored/local. No capacity, sustained headroom, natural-expiry or soak certification is claimed.
+
+## Prior fixture/workload milestone evidence (`06ed6b1`)
+
+Final successful regression command **after** its larger run:
 
 ```sh
 npm test
@@ -90,13 +161,13 @@ Original failures are retained in ignored `results/social-*/` (not rewritten):
 2. Like-target depletion revealed that TrailBase omits cursors for custom sorting. Confirmed in upstream v0.35.1 `list_records.rs`; the official SDK exposes offset pagination. Changed prerequisites to native SDK offsets, retained `created_at DESC, id DESC`, and added static nonoverlapping-page plus exhausted-offset regression tests. No HTTP-only fallback.
 3. Added a regression ensuring the first edit cannot reproduce a seed payload; workload sequence starts above the seed-post sequence range.
 
-The full-profile manifest's source/config/bundle hashes were compared to current files and matched. All 11,043 lines of its compressed raw metric stream parsed as JSON and contained no password/auth-token/refresh-token field names. Git/Docker ignore rules for `.fixtures`, `results` and `dist` were checked. `git diff --check` passed.
+At the prior milestone, the full-profile manifest's source/config/bundle hashes matched the then-current files. New observability source is different and needs its own evidence. All 11,043 lines of its compressed raw metric stream parsed as JSON and contained no password/auth-token/refresh-token field names. Git/Docker ignore rules for `.fixtures`, `results` and `dist` were checked. `git diff --check` passed.
 
 Immediately before publication, managed process `workload-precommit-regression` (`proc_e2c3`) reran `npm test`, image builds/startup, `test:pilot`, and `test:social`, then `pilot:down`; exit 0. All 23 unit tests and both integration suites passed again. The full 1,000-account implementation hashes still matched the larger-run manifest; only checkpoint/documentation changed after that run.
 
 These ignored local artifacts/process logs are not present in a fresh clone. Rerun checks before making current claims.
 
-## Larger-profile result and resource state
+## Prior larger-profile result (`06ed6b1`, before observability)
 
 Managed process **`pilot-small-api-seed-and-workload` (`proc_0b95`)** exited **0** after 383 seconds. It ran native API preparation, the default fixed-VU workload, API cleanup and `pilot:down`.
 
@@ -111,7 +182,7 @@ Raw evidence: **`results/social-gADSpc/`**, including `report.json`, `report.md`
 - `valid: true`, `certified: false`, mix and tail evidence **insufficient_samples**. Do not promote green k6 thresholds or these low-sample timings into capacity/SLO certification.
 - Allocated service storage fell from 494,678,016 to 235,741,184 bytes despite logical row growth. This is deployment-wide allocated storage (including auth/WAL/files), not an application-payload size measure; do not call it negative application growth or infer a specific cause without further evidence.
 
-**Cleanup verified:** all benchmark fixture accounts/application data were deleted through native APIs, private fixture and operation lock removed, pilot containers/network stopped and removed, and no managed jobs left running. The isolated named data volume/images and ignored raw artifacts remain. Do not treat the retained volume as a cold physical baseline for future performance comparisons.
+**Prior-milestone cleanup was verified:** benchmark fixture accounts/application data deleted through native APIs, private fixture/lock removed, containers/network removed, no managed jobs left running at that time. The newer observability run has also completed and cleaned up, as recorded above. The isolated named data volume/images and ignored raw artifacts remain. Do not treat the retained volume as a cold physical baseline for future performance comparisons.
 
 ## Known limits / traps
 
@@ -120,11 +191,13 @@ Raw evidence: **`results/social-gADSpc/`**, including `report.json`, `report.md`
 - Requested-mix sanity is only checked after 1,000 measurement actions (five-sigma binomial bound). Tiny runs exercise the generator but cannot certify exact percentages.
 - Like target search is explicitly bounded (current visible pool plus <=4 feed-page requests, <=5 native own-like probes per pool). It can report unavailable targets despite eligible rows elsewhere; such a run is invalid, not a backend capacity loss. Unlike fetches real own-like targets; no silent action substitution/no-op counting.
 - Custom-order feeds use offsets, not cursors. Concurrent inserts can shift pages; native checks avoid duplicate like inserts. This common target-selection rule must remain documented across adapters.
-- Backend Docker stats are raw ordered samples without per-sample timestamps; generator utilization/headroom and restart/OOM/stability validation are not yet complete. Allocated storage includes auth/WAL/service files, not only payloads.
+- New resource collection uses timestamped receipt/monotonic time, selected lifecycle snapshots and native cgroup counters, plus separate unmodified stats bytes. Stats gaps >5 seconds invalidate evidence; this is a coverage guard, not a headroom threshold. Samples cover startup/warm-up/measurement/k6 cleanup; lifetime cgroup peaks can predate the run. Generator calibration, host/VM/socket/thermal contention and monitoring overhead remain unverified. Allocated storage includes auth/WAL/service files, not only payloads.
+- The pilot collector retains observation records in memory as well as writing raw files; use bounded-memory aggregation before overnight soaks. No overnight-soak support is claimed.
+- SIGINT/SIGTERM now cancel API calls, stop only checked run-owned resources and release the operation lock after cleanup. SIGKILL requires explicit `node scripts/social.js recover`; monitor parent-loss shutdown is tested. Unknown/empty/legacy/corrupt/insecure locks and stale recovery claims require manual investigation. PID reuse/live/inaccessible PID checks refuse rather than guessing. No power-loss/daemon-loss/exhaustive failure-injection guarantee is claimed.
 - Controller supports only the local pilot and expected named volume. Remote Docker contexts/arbitrary targets are not supported. Do not repoint it at production/shared services.
 - API reset restores logical data, not cold caches/file layout/auth-history equivalence. Comparable performance trials need fresh isolated deployments/volumes plus deterministic API reseeding, not just deletion/reinsertion.
 - Partial seeds are fail-closed and not resumable; explicit isolated-deployment reset is required. Deletion progress is private/persisted, but a crash between a successful server deletion and saving its progress can require manual isolated-deployment recovery.
-- A stale private operation lock blocks continuation. Inspect active jobs before removing it. Normal command completion releases its lock; normal successful reset removes credentials.
+- A stale private operation lock blocks continuation. Prefer explicit `node scripts/social.js recover` for supported dead-owner records; it does not change fixture credentials or application data. Wait for a still-live monitor to shut down first. Recovery itself uses an exclusive private recovery claim; a crash during recovery can require manual inspection of that claim. Never blindly delete locks or private fixtures. An uncertain last API deletion remains fail-closed, not an inferred success.
 - Existing named volumes keep their original schema/config after image rebuild. Provisioning changes need an explicitly approved project-only volume reset, never deletion of unrelated volumes.
 - Rebuild runner images after shared conformance/dependency changes; the Node conformance copy lives in the image. k6 bundles are rebuilt by controllers.
 - SDK compatibility is limited to exercised auth/Record paths. Optional `urlSafeBase64Decode` still hits k6 `Uint8Array.from(string)`; ordering assertions use atob. Uploads/realtime/streaming remain untested.
@@ -132,10 +205,10 @@ Raw evidence: **`results/social-gADSpc/`**, including `report.json`, `report.md`
 
 ## Next actions
 
-1. Confirm the clean/published checkpoint and inspect current code/callers. The fixture/workload milestone is finished; do not repeat its implementation or mistake the 10-VU run for capacity certification.
-2. Continue with a bounded observability milestone: timestamped backend **and runner** resource monitoring, runtime stability evidence (restart/OOM/exit), and honest generator-headroom validity reporting. Reuse existing Docker/k6 facilities, preserve raw source samples, and add regression/integration coverage. Do not jump to capacity search or another adapter.
-3. Then address interrupt cleanup, fresh-deployment baseline repetition proof, and long-lived authentication coverage before capacity certification. API reset is not a cold physical baseline.
-4. Run applicable suites after any code changes; avoid overlapping tests/workloads, preserve original artifacts, update this file with exact evidence/resource state, and do not print secrets. Historical passes do not certify changed code.
+1. Observability and interruption/recovery milestones are complete and verified, committed together at the user's request. Confirm clean/published state against actual git tips and preserve original artifacts. Do not automatically commit/push subsequent work.
+2. Next bounded milestone: repeated **fresh-deployment baseline proof**, without weakening fixed pilot/project/volume ownership guards. Decide how to provision isolated disposable trial volumes; ask before deleting the retained data volume. API deletion/reset is not a cold physical baseline.
+3. Then long-lived authentication and generator calibration/larger-runner confirmation before capacity search/other adapters. Utilization is not headroom/capacity certification. Host/daemon power-loss, exhaustive fault injection and overnight-soak support remain unverified.
+4. Run applicable suites after code changes, avoid overlapping tests/workloads, preserve original evidence, update this checkpoint with exact resource state and do not print secrets. Historical passes do not certify changed source.
 
 ## Restart commands
 

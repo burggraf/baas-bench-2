@@ -1,9 +1,9 @@
 import assert from 'node:assert/strict';
-import { execFileSync, spawnSync } from 'node:child_process';
+import { execFileSync, spawn } from 'node:child_process';
 import { createHash } from 'node:crypto';
-import { readFileSync, writeFileSync } from 'node:fs';
+import { closeSync, openSync, readFileSync, writeFileSync, writeSync } from 'node:fs';
 
-export const capture = (command, args) => execFileSync(command, args, { encoding: 'utf8' }).trim();
+export const capture = (command, args) => execFileSync(command, args, { encoding: 'utf8', timeout: 30000 }).trim();
 export const hash = path => createHash('sha256').update(readFileSync(path)).digest('hex');
 
 export function runtimeManifest(paths) {
@@ -30,11 +30,27 @@ export function runtimeManifest(paths) {
   };
 }
 
-export function runRunner(directory, name, args, extra = []) {
-  const result = spawnSync('docker', ['compose', 'run', '--rm', '--user', `${process.getuid()}:${process.getgid()}`, ...extra, 'runner', ...args], { encoding: 'utf8', maxBuffer: 10 * 1024 * 1024 });
-  writeFileSync(`${directory}/${name}-stdout.log`, result.stdout ?? '');
-  writeFileSync(`${directory}/${name}-stderr.log`, result.stderr ?? '');
-  writeFileSync(`${directory}/${name}-exit.json`, JSON.stringify({ status: result.status, signal: result.signal, error: result.error?.code }));
-  process.stdout.write(result.stdout ?? ''); process.stderr.write(result.stderr ?? '');
+export async function runRunner(directory, name, args, extra = [], { remove = true, signal } = {}) {
+  signal?.throwIfAborted();
+  const out = openSync(`${directory}/${name}-stdout.log`, 'w');
+  const err = openSync(`${directory}/${name}-stderr.log`, 'w');
+  let error, timer;
+  const child = spawn('docker', ['compose', 'run', ...(remove ? ['--rm'] : []), '--user', `${process.getuid()}:${process.getgid()}`, ...extra, 'runner', ...args], { stdio: ['ignore', 'pipe', 'pipe'] });
+  const stop = () => {
+    child.kill('SIGTERM');
+    timer ??= setTimeout(() => child.kill('SIGKILL'), 2000);
+  };
+  signal?.addEventListener('abort', stop, { once: true });
+  for (const [stream, fd, output] of [[child.stdout, out, process.stdout], [child.stderr, err, process.stderr]]) {
+    stream.on('data', data => {
+      try { writeSync(fd, data); output.write(data); }
+      catch (failure) { error = failure.code ?? 'output_failed'; stop(); }
+    });
+  }
+  child.once('error', failure => { error = failure.code; });
+  const result = await new Promise(resolve => child.once('close', (status, signal) => resolve({ status: error ? null : status, signal, error })));
+  clearTimeout(timer); signal?.removeEventListener('abort', stop);
+  closeSync(out); closeSync(err);
+  writeFileSync(`${directory}/${name}-exit.json`, JSON.stringify(result));
   return result.status;
 }
