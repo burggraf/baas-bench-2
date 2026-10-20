@@ -7,9 +7,9 @@ import { initClient } from 'trailbase';
 import { createTransport } from './transport.js';
 import { calibrationRows } from '../calibration.js';
 globalThis.URL=URL;globalThis.URLSearchParams=URLSearchParams;
-const rate=Number(__ENV.CALIBRATION_RATE), seconds=Number(__ENV.CALIBRATION_SECONDS), warmup=Number(__ENV.CALIBRATION_WARMUP);
-if(![10,25,40,100,400,1600].includes(rate)||![6,20].includes(seconds)||![2,5].includes(warmup))throw new Error('Bounded calibration configuration required');
-const scenario={executor:'constant-arrival-rate',rate,timeUnit:'1s',preAllocatedVUs:32,maxVUs:32};
+const rate=Number(__ENV.CALIBRATION_RATE), seconds=Number(__ENV.CALIBRATION_SECONDS), warmup=Number(__ENV.CALIBRATION_WARMUP),vus=Number(__ENV.CALIBRATION_VUS);
+if(![10,25,40,100,400,1600].includes(rate)||![6,20].includes(seconds)||![2,5].includes(warmup)||![32,128].includes(vus))throw new Error('Bounded calibration configuration required');
+const scenario={executor:'constant-arrival-rate',rate,timeUnit:'1s',preAllocatedVUs:vus,maxVUs:vus};
 export const options={
   scenarios:{warmup:{...scenario,duration:`${warmup}s`,gracefulStop:'1s'},measure:{...scenario,startTime:`${warmup+1}s`,duration:`${seconds}s`,gracefulStop:'2s'}},
   thresholds:{calibration_failed:['rate==0'],calibration_completed:['count>0'],'dropped_iterations{scenario:measure}':['count>=0']},

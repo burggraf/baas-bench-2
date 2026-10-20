@@ -9,7 +9,7 @@ export function readCgroupSnapshot(directory='/sys/fs/cgroup') {
 }
 if(process.argv[1]===fileURLToPath(import.meta.url)) {
   const[id,...args]=process.argv.slice(2);
-  assert.match(id,/^calibration-[A-Za-z0-9]{6}-(10|25|40|100|400|1600)$/);assert.equal(args[0],'run');
+  assert.match(id,/^calibration-[A-Za-z0-9]{6}-(10|25|40|100|400|1600)(-vu(32|128))?$/);assert.equal(args[0],'run');
   const directory=`/results/${id}`,began=process.hrtime.bigint();
   const limits=['cpu.max','memory.max','memory.swap.max'].map(name=>readFileSync(`/sys/fs/cgroup/${name}`,'utf8')).join('');
   writeFileSync(`${directory}/runner-limits.txt`,limits);

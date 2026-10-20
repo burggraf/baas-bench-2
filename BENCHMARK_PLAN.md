@@ -125,7 +125,7 @@ A quota is not a physical core. Record CPU model, architecture, quota period, af
 
 ### Mac pilot procedure
 
-Use native ARM64 images for both backend and runner. Do not silently use AMD64 emulation. Keep OrbStack CPU/RAM settings fixed with enough VM and host headroom for backend, runner, Docker, and macOS. Use a named data volume rather than a macOS bind mount for database files. Run on power, disable sleep, close heavy workloads, and record thermal throttling where available. The fanless M1 Air needs sustained runs and cooldown checks; a short burst can overstate durable capacity.
+Use native ARM64 images for both backend and runner. Do not silently use AMD64 emulation. Keep OrbStack CPU/RAM settings fixed with enough VM and host headroom for backend, runner, Docker, and macOS. Use a named data volume rather than a macOS bind mount for database files. Prevent idle sleep, close heavy workloads, and record thermal throttling where available. For this local MacBook Air M1 workflow, the user explicitly disabled power-source verification; do not query power state or gate execution on AC. The fanless M1 Air needs sustained runs and cooldown checks; a short burst can overstate durable capacity.
 
 ## 6. Application contract and data model
 

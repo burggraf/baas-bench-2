@@ -7,7 +7,7 @@ import { arch, cpus, platform, release, totalmem } from 'node:os';
 import { capture, hash, runRunner } from './runtime.js';
 import { startMonitor } from './monitor.js';
 import { savePrivate } from '../src/fixtures.js';
-import { assertCalibrationContainer, summarizeCalibration } from '../src/calibration.js';
+import { calibrationPlan, assertCalibrationContainer, summarizeCalibration } from '../src/calibration.js';
 
 const project='baas-bench-2-calibration',pilot='baas-bench-2-pilot';
 const json=(path,data)=>writeFileSync(path,JSON.stringify(data,null,2));
@@ -20,8 +20,7 @@ const pilotVolume=()=>{
 };
 
 async function main() {
-  const args=process.argv.slice(2);assert.ok(args.length===0||(args.length===1&&args[0]==='--smoke'),'Usage: node scripts/calibrate.js [--smoke]');
-  const smoke=args.length===1,rates=smoke?[10,40]:[25,100,400,1600],seconds=smoke?6:20,warmup=smoke?2:5;
+  const plan=calibrationPlan(process.argv.slice(2)),{compareVus,rates,seconds,warmup,allocations}=plan;
   assert.ok(!process.env.COMPOSE_FILE&&!process.env.COMPOSE_PROJECT_NAME&&!process.env.DOCKER_HOST&&!process.env.CALIBRATION_RUN&&!process.env.CALIBRATION_RESULTS,'Refuse environment overrides');
   assert.match(capture('docker',['context','inspect','--format','{{.Endpoints.docker.Host}}']),/^unix:\/\//,'Local Docker only');
   for(const p of [pilot,project])assert.equal(capture('docker',['ps','-aq','--filter',`label=com.docker.compose.project=${p}`]),'','Stop/inspect existing project containers first');
@@ -36,12 +35,13 @@ async function main() {
   const cancellation=new AbortController();let interrupted,uncertain=false,monitor;
   const handlers=Object.fromEntries(['SIGINT','SIGTERM'].map(s=>[s,()=>{interrupted??=s;cancellation.abort();}]));
   for(const [s,h]of Object.entries(handlers))process.on(s,h);
-  const report={kind:'synthetic-read-only-sdk-calibration',valid:false,certified:false,generatorHeadroom:'unverified',smoke,rates,seconds,warmup,preAllocatedVUs:32,maxVUs:32,pilotVolumeBefore:pilotVolume(),trials:[],limitations:[
+  const report={kind:'synthetic-read-only-sdk-calibration',valid:false,certified:false,generatorHeadroom:'unverified',...plan,...(compareVus?{}:{preAllocatedVUs:32,maxVUs:32}),pilotVolumeBefore:pilotVolume(),trials:[],limitations:[
     'Open arrival-rate iterations are not concurrent active users; this is not the social workload or BaaS capacity.',
     'Static uncompressed 20-post pages exercise official SDK/query/transport/JSON/validation cost only; no auth, writes, sessions, target search or database.',
     'Non-HTTP time includes connection/queueing, SDK processing, validation and millisecond timer quantization; it is not isolated SDK cost. Never subtract percentiles.',
     'Target and runner share the same M1/OrbStack host; target, VM, thermal, VU allocation and raw-output/monitoring limits can constrain delivery.',
     'A Node OS-only supervisor captures runner cgroups including final counters; its cost shares the runner budget. All API traffic remains direct SDK/k6, not a Node bridge.',
+    'Comparisons run 32 then 128 VUs at each rate, sequentially without randomization/repetition; host drift and order effects are not isolated.',
     'Short bounded calibration is descriptive only; larger/separate-runner confirmation near a real boundary remains required.'
   ]};
   const compose=async args=>{
@@ -51,28 +51,29 @@ async function main() {
   const owned=()=>ids().map(id=>{const s=inspect(id);assertCalibrationContainer(s,run,image);return s;});
   try {
     const paths=['runner/Dockerfile','compose.calibration.yaml','package.json','package-lock.json','scripts/build.js','scripts/calibrate.js','scripts/monitor.js','scripts/runtime.js','src/calibration.js','src/calibration-target.js','src/calibration-runner.js','src/workload.js','src/k6/calibration.js','src/k6/transport.js','dist/calibration.js'];
-    json(`${directory}/manifest.json`,{kind:report.kind,revision:capture('git',['rev-parse','HEAD']),dirty:!!capture('git',['status','--porcelain']),startedAt:operation.startedAt,controllerNode:process.version,host:{platform:platform(),arch:arch(),release:release(),cpuModel:cpus()[0]?.model,logicalCpus:cpus().length,memoryBytes:totalmem()},imageId:image,platform:'linux/arm64',sdkVersion:JSON.parse(readFileSync('package-lock.json')).packages['node_modules/trailbase'].version,docker:JSON.parse(capture('docker',['info','--format','{"cpus":{{.NCPU}},"memoryBytes":{{.MemTotal}},"kernel":{{json .KernelVersion}}}'])),hashes:Object.fromEntries(paths.map(p=>[p,hash(p)]))});
+    json(`${directory}/manifest.json`,{kind:report.kind,calibration:plan,revision:capture('git',['rev-parse','HEAD']),dirty:!!capture('git',['status','--porcelain']),startedAt:operation.startedAt,controllerNode:process.version,host:{platform:platform(),arch:arch(),release:release(),cpuModel:cpus()[0]?.model,logicalCpus:cpus().length,memoryBytes:totalmem()},imageId:image,platform:'linux/arm64',sdkVersion:JSON.parse(readFileSync('package-lock.json')).packages['node_modules/trailbase'].version,docker:JSON.parse(capture('docker',['info','--format','{"cpus":{{.NCPU}},"memoryBytes":{{.MemTotal}},"kernel":{{json .KernelVersion}}}'])),hashes:Object.fromEntries(paths.map(p=>[p,hash(p)]))});
     cancellation.signal.throwIfAborted();await compose(['up','-d','--wait','target']);cancellation.signal.throwIfAborted();
     const target=owned().find(s=>s.Config.Labels['com.docker.compose.service']==='target');assert.ok(target);
     assert.deepEqual(target.HostConfig.PortBindings,{});assert.equal(target.HostConfig.NanoCpus,1e9);assert.equal(target.HostConfig.Memory,268435456);assert.equal(target.HostConfig.MemorySwap,268435456);
     const targetLimits=capture('docker',['exec',target.Id,'sh','-c','cat /sys/fs/cgroup/cpu.max /sys/fs/cgroup/memory.max /sys/fs/cgroup/memory.swap.max']).split(/\s+/).map(Number);
     assert.deepEqual(targetLimits,[100000,100000,268435456,0]);json(`${directory}/target-limits.json`,{cpu:targetLimits.slice(0,2),memory:targetLimits[2],swap:targetLimits[3],imageId:target.Image});
     operation.targetId=target.Id;savePrivate('.fixtures/operation.lock',operation);
-    for(const rate of rates) {
-      cancellation.signal.throwIfAborted();const id=`${run}-${rate}`,dir=`${directory}/${id}`,name=`${id}-runner`;mkdirSync(dir);
+    for(const rate of rates)for(const vus of allocations) {
+      cancellation.signal.throwIfAborted();const id=`${run}-${rate}${compareVus?`-vu${vus}`:''}`,dir=`${directory}/${id}`,name=`${id}-runner`;mkdirSync(dir);
       monitor=await startMonitor(dir,target.Id,name,`${dir}/runner-cgroups.jsonl`);operation.monitorPid=monitor.pid;operation.runnerName=name;savePrivate('.fixtures/operation.lock',operation);
-      const status=await runRunner(dir,'k6',['node','/work/calibration-runner.js',id,'run','--summary-export',`/results/${id}/k6-summary.json`,'--out',`json=/results/${id}/k6-metrics.json.gz`,'/scripts/calibration.js'],['--no-deps','--name',name,'--label',`baas-bench-2.run=${id}`,'-e',`CALIBRATION_RATE=${rate}`,'-e',`CALIBRATION_SECONDS=${seconds}`,'-e',`CALIBRATION_WARMUP=${warmup}`],{remove:false,signal:cancellation.signal});
+      const status=await runRunner(dir,'k6',['node','/work/calibration-runner.js',id,'run','--summary-export',`/results/${id}/k6-summary.json`,'--out',`json=/results/${id}/k6-metrics.json.gz`,'/scripts/calibration.js'],['--no-deps','--name',name,'--label',`baas-bench-2.run=${id}`,'-e',`CALIBRATION_RATE=${rate}`,'-e',`CALIBRATION_SECONDS=${seconds}`,'-e',`CALIBRATION_WARMUP=${warmup}`,'-e',`CALIBRATION_VUS=${vus}`],{remove:false,signal:cancellation.signal});
       const resources=await monitor.stop();monitor=undefined;
       const runner=owned().find(s=>s.Name===`/${name}`);assert.ok(runner);assert.equal(runner.HostConfig.NanoCpus,2e9);assert.equal(runner.HostConfig.Memory,1073741824);assert.equal(runner.HostConfig.MemorySwap,1073741824);
       const limits=readFileSync(`${dir}/runner-limits.txt`,'utf8').trim().split(/\s+/).map(Number);
       assert.equal(limits.length,4);assert.equal(limits[0]/limits[1],2);assert.equal(limits[2],1073741824);assert.equal(limits[3],0);
       cancellation.signal.throwIfAborted();assert.equal(status,0,'Inspect failed k6 evidence; no automatic retry');
-      const trial={id,...summarizeCalibration(JSON.parse(readFileSync(`${dir}/k6-summary.json`)),rate,seconds,resources)};report.trials.push(trial);json(`${directory}/report.json`,report);
+      const summary=JSON.parse(readFileSync(`${dir}/k6-summary.json`));assert.equal(summary.metrics?.vus_max?.max,vus,'Native VU allocation must match declared profile');
+      const trial={id,preAllocatedVUs:vus,maxVUs:vus,...summarizeCalibration(summary,rate,seconds,resources)};report.trials.push(trial);json(`${directory}/report.json`,report);
       assert.ok(trial.valid,'Invalid SDK/resource evidence; stop calibration');
       capture('docker',['rm',runner.Id]);
     }
     report.pilotVolumeAfter=pilotVolume();assert.deepEqual(report.pilotVolumeAfter,report.pilotVolumeBefore);
-    report.valid=report.trials.length===rates.length&&report.trials.every(t=>t.valid);
+    report.valid=report.trials.length===rates.length*allocations.length&&report.trials.every(t=>t.valid);
   } catch(e) {report.valid=false;json(`${directory}/failure.json`,{name:e.name,interrupted:interrupted??null});throw e;}
   finally {
     try {
