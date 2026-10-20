@@ -1,9 +1,10 @@
 import { postFields } from './workload.js';
 
 export function calibrationPlan(args) {
-  if(new Set(args).size!==args.length || args.some(arg=>!['--smoke','--compare-vus'].includes(arg)))throw new Error('Usage: node scripts/calibrate.js [--smoke] [--compare-vus]');
-  const smoke=args.includes('--smoke'),compareVus=args.includes('--compare-vus');
-  return {smoke,compareVus,rates:smoke?[10,40]:[25,100,400,1600],seconds:smoke?6:20,warmup:smoke?2:5,allocations:compareVus?[32,128]:[32]};
+  const smoke=args.includes('--smoke'),compareVus=args.includes('--compare-vus'),compareBudgets=args.includes('--compare-budgets');
+  if(new Set(args).size!==args.length || args.some(arg=>!['--smoke','--compare-vus','--compare-budgets'].includes(arg)) || (compareVus&&compareBudgets))throw new Error('Usage: node scripts/calibrate.js [--smoke] [--compare-vus | --compare-budgets]');
+  return {smoke,compareVus,compareBudgets,rates:smoke?[10,40]:[25,100,400,1600],seconds:smoke?6:20,warmup:smoke?2:5,allocations:compareBudgets?[128]:compareVus?[32,128]:[32],
+    budgets:compareBudgets?[{cpus:2,memoryBytes:1073741824},{cpus:4,memoryBytes:2147483648}]:[{cpus:2,memoryBytes:1073741824}]};
 }
 
 export function calibrationRows() {
@@ -26,6 +27,6 @@ export function assertCalibrationContainer(state, run, image) {
   const labels=state?.Config?.Labels ?? {};
   if (!/^calibration-[A-Za-z0-9]{6}$/.test(run) || !/^[a-f0-9]{64}$/.test(state?.Id ?? '') || state.Image!==image ||
       labels['com.docker.compose.project']!=='baas-bench-2-calibration' || !['target','runner'].includes(labels['com.docker.compose.service']) ||
-      !(labels['baas-bench-2.run']===run || [10,25,40,100,400,1600].some(rate=>labels['baas-bench-2.run']===`${run}-${rate}` || [32,128].some(vus=>labels['baas-bench-2.run']===`${run}-${rate}-vu${vus}`))) ||
+      !(labels['baas-bench-2.run']===run || [10,25,40,100,400,1600].some(rate=>labels['baas-bench-2.run']===`${run}-${rate}` || [32,128].some(vus=>labels['baas-bench-2.run']===`${run}-${rate}-vu${vus}`) || ['2cpu-1g','4cpu-2g'].some(budget=>labels['baas-bench-2.run']===`${run}-${rate}-vu128-${budget}`))) ||
       !Array.isArray(state.Mounts) || state.Mounts.some(m=>m.Type==='volume')) throw new Error('Refuse unowned/persistent calibration container');
 }

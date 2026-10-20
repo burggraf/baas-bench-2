@@ -8,12 +8,21 @@ import * as calibration from '../src/calibration.js';
 test('calibration comparison fixes 32/128-VU allocations without accepting arbitrary parameters', () => {
   assert.equal(typeof calibration.calibrationPlan,'function');
   const baseline=calibration.calibrationPlan([]);
-  assert.deepEqual(baseline,{smoke:false,compareVus:false,rates:[25,100,400,1600],seconds:20,warmup:5,allocations:[32]});
+  assert.deepEqual(baseline,{smoke:false,compareVus:false,compareBudgets:false,rates:[25,100,400,1600],seconds:20,warmup:5,allocations:[32],budgets:[{cpus:2,memoryBytes:1073741824}]});
   assert.deepEqual(calibration.calibrationPlan(['--compare-vus']),{...baseline,compareVus:true,allocations:[32,128]});
   const smoke={...baseline,smoke:true,rates:[10,40],seconds:6,warmup:2};
   assert.deepEqual(calibration.calibrationPlan(['--smoke']),smoke);
   for(const args of [['--smoke','--compare-vus'],['--compare-vus','--smoke']])assert.deepEqual(calibration.calibrationPlan(args),{...smoke,compareVus:true,allocations:[32,128]});
   for(const args of [['--smoke','--smoke'],['--compare-vus','--compare-vus'],['--vus','128'],['--compare-vus','--rate=1600'],['--url=http://other']])assert.throws(()=>calibration.calibrationPlan(args));
+});
+
+test('budget comparison fixes 128 VUs and two coupled CPU/RAM profiles, never arbitrary or combined sweeps', () => {
+  const plan=calibration.calibrationPlan(['--compare-budgets']);
+  assert.equal(plan.compareBudgets,true);assert.equal(plan.compareVus,false);assert.deepEqual(plan.allocations,[128]);
+  assert.deepEqual(plan.budgets,[{cpus:2,memoryBytes:1073741824},{cpus:4,memoryBytes:2147483648}]);
+  assert.deepEqual(plan.rates,[25,100,400,1600]);assert.equal(plan.seconds,20);assert.equal(plan.warmup,5);
+  const smoke=calibration.calibrationPlan(['--smoke','--compare-budgets']);assert.deepEqual(smoke.budgets,plan.budgets);assert.deepEqual(smoke.allocations,[128]);assert.deepEqual(smoke.rates,[10,40]);
+  for(const args of [['--compare-vus','--compare-budgets'],['--compare-budgets','--compare-budgets'],['--compare-budgets','--cpus=8'],['--compare-budgets','--memory=4g']])assert.throws(()=>calibration.calibrationPlan(args));
 });
 
 test('synthetic target serves exact SDK list payloads without auth, writes, counts or arbitrary routes', async t => {
@@ -49,6 +58,7 @@ test('calibration cleanup refuses foreign containers, wrong image/run and persis
   assert.doesNotThrow(()=>assertCalibrationContainer(state,run,image));
   const runner=label=>({...state,Config:{Labels:{...state.Config.Labels,'com.docker.compose.service':'runner','baas-bench-2.run':label}}});
   for(const rate of [10,25,40,100,400,1600])for(const vus of [32,128])assert.doesNotThrow(()=>assertCalibrationContainer(runner(`${run}-${rate}-vu${vus}`),run,image));
-  for(const suffix of ['400-vu129','400-vu256','401-vu128','400-vu128-extra','400-vu0128'])assert.throws(()=>assertCalibrationContainer(runner(`${run}-${suffix}`),run,image));
+  for(const rate of [10,25,40,100,400,1600])for(const suffix of ['vu128-2cpu-1g','vu128-4cpu-2g'])assert.doesNotThrow(()=>assertCalibrationContainer(runner(`${run}-${rate}-${suffix}`),run,image));
+  for(const suffix of ['400-vu128-4cpu-1g','400-vu128-2cpu-2g','400-vu32-4cpu-2g','400-vu128-8cpu-4g','400-vu128-4cpu-2g-extra','400-vu129','400-vu256','401-vu128','400-vu128-extra','400-vu0128'])assert.throws(()=>assertCalibrationContainer(runner(`${run}-${suffix}`),run,image));
   for(const other of [{...state,Image:'other'},{...state,Mounts:[{Type:'volume'}]},{...state,Config:{Labels:{...state.Config.Labels,'baas-bench-2.run':'other'}}},{...state,Config:{Labels:{...state.Config.Labels,'com.docker.compose.project':'baas-bench-2-pilot'}}}]) assert.throws(()=>assertCalibrationContainer(other,run,image));
 });

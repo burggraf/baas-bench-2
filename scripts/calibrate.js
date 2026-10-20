@@ -20,8 +20,8 @@ const pilotVolume=()=>{
 };
 
 async function main() {
-  const plan=calibrationPlan(process.argv.slice(2)),{compareVus,rates,seconds,warmup,allocations}=plan;
-  assert.ok(!process.env.COMPOSE_FILE&&!process.env.COMPOSE_PROJECT_NAME&&!process.env.DOCKER_HOST&&!process.env.CALIBRATION_RUN&&!process.env.CALIBRATION_RESULTS,'Refuse environment overrides');
+  const plan=calibrationPlan(process.argv.slice(2)),{compareVus,compareBudgets,rates,seconds,warmup,allocations,budgets}=plan;
+  assert.ok(!process.env.COMPOSE_FILE&&!process.env.COMPOSE_PROJECT_NAME&&!process.env.DOCKER_HOST&&!process.env.CALIBRATION_RUN&&!process.env.CALIBRATION_RESULTS&&!process.env.CALIBRATION_RUNNER_CPUS&&!process.env.CALIBRATION_RUNNER_MEMORY,'Refuse environment overrides');
   assert.match(capture('docker',['context','inspect','--format','{{.Endpoints.docker.Host}}']),/^unix:\/\//,'Local Docker only');
   for(const p of [pilot,project])assert.equal(capture('docker',['ps','-aq','--filter',`label=com.docker.compose.project=${p}`]),'','Stop/inspect existing project containers first');
   assert.equal(capture('docker',['network','ls','-q','--filter',`label=com.docker.compose.project=${project}`]),'','Inspect leftover calibration network first');
@@ -35,13 +35,14 @@ async function main() {
   const cancellation=new AbortController();let interrupted,uncertain=false,monitor;
   const handlers=Object.fromEntries(['SIGINT','SIGTERM'].map(s=>[s,()=>{interrupted??=s;cancellation.abort();}]));
   for(const [s,h]of Object.entries(handlers))process.on(s,h);
-  const report={kind:'synthetic-read-only-sdk-calibration',valid:false,certified:false,generatorHeadroom:'unverified',...plan,...(compareVus?{}:{preAllocatedVUs:32,maxVUs:32}),pilotVolumeBefore:pilotVolume(),trials:[],limitations:[
+  const report={kind:'synthetic-read-only-sdk-calibration',valid:false,certified:false,generatorHeadroom:'unverified',...plan,...(compareVus||compareBudgets?{}:{preAllocatedVUs:32,maxVUs:32}),pilotVolumeBefore:pilotVolume(),trials:[],limitations:[
     'Open arrival-rate iterations are not concurrent active users; this is not the social workload or BaaS capacity.',
     'Static uncompressed 20-post pages exercise official SDK/query/transport/JSON/validation cost only; no auth, writes, sessions, target search or database.',
     'Non-HTTP time includes connection/queueing, SDK processing, validation and millisecond timer quantization; it is not isolated SDK cost. Never subtract percentiles.',
     'Target and runner share the same M1/OrbStack host; target, VM, thermal, VU allocation and raw-output/monitoring limits can constrain delivery.',
     'A Node OS-only supervisor captures runner cgroups including final counters; its cost shares the runner budget. All API traffic remains direct SDK/k6, not a Node bridge.',
-    'Comparisons run 32 then 128 VUs at each rate, sequentially without randomization/repetition; host drift and order effects are not isolated.',
+    'Comparisons run in listed profile order at each rate, sequentially without randomization/repetition; host drift and order effects are not isolated.',
+    'Budget comparison changes CPU and RAM together at fixed 128 VUs; it does not isolate CPU versus memory or certify independent-host headroom.',
     'Short bounded calibration is descriptive only; larger/separate-runner confirmation near a real boundary remains required.'
   ]};
   const compose=async args=>{
@@ -58,22 +59,23 @@ async function main() {
     const targetLimits=capture('docker',['exec',target.Id,'sh','-c','cat /sys/fs/cgroup/cpu.max /sys/fs/cgroup/memory.max /sys/fs/cgroup/memory.swap.max']).split(/\s+/).map(Number);
     assert.deepEqual(targetLimits,[100000,100000,268435456,0]);json(`${directory}/target-limits.json`,{cpu:targetLimits.slice(0,2),memory:targetLimits[2],swap:targetLimits[3],imageId:target.Image});
     operation.targetId=target.Id;savePrivate('.fixtures/operation.lock',operation);
-    for(const rate of rates)for(const vus of allocations) {
-      cancellation.signal.throwIfAborted();const id=`${run}-${rate}${compareVus?`-vu${vus}`:''}`,dir=`${directory}/${id}`,name=`${id}-runner`;mkdirSync(dir);
+    for(const rate of rates)for(const vus of allocations)for(const budget of budgets) {
+      Object.assign(process.env,{CALIBRATION_RUNNER_CPUS:String(budget.cpus),CALIBRATION_RUNNER_MEMORY:String(budget.memoryBytes)});
+      cancellation.signal.throwIfAborted();const id=`${run}-${rate}${compareBudgets?`-vu128-${budget.cpus}cpu-${budget.memoryBytes/1073741824}g`:compareVus?`-vu${vus}`:''}`,dir=`${directory}/${id}`,name=`${id}-runner`;mkdirSync(dir);
       monitor=await startMonitor(dir,target.Id,name,`${dir}/runner-cgroups.jsonl`);operation.monitorPid=monitor.pid;operation.runnerName=name;savePrivate('.fixtures/operation.lock',operation);
       const status=await runRunner(dir,'k6',['node','/work/calibration-runner.js',id,'run','--summary-export',`/results/${id}/k6-summary.json`,'--out',`json=/results/${id}/k6-metrics.json.gz`,'/scripts/calibration.js'],['--no-deps','--name',name,'--label',`baas-bench-2.run=${id}`,'-e',`CALIBRATION_RATE=${rate}`,'-e',`CALIBRATION_SECONDS=${seconds}`,'-e',`CALIBRATION_WARMUP=${warmup}`,'-e',`CALIBRATION_VUS=${vus}`],{remove:false,signal:cancellation.signal});
       const resources=await monitor.stop();monitor=undefined;
-      const runner=owned().find(s=>s.Name===`/${name}`);assert.ok(runner);assert.equal(runner.HostConfig.NanoCpus,2e9);assert.equal(runner.HostConfig.Memory,1073741824);assert.equal(runner.HostConfig.MemorySwap,1073741824);
+      const runner=owned().find(s=>s.Name===`/${name}`);assert.ok(runner);assert.equal(runner.HostConfig.NanoCpus,budget.cpus*1e9);assert.equal(runner.HostConfig.Memory,budget.memoryBytes);assert.equal(runner.HostConfig.MemorySwap,budget.memoryBytes);
       const limits=readFileSync(`${dir}/runner-limits.txt`,'utf8').trim().split(/\s+/).map(Number);
-      assert.equal(limits.length,4);assert.equal(limits[0]/limits[1],2);assert.equal(limits[2],1073741824);assert.equal(limits[3],0);
+      assert.equal(limits.length,4);assert.equal(limits[0]/limits[1],budget.cpus);assert.equal(limits[2],budget.memoryBytes);assert.equal(limits[3],0);
       cancellation.signal.throwIfAborted();assert.equal(status,0,'Inspect failed k6 evidence; no automatic retry');
       const summary=JSON.parse(readFileSync(`${dir}/k6-summary.json`));assert.equal(summary.metrics?.vus_max?.max,vus,'Native VU allocation must match declared profile');
-      const trial={id,preAllocatedVUs:vus,maxVUs:vus,...summarizeCalibration(summary,rate,seconds,resources)};report.trials.push(trial);json(`${directory}/report.json`,report);
+      const trial={id,preAllocatedVUs:vus,maxVUs:vus,runnerBudget:budget,...summarizeCalibration(summary,rate,seconds,resources)};report.trials.push(trial);json(`${directory}/report.json`,report);
       assert.ok(trial.valid,'Invalid SDK/resource evidence; stop calibration');
       capture('docker',['rm',runner.Id]);
     }
     report.pilotVolumeAfter=pilotVolume();assert.deepEqual(report.pilotVolumeAfter,report.pilotVolumeBefore);
-    report.valid=report.trials.length===rates.length*allocations.length&&report.trials.every(t=>t.valid);
+    report.valid=report.trials.length===rates.length*allocations.length*budgets.length&&report.trials.every(t=>t.valid);
   } catch(e) {report.valid=false;json(`${directory}/failure.json`,{name:e.name,interrupted:interrupted??null});throw e;}
   finally {
     try {
