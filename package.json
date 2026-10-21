@@ -13,6 +13,8 @@
     "test:social": "node --test tests/social.integration.js",
     "test:baseline": "node --test tests/baseline.integration.js",
     "test:fresh-workload": "node --test tests/fresh-workload.integration.js",
+    "test:campaign": "node --test tests/campaign.integration.js",
+    "workload:campaign": "npm run build && docker compose build trailbase runner && node scripts/baseline.js --campaign",
     "workload:sizing": "npm run build && docker compose build trailbase runner && node scripts/baseline.js --workload",
     "test:auth": "node --test tests/auth.integration.js",
     "test:calibration": "node --test --test-concurrency=1 tests/calibration*.integration.js",

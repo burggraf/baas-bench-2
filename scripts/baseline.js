@@ -9,10 +9,31 @@ import { seedFixture, verifyFixture, deleteFixture, savePrivate } from '../src/f
 import { validateConfig } from '../src/workload.js';
 import { controllerClient } from './client.js';
 import { capture, runtimeManifest } from './runtime.js';
-import { runWorkload } from './workload-run.js';
+import { runWorkload, verifySizingHost } from './workload-run.js';
+import { nextCampaignTrial, classifyCampaignTrial, campaignCpuPressure, measurementStart } from '../src/campaign.js';
 
 const project = 'baas-bench-2-pilot', fixturePath = '.fixtures/trailbase.json';
 export function baselinePlan(args) {
+  if (args.includes('--runner-memory=4g')) {
+    const smoke = args.includes('--smoke');
+    if (args.includes('--campaign')) {
+      const candidate = args.find(a => /^--vus=([1-7]\d{3}|8000)$/.test(a));
+      assert.ok(new Set(args).size === args.length && args.every(a => ['--campaign', '--runner-memory=4g', ...(smoke ? ['--smoke'] : [candidate])].includes(a)) && (smoke || candidate), '4-GiB discovery requires one integer candidate 1000..8000, or correctness smoke');
+      const plan = baselinePlan(smoke ? ['--campaign', '--smoke'] : ['--campaign']);
+      // One candidate per invocation lets the audited run ledger enforce the overall eight-trial search.
+      if (!smoke) { const vus = Number(candidate.slice('--vus='.length)); plan.config = validateConfig({ ...plan.config, vus }); plan.trials = 1; plan.search = { ...plan.search, startVus: vus, minVus: 1000, maxTrials: 1 }; }
+      return { ...plan, runnerBudget: { cpus: 4, memoryBytes: 4294967296 }, runnerProfile: '4cpu-4g', hostSafety: true };
+    }
+    assert.ok(new Set(args).size === args.length && args.includes('--workload') && smoke !== args.includes('--vus=1000') && args.every(a => ['--workload', '--smoke', '--vus=1000', '--runner-memory=4g'].includes(a)), 'Only the approved 1000-user/4-GiB pair or its smoke is supported');
+    const configPath = smoke ? 'configs/smoke.json' : 'configs/social-baseline.json';
+    return { workload: true, configPath, config: validateConfig(JSON.parse(readFileSync(configPath))), trials: 1, runnerBudget: { cpus: 4, memoryBytes: 4294967296 }, runnerProfile: '4cpu-4g', hostSafety: true };
+  }
+  const campaign = args.includes('--campaign');
+  if (campaign) {
+    assert.ok(new Set(args).size === args.length && args.every(a => ['--campaign', '--smoke'].includes(a)), 'Usage: node scripts/baseline.js --campaign [--smoke]');
+    const smoke = args.includes('--smoke'), configPath = smoke ? 'configs/smoke.json' : 'configs/social-baseline.json';
+    return { campaign: true, workload: true, configPath, config: validateConfig(JSON.parse(readFileSync(configPath))), trials: 8, runnerBudget: { cpus: 4, memoryBytes: 2147483648 }, search: { startVus: smoke ? 2 : 1000, minVus: smoke ? 1 : 100, maxVus: smoke ? 4 : 8000, maxTrials: 8, precision: 0.1 } };
+  }
   const workload = args.includes('--workload');
   assert.ok(workload ? new Set(args).size === args.length && args.every(arg => ['--workload', '--smoke', '--vus=100'].includes(arg)) && !(args.includes('--smoke') && args.includes('--vus=100')) : args.length <= 1 && !args[0]?.startsWith('--'), 'Usage: node scripts/baseline.js [config.json] | --workload [--smoke | --vus=100]');
   const configPath = workload ? (args.includes('--smoke') ? 'configs/smoke.json' : 'configs/pilot-small.json') : args[0] ?? 'configs/pilot-small.json';
@@ -20,9 +41,9 @@ export function baselinePlan(args) {
   return { workload, configPath, config, trials: workload ? 1 : 3, runnerBudget: workload ? { cpus: 4, memoryBytes: 2147483648 } : null };
 }
 
-export function assertBaselineVolume(volume, run, trial) {
+export function assertBaselineVolume(volume, run, trial, maximum = 3) {
   assert.match(run, /^baseline-[a-zA-Z0-9]{6}$/);
-  assert.ok([1, 2, 3].includes(trial));
+  assert.ok([3, 8].includes(maximum) && Number.isSafeInteger(trial) && trial >= 1 && trial <= maximum);
   assert.equal(volume.Name, `${project}_${run}-${trial}`, 'Refuse non-trial volume');
   assert.equal(volume.Driver, 'local'); assert.equal(volume.Scope, 'local');
   assert.ok(!volume.Options || Object.keys(volume.Options).length === 0, 'Refuse configured/remote/bind volume');
@@ -50,7 +71,10 @@ const pilotState = () => {
 
 async function main() {
   const plan = baselinePlan(process.argv.slice(2));
-  const { config, workload } = plan;
+  let { config } = plan;
+  const { workload, campaign, runnerProfile, hostSafety } = plan;
+  if (hostSafety) assert.equal(process.platform, 'darwin', 'The approved host-pressure guard is macOS-only');
+  const next = trials => nextCampaignTrial(trials.map(t => ({ ...t.candidate, verdict: t.classification.verdict })), plan.search);
   let configPath = plan.configPath;
   assert.ok(!process.env.COMPOSE_FILE && !process.env.COMPOSE_PROJECT_NAME && !process.env.DOCKER_HOST, 'Use the unmodified local pilot context');
   assert.match(capture('docker', ['context', 'inspect', '--format', '{{.Endpoints.docker.Host}}']), /^unix:\/\//, 'Only a local Unix Docker socket is supported');
@@ -65,8 +89,8 @@ async function main() {
   let interrupted, uncertain = false;
   const handlers = Object.fromEntries(['SIGINT', 'SIGTERM'].map(signal => [signal, () => { interrupted ??= signal; cancellation.abort(); }]));
   for (const [signal, handler] of Object.entries(handlers)) process.on(signal, handler);
-  if (workload) { configPath = `${directory}/workload-config.json`; json(configPath, config); }
-  const report = { kind: workload ? 'fresh-deployment-workload-sizing' : 'fresh-deployment-baseline-proof', valid: false, certified: false, config, ...(workload ? { runnerBudget: plan.runnerBudget } : {}), pilotVolumeBefore: pilotState(), trials: [], limitations: ['Logical equivalence, not capacity/headroom certification; short fixed-load tails may be insufficient.', 'New volumes are retained, never deleted; caches/host state are not normalized.', 'Crash/partial-seed recovery requires manual inspection of the recorded trial volume; social recover does not support fresh-workload claims.'] };
+  if (workload && !campaign) { configPath = `${directory}/workload-config.json`; json(configPath, config); }
+  const report = { kind: campaign ? 'bounded-local-discovery' : workload ? 'fresh-deployment-workload-sizing' : 'fresh-deployment-baseline-proof', ...(campaign ? { limits: plan.search, safetyPolicy: { memoryStopFraction: 0.85, measuredRunnerCpuCores: 3.6, cpuWindowSeconds: 5 }, generatorHeadroom: 'unverified' } : {}), valid: false, certified: false, config, ...(workload ? { runnerBudget: plan.runnerBudget } : {}), ...(hostSafety ? { runnerProfile, hostSafety: { memoryStopFraction: 0.85, liveVmReserveBytes: 1073741824, prestartVmReserveBytes: 4294967296 * 0.85 + 1073741824, requireZeroVmSwapUsed: true, normalMacosPressure: '1', measuredRunnerCpuCores: 3.6, cpuWindowSeconds: 5 } } : {}), pilotVolumeBefore: pilotState(), trials: [], limitations: ['Logical equivalence, not capacity/headroom certification; short fixed-load tails may be insufficient.', 'New volumes are retained, never deleted; caches/host state are not normalized.', 'Crash/partial-seed recovery requires manual inspection of the recorded trial volume; social recover does not support fresh-workload claims.'] };
   // Let fetch process socket-close events while replacing the server; never retry requests across deployments.
   const compose = async args => {
     try {
@@ -82,20 +106,37 @@ async function main() {
   try {
     for (let trial = 1; trial <= plan.trials; trial++) {
       cancellation.signal.throwIfAborted();
+      const candidate = campaign ? next(report.trials) : null;
+      if (candidate?.stop) { report.search = candidate; break; }
+      if (campaign) {
+        config = validateConfig({ ...plan.config, vus: candidate.vus });
+        configPath = `${directory}/trial-${trial}.config.json`; json(configPath, config);
+        report.activeTrial = { number: trial, candidate }; json(`${directory}/report.json`, report);
+        console.log(`Campaign trial ${trial}/${plan.trials}: ${candidate.vus} users (${candidate.phase}); fresh ${config.dataset.profile}.`);
+      }
       const name = `${project}_${run}-${trial}`;
       assert.ok(!capture('docker', ['volume', 'ls', '--format', '{{.Name}}']).split('\n').includes(name), 'Refuse existing trial volume');
       capture('docker', ['volume', 'create', '--label', `baas-bench-2.baseline=${run}`, '--label', `baas-bench-2.trial=${trial}`, name]);
-      const volume = volumeState(name); assertBaselineVolume(volume, run, trial);
+      const volume = volumeState(name); assertBaselineVolume(volume, run, trial, campaign ? 8 : 3);
       const override = `${directory}/trial-${trial}.compose.json`;
       json(override, { volumes: { 'trailbase-data': { name, external: true } }, ...(workload ? { services: { runner: { cpus: plan.runnerBudget.cpus, mem_limit: plan.runnerBudget.memoryBytes, memswap_limit: plan.runnerBudget.memoryBytes } } } : {}) });
       Object.assign(process.env, { COMPOSE_FILE: [resolve('compose.yaml'), resolve(override)].join(delimiter), COMPOSE_PROJECT_NAME: project, COMPOSE_PATH_SEPARATOR: delimiter });
+      if (campaign) { for (const key of ['runId', 'runnerImageId', 'monitorPid', 'workloadDirectory']) delete operation[key]; report.activeTrial.volume = name; }
       operation.trialVolume = name; savePrivate('.fixtures/operation.lock', operation);
       let backendId;
       try {
         await compose(['up', '-d', '--wait', 'trailbase']);
         backendId = capture('docker', ['compose', 'ps', '-q', 'trailbase']);
         assertBaselineBackend(backendState(backendId), backendId, name);
-        const runtime = runtimeManifest(['package-lock.json', 'compose.yaml', override, 'backends/trailbase/Dockerfile', 'backends/trailbase/configuration/config.textproto', 'backends/trailbase/configuration/migrations/main/U1792454400__social_schema.sql', 'src/fixtures.js', 'src/workload.js', 'scripts/baseline.js', 'scripts/client.js', 'scripts/runtime.js', ...(workload ? ['scripts/workload-run.js', 'scripts/monitor.js', 'scripts/recovery.js', 'scripts/build.js', 'src/actions.js', 'src/report.js', 'src/resources.js', 'src/auth.js', 'src/base64.js', 'src/k6/social.js', 'src/k6/transport.js', 'src/calibration-runner.js', plan.configPath] : []), configPath]);
+        if (campaign || hostSafety) {
+          const disk = capture('docker', ['compose', 'exec', '-T', 'trailbase', 'df', '-Pk', '/app/traildepot']);
+          writeFileSync(`${directory}/trial-${trial}.disk-before-seed.txt`, disk);
+          const free = Number(disk.trim().split('\n').at(-1).trim().split(/\s+/)[3]);
+          assert.ok(Number.isSafeInteger(free) && free >= 5 * 1024 * 1024, 'Campaign requires at least 5 GiB available before preparation');
+          console.log(`${campaign ? 'Campaign' : 'Sizing'} trial ${trial}: API preparation started; ${config.dataset.users} accounts.`);
+        }
+        if (hostSafety) await verifySizingHost(`${directory}/trial-${trial}-host-before-seed`, backendId);
+        const runtime = runtimeManifest(['package-lock.json', 'compose.yaml', override, 'backends/trailbase/Dockerfile', 'backends/trailbase/configuration/config.textproto', 'backends/trailbase/configuration/migrations/main/U1792454400__social_schema.sql', 'src/fixtures.js', 'src/workload.js', 'scripts/baseline.js', 'scripts/client.js', 'scripts/runtime.js', ...(workload ? ['scripts/workload-run.js', 'scripts/monitor.js', 'scripts/recovery.js', 'scripts/build.js', 'src/actions.js', 'src/report.js', 'src/resources.js', 'src/auth.js', 'src/base64.js', 'src/k6/social.js', 'src/k6/transport.js', 'src/calibration-runner.js', 'src/campaign.js', plan.configPath] : []), configPath]);
         if (workload) { assert.equal(runtime.backendPlatform, 'linux/arm64'); assert.equal(runtime.runnerPlatform, 'linux/arm64'); }
         const createClient = () => controllerClient(cancellation.signal);
         let initial = true;
@@ -105,21 +146,35 @@ async function main() {
         const baseline = await verifyFixture(config, fixture, createClient);
         assert.equal(baseline.logicalHash, fixture.baseline.logicalHash);
         if (report.trials.length) assert.equal(baseline.logicalHash, report.trials[0].baseline.logicalHash, 'Fresh baselines differ');
-        const evidence = { volume, backendId, runtime, baseline, seedSeconds: fixture.seedSeconds, identityHash: digest(fixture.users.map(u => u.id)), volumeRetained: true };
+        if (campaign || hostSafety) console.log(`${campaign ? 'Campaign' : 'Sizing'} trial ${trial}: API baseline verified; ${fixture.seedSeconds.toFixed(3)}s seed/initial verification.`);
+        const evidence = { ...(campaign ? { candidate } : {}), volume, backendId, runtime, baseline, seedSeconds: fixture.seedSeconds, identityHash: digest(fixture.users.map(u => u.id)), volumeRetained: true };
         // Persist preparation evidence before deleting its accounts; never publish credentials.
         json(`${directory}/trial-${trial}.json`, evidence);
         if (workload) {
           const workloadDirectory = mkdtempSync('results/social-');
           operation.workloadDirectory = workloadDirectory; savePrivate('.fixtures/operation.lock', operation);
-          const result = await runWorkload({ directory: workloadDirectory, config, configPath, fixture, baseline, runtime, operation, signal: cancellation.signal, interruption: () => interrupted, boundedRunner: true });
-          evidence.workload = { directory: workloadDirectory, report: result };
+          evidence.workload = { directory: workloadDirectory, report: null };
           json(`${directory}/trial-${trial}.json`, evidence);
+          if (campaign) { report.activeTrial.workloadDirectory = workloadDirectory; json(`${directory}/report.json`, report); }
+          const result = await runWorkload({ directory: workloadDirectory, config, configPath, fixture, baseline, runtime, operation, signal: cancellation.signal, interruption: () => interrupted, boundedRunner: true, campaign: !!campaign, runnerProfile });
+          evidence.workload = { directory: workloadDirectory, report: result };
+          if (campaign || hostSafety) {
+            const measuredAt = await measurementStart(`${workloadDirectory}/k6-metrics.json.gz`);
+            const originals = readFileSync(`${workloadDirectory}/runner-cgroups.jsonl`, 'utf8').trim().split('\n').map(JSON.parse);
+            const pressure = campaignCpuPressure(originals, measuredAt, config.measurementSeconds);
+            evidence.generatorCheck = { measurementStartedAt: new Date(measuredAt).toISOString(), sustainedCpuPressure: pressure, headroom: 'unverified' };
+            if (campaign) evidence.classification = classifyCampaignTrial(result, JSON.parse(readFileSync(`${workloadDirectory}/k6-summary.json`)), pressure);
+          }
+          json(`${directory}/trial-${trial}.json`, evidence);
+          if (hostSafety) assert.equal(evidence.generatorCheck.sustainedCpuPressure, false, 'Stop sizing on measured generator CPU pressure; preserve private fixture');
+          if (campaign) assert.ok(['pass', 'slo_failure'].includes(evidence.classification.verdict), 'Stop campaign on invalid/generator-limited evidence; preserve private fixture');
         }
         await deleteFixture(fixture, createClient, persist);
         const posts = (await createClient().records('posts').list({ pagination: { limit: 1 }, count: true })).total_count;
         assert.equal(posts, 0, 'API cleanup must leave zero public posts');
         evidence.apiReset = { posts }; json(`${directory}/trial-${trial}.json`, evidence);
         unlinkSync(fixturePath); report.trials.push(evidence);
+        if (campaign) { delete report.activeTrial; report.search = next(report.trials); console.log(`Campaign trial ${trial}: ${evidence.classification.verdict}; API cleanup zero posts, volume retained.`); }
       } finally {
         try {
           const ids = containerIds();
@@ -128,17 +183,17 @@ async function main() {
             backendId ??= ids[0];
             assertBaselineBackend(backendState(ids[0]), backendId, name);
           }
-          assertBaselineVolume(volumeState(name), run, trial);
+          assertBaselineVolume(volumeState(name), run, trial, campaign ? 8 : 3);
           await compose(['down']);
           assert.equal(containerIds().length, 0);
         } catch (error) { uncertain = true; throw error; }
       }
       json(`${directory}/report.json`, report);
     }
-    assert.equal(new Set(report.trials.map(t => t.identityHash)).size, plan.trials, 'Fresh native identities must differ');
+    assert.equal(new Set(report.trials.map(t => t.identityHash)).size, campaign ? report.trials.length : plan.trials, 'Fresh native identities must differ');
     report.pilotVolumeAfter = pilotState(); assert.deepEqual(report.pilotVolumeAfter, report.pilotVolumeBefore);
     report.valid = !interrupted;
-    console.log(`${workload ? 'Fresh workload' : 'Baseline'} proof: ${directory}`);
+    console.log(`${campaign ? 'Campaign' : workload ? 'Fresh workload' : 'Baseline'} proof: ${directory}`);
   } catch (error) {
     uncertain ||= error.retainLock === true;
     if (workload && operation.workloadDirectory && interrupted) json(`${operation.workloadDirectory}/interruption.json`, { signal: interrupted, at: new Date().toISOString(), valid: false });

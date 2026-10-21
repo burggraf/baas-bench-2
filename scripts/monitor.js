@@ -31,15 +31,19 @@ const execute = promisify(execFile);
 const inspection = '{"id":{{json .Id}},"status":{{json .State.Status}},"running":{{json .State.Running}},"oomKilled":{{json .State.OOMKilled}},"exitCode":{{json .State.ExitCode}},"startedAt":{{json .State.StartedAt}},"finishedAt":{{json .State.FinishedAt}},"restarts":{{json .RestartCount}},"health":{{if index .State "Health"}}{{json .State.Health.Status}}{{else}}null{{end}},"run":{{json (index .Config.Labels "baas-bench-2.run")}},"nanoCpus":{{json .HostConfig.NanoCpus}},"cpuQuota":{{json .HostConfig.CpuQuota}},"cpuPeriod":{{json .HostConfig.CpuPeriod}},"cpuset":{{json .HostConfig.CpusetCpus}},"memoryLimit":{{json .HostConfig.Memory}},"memorySwap":{{json .HostConfig.MemorySwap}}}';
 const cgroupCommand = 'for f in cpu.stat memory.current memory.peak memory.events; do printf "\\n[%s]\\n" "$f"; cat "/sys/fs/cgroup/$f" 2>/dev/null || printf "unavailable\\n"; done';
 
-export async function startMonitor(directory, backendId, runnerName, runnerCgroupFile) {
+export async function startMonitor(directory, backendId, runnerName, runnerCgroupFile, onObservation, hostMemory = false) {
+  if (hostMemory && (!onObservation || !runnerCgroupFile)) throw new Error('Host memory checks require a guarded self-sampled runner');
   const err = openSync(`${directory}/monitor-stderr.log`, 'w');
-  const child = spawn(process.execPath, [fileURLToPath(import.meta.url), directory, backendId, runnerName, ...(runnerCgroupFile ? [runnerCgroupFile] : [])], { stdio: ['ignore', 'ignore', err, 'ipc'] });
+  const child = spawn(process.execPath, [fileURLToPath(import.meta.url), directory, backendId, runnerName, ...(runnerCgroupFile ? [runnerCgroupFile] : []), ...(onObservation ? ['--watch-resources'] : []), ...(hostMemory ? ['--host-memory'] : [])], { stdio: ['ignore', 'ignore', err, 'ipc'] });
   closeSync(err);
   const ended = new Promise(resolve => {
     child.once('error', () => resolve({ status: null, error: 'spawn_failed' }));
     child.once('exit', (status, signal) => resolve({ status, signal }));
   });
-  const ready = new Promise(resolve => child.once('message', resolve));
+  const ready = new Promise(resolve => child.on('message', message => {
+    if (message?.type === 'ready') resolve(message);
+    else if (message?.type === 'observation') onObservation?.(message.row);
+  }));
   const initial = await Promise.race([ready, ended]);
   if (initial?.type !== 'ready') throw new Error('Resource monitor startup failed');
   return { pid: child.pid, async stop() {
@@ -53,7 +57,7 @@ export async function startMonitor(directory, backendId, runnerName, runnerCgrou
   } };
 }
 
-async function collect(directory, backendId, runnerName, runnerCgroupFile) {
+async function collect(directory, backendId, runnerName, runnerCgroupFile, watchResources, hostMemory) {
   const began = process.hrtime.bigint(), records = [], streams = new Map();
   const errorFd = openSync(`${directory}/docker-stats-stderr.log`, 'w');
   writeFileSync(`${directory}/inspect-stderr.log`, '');
@@ -62,6 +66,7 @@ async function collect(directory, backendId, runnerName, runnerCgroupFile) {
   const record = (type, role, source, extra = {}) => {
     const row = { at: new Date().toISOString(), elapsedMs: Number(process.hrtime.bigint() - began) / 1e6, type, role, source, ...extra };
     records.push(row);
+    if (watchResources === '--watch-resources' && process.connected) process.send({ type: 'observation', row }, error => { if (error) stopping = true; });
     try { appendFileSync(`${directory}/resources.jsonl`, JSON.stringify(row) + '\n'); }
     catch { stopping = true; process.exitCode = 1; }
   };
@@ -138,20 +143,27 @@ async function collect(directory, backendId, runnerName, runnerCgroupFile) {
       }
     }
   };
+  const sampleHost = async () => {
+    if (hostMemory !== '--host-memory') return;
+    try {
+      const result = await execute('sysctl', ['-n', 'kern.memorystatus_vm_pressure_level'], { encoding: 'utf8', timeout: 2000, maxBuffer: 1024 * 1024 });
+      record('host_memory', 'host', { stdout: result.stdout, stderr: result.stderr, exitCode: 0 });
+    } catch (error) { record('error', 'host', { stdout: error.stdout ?? '', stderr: error.stderr ?? '', exitCode: error.code ?? null }, { operation: 'host_memory' }); }
+  };
   process.on('message', message => { if (message === 'stop') stopping = true; });
   process.on('disconnect', () => { stopping = true; });
   process.on('SIGTERM', () => { stopping = true; });
   try {
-    await sample('backend', backendId);
+    await sampleHost(); await sample('backend', backendId);
     if (process.connected) process.send({ type: 'ready' }, error => { if (error) stopping = true; });
     else stopping = true;
     while (!stopping) {
-      await sample('backend', backendId); await sample('runner', runnerName);
+      await sampleHost(); await sample('backend', backendId); await sample('runner', runnerName);
       if (!stopping) await new Promise(resolve => setTimeout(resolve, 1000));
     }
   } finally {
     stopping = true;
-    try { await sample('backend', backendId); await sample('runner', runnerName); }
+    try { await sampleHost(); await sample('backend', backendId); await sample('runner', runnerName); }
     finally {
       for (const { child } of streams.values()) child.kill('SIGTERM');
       const timer = setTimeout(() => { for (const { child } of streams.values()) child.kill('SIGKILL'); }, 2000);
