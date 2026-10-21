@@ -3,8 +3,17 @@ import test from 'node:test';
 import {mkdtempSync,writeFileSync,rmSync}from'node:fs';
 import{tmpdir}from'node:os';
 import{readCgroupSnapshot}from'../src/calibration-runner.js';
+import * as supervisor from '../src/calibration-runner.js';
 import{parseCgroup}from'../src/resources.js';
 import{parseRunnerCgroups}from'../scripts/monitor.js';
+
+test('supervisor binds only exact calibration profiles or a bounded real-workload run to its CPU/RAM policy',()=>{
+  assert.equal(typeof supervisor.runnerBudget,'function');
+  assert.deepEqual(supervisor.runnerBudget('social-Abc123'),{cpus:4,memoryBytes:2147483648});
+  assert.deepEqual(supervisor.runnerBudget('calibration-Abc123-400'),{cpus:2,memoryBytes:1073741824});
+  assert.deepEqual(supervisor.runnerBudget('calibration-Abc123-400-vu128-4cpu-2g'),{cpus:4,memoryBytes:2147483648});
+  for(const id of ['social-../escape','social-Abc123-extra','baseline-Abc123','calibration-Abc123-400-vu32-4cpu-2g','calibration-Abc123-400-vu128-8cpu-4g'])assert.throws(()=>supervisor.runnerBudget(id));
+});
 
 test('self-cgroup ingestion requires final evidence, tolerates only live partial appends, and rejects bad/gapped/rewound samples',()=>{
   const row={at:'2026-10-20T00:00:00Z',elapsedMs:0,source:'snapshot',final:false};

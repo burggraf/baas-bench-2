@@ -1,6 +1,22 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { assertBaselineVolume, assertBaselineBackend } from '../scripts/baseline.js';
+import * as baselineModule from '../scripts/baseline.js';
+import { readFileSync } from 'node:fs';
+
+test('fresh workload plan permits only the approved 50-user pilot or tiny correctness smoke', () => {
+  assert.equal(typeof baselineModule.baselinePlan, 'function');
+  const plan = baselineModule.baselinePlan(['--workload']);
+  assert.equal(plan.workload, true); assert.equal(plan.trials, 1);
+  assert.deepEqual(plan.runnerBudget, { cpus: 4, memoryBytes: 2147483648 });
+  assert.deepEqual(plan.config, { ...JSON.parse(readFileSync('configs/pilot-small.json')), vus: 50 });
+  const smoke = baselineModule.baselinePlan(['--workload', '--smoke']);
+  assert.deepEqual(smoke.config, JSON.parse(readFileSync('configs/smoke.json')));
+  assert.deepEqual(smoke.runnerBudget, plan.runnerBudget);
+  assert.equal(baselineModule.baselinePlan([]).config.vus, 10);
+  assert.equal(baselineModule.baselinePlan(['configs/smoke.json']).trials, 3);
+  for (const args of [['--smoke'], ['--workload', '--workload'], ['--workload', '--smoke', '--smoke'], ['--workload', '--vus=100'], ['--workload', '--cpus=8'], ['--workload', 'configs/smoke.json']]) assert.throws(() => baselineModule.baselinePlan(args));
+});
 
 const run = 'baseline-Abc123', volume = `baas-bench-2-pilot_${run}-1`;
 const state = { Name: volume, Driver: 'local', Scope: 'local', Options: null, Labels: { 'baas-bench-2.baseline': run, 'baas-bench-2.trial': '1' }, CreatedAt: '2026-10-20T00:00:00Z' };
