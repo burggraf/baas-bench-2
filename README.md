@@ -2,7 +2,7 @@
 
 API-only, SDK-based capacity benchmarks for self-hosted backend-as-a-service systems. Start with [the benchmark plan](BENCHMARK_PLAN.md). To resume development, read [PROGRESS.md](PROGRESS.md) for the current checkpoint, verified work, and next steps.
 
-**Current milestone: API-only fixtures, exploratory weighted workload, observability/recovery, fresh-deployment logical baseline proof, a verified fresh-deployment 50-user sizing pilot and separate real-TTL SDK authentication verification—not capacity certification.** TrailBase conformance and the stateful workload use **17% likes / 5% unlikes**. Two-user natural refresh/continuity and a separate partial local SDK read calibration are verified; neither resource observations nor synthetic reads certify full generator headroom. Capacity search, repeated performance certification and soak remain deferred.
+**Current milestone: API-only fixtures, exploratory weighted workload, observability/recovery, fresh-deployment logical baseline proof, verified fresh-deployment 50- and 100-user sizing pilots and separate real-TTL SDK authentication verification—not capacity certification.** TrailBase conformance and the stateful workload use **17% likes / 5% unlikes**. Two-user natural refresh/continuity and a separate partial local SDK read calibration are verified; neither resource observations nor synthetic reads certify full generator headroom. Capacity search, repeated performance certification and soak remain deferred.
 
 ## Requirements
 
@@ -135,7 +135,7 @@ Evidence is in ignored `results/baseline-<suffix>/`: exact Compose overrides, pe
 
 ### Bounded fresh-deployment workload sizing
 
-The approved **50-active-user** sizing pilot and its fresh-deployment path are verified—not capacity discovery. Full proof: **`results/baseline-22AxEE/`** (deployment/preparation/cleanup) and **`results/social-hVkOUc/`** (timed workload). All 55 units and every applicable original/new native suite passed; see **PROGRESS.md** for provenance and limitations.
+The approved **50- and 100-active-user** sizing pilots and their fresh-deployment path are verified—not capacity discovery. Prior 50-user proof: **`results/baseline-22AxEE/`** and **`results/social-hVkOUc/`**. New 100-user proof: **`results/baseline-jOIn75/`** (deployment/preparation/cleanup) and **`results/social-twawIx/`** (timed workload). All **56 units** and every applicable original/new native suite passed for the new option; see **PROGRESS.md** for exact provenance and limitations.
 
 With both projects stopped and no active fixture/operation/recovery claim:
 
@@ -144,12 +144,14 @@ npm run build
 docker compose build trailbase runner
 npm run test:fresh-workload       # normal tiny run, active SIGTERM, non-pilot CLI refusal
 # Once all applicable original and new regressions pass:
-/usr/bin/caffeinate -i npm run workload:sizing  # macOS idle-sleep prevention; no power check
+/usr/bin/caffeinate -i npm run workload:sizing  # 50 users; macOS idle-sleep prevention, no power check
+# Separately approved and verified 100-user follow-up:
+/usr/bin/caffeinate -i npm run workload:sizing -- --vus=100
 ```
 
-The full command API-seeds a newly created, exactly labeled volume with **1,000 accounts / 10,000 posts / 10,000 likes**, independently verifies it, then runs the existing SDK/seven-action workload at **50 VUs**. It preserves normal 1–5-second pauses, 300–900-second sessions and the **30s ramp + 60s warm-up + 120s measurement**. The generated resolved config is retained; `configs/pilot-small.json` and the ordinary workload command remain unchanged. Runner limits are explicitly **4 CPUs / 2 GiB / no swap**, with original startup cgroup and independent lifecycle checks. TrailBase remains **1 CPU / 4 GiB / no swap**. The existing same-cgroup OS supervisor captures final counters; all API traffic remains direct SDK/k6. The bounded mode currently requires local ARM64 runtimes, no VM changes or remote host.
+The full command API-seeds a newly created, exactly labeled volume with **1,000 accounts / 10,000 posts / 10,000 likes**, independently verifies it, then runs the existing SDK/seven-action workload at **50 VUs by default**, or exactly **100 VUs with `--vus=100`**. It preserves normal 1–5-second pauses, 300–900-second sessions and the **30s ramp + 60s warm-up + 120s measurement**. The generated resolved config is retained; `configs/pilot-small.json` and the ordinary workload command remain unchanged. Runner limits are explicitly **4 CPUs / 2 GiB / no swap**, with original startup cgroup and independent lifecycle checks. TrailBase remains **1 CPU / 4 GiB / no swap**. The existing same-cgroup OS supervisor captures final counters; all API traffic remains direct SDK/k6. The bounded mode currently requires local ARM64 runtimes, no VM changes or remote host.
 
-Implementation reuses `scripts/baseline.js --workload` (one fresh deployment instead of the default three preparation-only trials) and the shared existing workload lifecycle. `--workload --smoke` uses the original two-VU accelerated correctness config; there are no arbitrary target, budget or VU options. The ordinary social CLI still refuses these non-pilot volumes.
+Implementation reuses `scripts/baseline.js --workload` (one fresh deployment instead of the default three preparation-only trials) and the shared existing workload lifecycle. `--workload --smoke` uses the original two-VU accelerated correctness config and cannot be combined with `--vus=100`. The separately approved 100-user option changes only active users; there are no arbitrary target, budget or VU options. The ordinary social CLI still refuses these non-pilot volumes.
 
 The root `results/baseline-<suffix>/` records exact volume/override/preparation/config metadata and links to timed `results/social-<suffix>/` raw evidence. Success requires usable workload/resource evidence, explicit SDK account cleanup/zero public posts, unchanged retained-pilot metadata and checked shutdown. **All volumes remain retained**, and API-cleaned volumes are not fresh baselines for another trial. Failed/interrupted fixtures stay private and are not automatically reset/retried. New locks use **`command: fresh-workload`**, deliberately unsupported by social `recover`: uncatchable death or uncertain cleanup requires manual inspection of the exact recorded owner, runner, monitor, volume and backend. Do not blindly remove claims, adopt the volume with ordinary pilot commands or delete data volumes.
 
@@ -157,7 +159,17 @@ The full pilot completed **1,978 measured actions in 120 seconds (16.48 actions/
 
 Sampled memory peaks were **230.2 MiB backend / 273.3 MiB runner**, CPU **0.1557 / 0.3556 cores**; no observed OOM/restarts/policy loss/throttling. These samples span multiple phases and can miss bursts; low usage is not headroom proof. Independent raw-count/p95/p99/resource/final-cgroup/source/policy/baseline/privacy-pattern/cleanup audits passed. SDK cleanup proved zero public posts, the fresh volume is retained and pilot metadata unchanged. Native smoke also checked actual credential values; the full 1,000-account fixture was deleted before the post-run audit, so a separate full per-password comparison was not performed.
 
-This short sizing run cannot certify natural refresh, large authenticated identity pools, full generator headroom or user capacity. A further bounded load increase requires a separately scoped decision; no discovery or publication follows automatically. The user explicitly requested publication of this completed milestone; later work is not automatically published.
+The separately approved **100-user** follow-up completed **3,974 measured actions / 33.12 actions/s**, **zero observed action/auth/HTTP failures**, all 100 users finished with no interruptions. Public/own/read/create/like/unlike/edit counts: **1,431/558/580/228/666/220/291**. Descriptive p95s remained **7–15 ms**. Public list alone exceeds the 1,000-sample minimum and meets the numerical short-run policy; all other action tails and measurement-login evidence remain insufficient. There were 100 initial warm-up logins, zero measured logins/renewals/refreshes; TTL unchanged at 3,600s.
+
+| Observation | 50 users | 100 users |
+|---|---:|---:|
+| Measured actions/s | 16.48 | 33.12 |
+| Backend sampled peak memory | 230.2 MiB | 231.4 MiB |
+| Runner sampled peak memory | 273.3 MiB | 385.8 MiB |
+
+New sampled CPU peaks **0.2390 backend / 0.5449 runner cores**, no observed OOM/restarts/policy loss/throttling. Same images/SDK/dependencies/workload/transport/bundle/budgets; resolved config differs only in VUs. Raw counts/quantiles/resource replay/final source/policy/baseline/hash/cleanup audits passed. A one-off non-API observer kept all **1,000 actual fixture passwords in memory only** and checked them against all public root/timed/compressed outputs and original controller streams before discarding them; that comparison passed. The new run's SDK cleanup proved zero posts and cleared active credentials/resources/claims; fresh volume retained, pilot metadata unchanged.
+
+These are two short sequential observations, not repeated or causal memory/throughput scaling estimates. Neither certifies natural refresh, large identity pools, full generator headroom or user capacity. A further load increase or discovery campaign requires a separately scoped decision. The user explicitly requested publication of the completed 50-user and subsequent 100-user milestones; later work is not automatically published.
 
 ### Separate long-lived authentication check
 
@@ -301,4 +313,4 @@ This is one sequential CPU-and-RAM comparison, not individual resource attributi
 
 ## Next milestone
 
-Repeated fresh-deployment preparation has been verified at both smoke and 1,000-account scale (see [PROGRESS.md](PROGRESS.md)). Separate long-lived native authentication is also verified. The read-only calibration, VU comparison and approved larger-budget comparison above are complete. More resources improved delivery, but full authenticated-workload generator sizing and near-boundary confirmation still precede capacity discovery, repeated performance certification and soak tests. A high anonymous read rate does not establish large authenticated VU pools' memory or seven-action costs; do not apply the calibration-only budget change to the real controller automatically. The approved bounded fresh-deployment sizing path and 50-user pilot above are verified; this is not general campaign/search automation. The ordinary workload controller remains restricted to its original pilot volume. Catchable interruption and SIGKILL recovery have dedicated tests; host/daemon power-loss and exhaustive failure injection are not claimed. Remote-host automation and other BaaS adapters remain deferred.
+Repeated fresh-deployment preparation has been verified at both smoke and 1,000-account scale (see [PROGRESS.md](PROGRESS.md)). Separate long-lived native authentication is also verified. The read-only calibration, VU comparison and approved larger-budget comparison above are complete. More resources improved delivery, but full authenticated-workload generator sizing and near-boundary confirmation still precede capacity discovery, repeated performance certification and soak tests. A high anonymous read rate does not establish large authenticated VU pools' memory or seven-action costs; do not apply the calibration-only budget change to the real controller automatically. The approved bounded fresh-deployment sizing path and 50/100-user pilots above are verified; this is not general campaign/search automation. The ordinary workload controller remains restricted to its original pilot volume. Catchable interruption and SIGKILL recovery have dedicated tests; host/daemon power-loss and exhaustive failure injection are not claimed. Remote-host automation and other BaaS adapters remain deferred.

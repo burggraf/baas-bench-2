@@ -14,9 +14,9 @@ import { runWorkload } from './workload-run.js';
 const project = 'baas-bench-2-pilot', fixturePath = '.fixtures/trailbase.json';
 export function baselinePlan(args) {
   const workload = args.includes('--workload');
-  assert.ok(workload ? new Set(args).size === args.length && args.every(arg => ['--workload', '--smoke'].includes(arg)) : args.length <= 1 && !args[0]?.startsWith('--'), 'Usage: node scripts/baseline.js [config.json] | --workload [--smoke]');
+  assert.ok(workload ? new Set(args).size === args.length && args.every(arg => ['--workload', '--smoke', '--vus=100'].includes(arg)) && !(args.includes('--smoke') && args.includes('--vus=100')) : args.length <= 1 && !args[0]?.startsWith('--'), 'Usage: node scripts/baseline.js [config.json] | --workload [--smoke | --vus=100]');
   const configPath = workload ? (args.includes('--smoke') ? 'configs/smoke.json' : 'configs/pilot-small.json') : args[0] ?? 'configs/pilot-small.json';
-  const config = validateConfig({ ...JSON.parse(readFileSync(configPath)), ...(workload && !args.includes('--smoke') ? { vus: 50 } : {}) });
+  const config = validateConfig({ ...JSON.parse(readFileSync(configPath)), ...(workload && !args.includes('--smoke') ? { vus: args.includes('--vus=100') ? 100 : 50 } : {}) });
   return { workload, configPath, config, trials: workload ? 1 : 3, runnerBudget: workload ? { cpus: 4, memoryBytes: 2147483648 } : null };
 }
 

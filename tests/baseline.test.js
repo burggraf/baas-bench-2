@@ -4,7 +4,7 @@ import { assertBaselineVolume, assertBaselineBackend } from '../scripts/baseline
 import * as baselineModule from '../scripts/baseline.js';
 import { readFileSync } from 'node:fs';
 
-test('fresh workload plan permits only the approved 50-user pilot or tiny correctness smoke', () => {
+test('fresh workload defaults preserve the approved 50-user pilot and tiny correctness smoke', () => {
   assert.equal(typeof baselineModule.baselinePlan, 'function');
   const plan = baselineModule.baselinePlan(['--workload']);
   assert.equal(plan.workload, true); assert.equal(plan.trials, 1);
@@ -15,7 +15,15 @@ test('fresh workload plan permits only the approved 50-user pilot or tiny correc
   assert.deepEqual(smoke.runnerBudget, plan.runnerBudget);
   assert.equal(baselineModule.baselinePlan([]).config.vus, 10);
   assert.equal(baselineModule.baselinePlan(['configs/smoke.json']).trials, 3);
-  for (const args of [['--smoke'], ['--workload', '--workload'], ['--workload', '--smoke', '--smoke'], ['--workload', '--vus=100'], ['--workload', '--cpus=8'], ['--workload', 'configs/smoke.json']]) assert.throws(() => baselineModule.baselinePlan(args));
+  for (const args of [['--smoke'], ['--workload', '--workload'], ['--workload', '--smoke', '--smoke'], ['--workload', '--cpus=8'], ['--workload', 'configs/smoke.json']]) assert.throws(() => baselineModule.baselinePlan(args));
+});
+
+test('100-user sizing changes only active users; defaults, budgets and smoke remain bounded', () => {
+  const normal = baselineModule.baselinePlan(['--workload']);
+  for (const args of [['--workload', '--vus=100'], ['--vus=100', '--workload']]) {
+    assert.deepEqual(baselineModule.baselinePlan(args), { ...normal, config: { ...normal.config, vus: 100 } });
+  }
+  for (const args of [['--vus=100'], ['--workload', '--vus=100', '--smoke'], ['--workload', '--vus=100', '--vus=100'], ['--workload', '--vus=50'], ['--workload', '--vus=200'], ['--workload', '--vus', '100'], ['--workload', '--vus=100', '--cpus=8']]) assert.throws(() => baselineModule.baselinePlan(args));
 });
 
 const run = 'baseline-Abc123', volume = `baas-bench-2-pilot_${run}-1`;
