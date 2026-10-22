@@ -1,5 +1,6 @@
-import { spawn, execFile } from 'node:child_process';
-import { promisify, stripVTControlCharacters } from 'node:util';
+import { spawn } from 'node:child_process';
+import { stripVTControlCharacters } from 'node:util';
+import { execute } from './runtime.js';
 import { appendFileSync, closeSync, existsSync, openSync, readFileSync, writeFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { summarizeResources } from '../src/resources.js';
@@ -27,9 +28,21 @@ export function parseRunnerCgroups(text, consumed, capturedMs, running) {
   return { rows: added, consumed: rows.length, capturedMs };
 }
 
-const execute = promisify(execFile);
 const inspection = '{"id":{{json .Id}},"status":{{json .State.Status}},"running":{{json .State.Running}},"oomKilled":{{json .State.OOMKilled}},"exitCode":{{json .State.ExitCode}},"startedAt":{{json .State.StartedAt}},"finishedAt":{{json .State.FinishedAt}},"restarts":{{json .RestartCount}},"health":{{if index .State "Health"}}{{json .State.Health.Status}}{{else}}null{{end}},"run":{{json (index .Config.Labels "baas-bench-2.run")}},"nanoCpus":{{json .HostConfig.NanoCpus}},"cpuQuota":{{json .HostConfig.CpuQuota}},"cpuPeriod":{{json .HostConfig.CpuPeriod}},"cpuset":{{json .HostConfig.CpusetCpus}},"memoryLimit":{{json .HostConfig.Memory}},"memorySwap":{{json .HostConfig.MemorySwap}}}';
-const cgroupCommand = 'for f in cpu.stat memory.current memory.peak memory.events; do printf "\\n[%s]\\n" "$f"; cat "/sys/fs/cgroup/$f" 2>/dev/null || printf "unavailable\\n"; done';
+// Avoid scheduling four extra cat processes inside the CPU-throttled backend.
+const cgroupCommand = 'for f in cpu.stat memory.current memory.peak memory.events; do printf "\\n[%s]\\n" "$f"; while IFS= read -r line; do printf "%s\\n" "$line"; done < "/sys/fs/cgroup/$f" 2>/dev/null || printf "unavailable\\n"; done';
+
+export async function captureCgroups(target, docker) {
+  const argv = ['exec', target, 'sh', '-c', cgroupCommand], began = performance.now();
+  const capture = { argv, startedAt: new Date().toISOString() };
+  try {
+    const { stdout, stderr } = await docker(argv);
+    return { source: stdout, capture: { ...capture, durationMs: performance.now() - began, stdoutBytes: Buffer.byteLength(stdout), stderr, clientExitCode: 0 } };
+  } catch (error) {
+    error.cgroupCapture = { ...capture, durationMs: performance.now() - began, stdout: error.stdout ?? '', stderr: error.stderr ?? '', clientExitCode: error.exitCode ?? error.code ?? null, errorCode: error.code ?? null, timeoutMs: error.timeoutMs ?? null, killed: error.killed ?? false, signal: error.signal ?? null };
+    throw error;
+  }
+}
 
 export async function startMonitor(directory, backendId, runnerName, runnerCgroupFile, onObservation, hostMemory = false) {
   if (hostMemory && (!onObservation || !runnerCgroupFile)) throw new Error('Host memory checks require a guarded self-sampled runner');
@@ -130,7 +143,7 @@ async function collect(directory, backendId, runnerName, runnerCgroupFile, watch
     }
     if (state.running) {
       stats(role, state.id);
-      try { record('cgroup', role, (await docker(['exec', state.id, 'sh', '-c', cgroupCommand])).stdout); }
+      try { const result = await captureCgroups(state.id, docker); record('cgroup', role, result.source, { capture: result.capture }); }
       catch (error) {
         appendFileSync(`${directory}/cgroup-stderr.log`, error.stderr ?? 'Cgroup command failed\n');
         let terminal;
@@ -139,7 +152,7 @@ async function collect(directory, backendId, runnerName, runnerCgroupFile, watch
           catch (failure) { appendFileSync(`${directory}/inspect-stderr.log`, failure.stderr ?? 'Terminal inspection failed\n'); }
         }
         if (isTerminalSamplingRace(role, terminal, error)) record('lifecycle', role, terminal);
-        else record('error', role, null, { operation: 'cgroup', exitCode: error.code });
+        else record('error', role, null, { operation: 'cgroup', exitCode: error.code, capture: error.cgroupCapture });
       }
     }
   };

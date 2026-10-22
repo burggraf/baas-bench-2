@@ -1,14 +1,12 @@
 import assert from 'node:assert/strict';
 import {readFileSync,writeFileSync} from 'node:fs';
 import {resolve} from 'node:path';
-import {execFile} from 'node:child_process';
-import {promisify} from 'node:util';
 import {controllerClient} from './client.js';
 import {savePrivate} from '../src/fixtures.js';
 import {summarize} from '../src/report.js';
 import {summarizeAuth} from '../src/auth.js';
 import {runnerBudget} from '../src/calibration-runner.js';
-import {capture,hash,runRunner} from './runtime.js';
+import {capture,hash,runRunner,execute} from './runtime.js';
 import {startMonitor} from './monitor.js';
 import {stopOwnedRunner} from './recovery.js';
 import {campaignResourceStop,vmMemoryStop,assertHostMemoryCoverage} from '../src/campaign.js';
@@ -17,7 +15,6 @@ const json=(path,data)=>writeFileSync(path,JSON.stringify(data,null,2));
 const storageBytes=()=>Number(capture('docker',['compose','exec','-T','trailbase','du','-sk','/app/traildepot']).split(/\s+/)[0])*1024;
 export async function verifySizingHost(prefix,backendId) {
   assert.equal(process.platform,'darwin','Host-pressure guarded sizing requires macOS');
-  const execute=promisify(execFile);
   const vm=await execute('docker',['exec',backendId,'cat','/proc/meminfo'],{timeout:2000,maxBuffer:1024*1024});
   const host=await execute('sysctl',['-n','kern.memorystatus_vm_pressure_level'],{timeout:2000,maxBuffer:1024*1024});
   json(`${prefix}.json`,{at:new Date().toISOString(),vm,host,policy:{liveVmReserveBytes:1073741824,prestartVmReserveBytes:4294967296*0.85+1073741824,requireZeroVmSwapUsed:true,normalMacosPressure:'1'}});

@@ -1,10 +1,8 @@
 import assert from 'node:assert/strict';
-import { execFile } from 'node:child_process';
-import { promisify } from 'node:util';
 import { appendFileSync, existsSync, mkdirSync, mkdtempSync, readFileSync, unlinkSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { arch, cpus, platform, release, totalmem } from 'node:os';
-import { capture, hash, runRunner } from './runtime.js';
+import { capture, hash, runRunner, execute } from './runtime.js';
 import { startMonitor } from './monitor.js';
 import { savePrivate } from '../src/fixtures.js';
 import { calibrationPlan, assertCalibrationContainer, summarizeCalibration } from '../src/calibration.js';
@@ -46,7 +44,7 @@ async function main() {
     'Short bounded calibration is descriptive only; larger/separate-runner confirmation near a real boundary remains required.'
   ]};
   const compose=async args=>{
-    try{const r=await promisify(execFile)('docker',['compose',...args],{timeout:30000,maxBuffer:1024*1024});appendFileSync(`${directory}/docker-stdout.log`,r.stdout);appendFileSync(`${directory}/docker-stderr.log`,r.stderr);}
+    try{const r=await execute('docker',['compose',...args],{timeout:30000,maxBuffer:1024*1024});appendFileSync(`${directory}/docker-stdout.log`,r.stdout);appendFileSync(`${directory}/docker-stderr.log`,r.stderr);}
     catch(e){appendFileSync(`${directory}/docker-stdout.log`,e.stdout??'');appendFileSync(`${directory}/docker-stderr.log`,e.stderr??'');throw e;}
   };
   const owned=()=>ids().map(id=>{const s=inspect(id);assertCalibrationContainer(s,run,image);return s;});

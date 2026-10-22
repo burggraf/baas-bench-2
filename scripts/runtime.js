@@ -1,7 +1,16 @@
 import assert from 'node:assert/strict';
-import { execFileSync, spawn } from 'node:child_process';
+import { execFile, execFileSync, spawn } from 'node:child_process';
+import { promisify } from 'node:util';
 import { createHash } from 'node:crypto';
 import { closeSync, openSync, readFileSync, writeFileSync, writeSync } from 'node:fs';
+
+const executeFile = promisify(execFile);
+export async function execute(command, args, options) {
+  const pending = executeFile(command, args, options), result = await pending;
+  // A timed-out CLI can handle SIGTERM and exit zero, making plain promisify(execFile) resolve.
+  if (pending.child.killed) throw Object.assign(new Error('Command was killed despite a zero exit status'), { ...result, code: 'ERR_CHILD_PROCESS_KILLED', killed: true, signal: pending.child.signalCode, exitCode: pending.child.exitCode, timeoutMs: options?.timeout ?? null });
+  return result;
+}
 
 export const capture = (command, args) => execFileSync(command, args, { encoding: 'utf8', timeout: 30000 }).trim();
 export const hash = path => createHash('sha256').update(readFileSync(path)).digest('hex');

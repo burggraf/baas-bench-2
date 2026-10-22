@@ -40,6 +40,11 @@ test('fresh full-workload smoke enforces the approved runner budget, API-cleans 
   assert.equal(originals.at(-1).final,true);
   const rows=readFileSync(`${run}/resources.jsonl`,'utf8').trim().split('\n').map(JSON.parse);
   assert.deepEqual(summarizeResources(rows),workload.resources);
+  for(const row of rows.filter(r=>r.type==='cgroup'&&r.role==='backend')){
+    assert.deepEqual(row.capture.argv.slice(0,4),['exec',workload.resources.containers.backend.first.id,'sh','-c']);
+    assert.equal(row.capture.clientExitCode,0);assert.equal(row.capture.stdoutBytes,Buffer.byteLength(row.source));assert.equal(typeof row.capture.stderr,'string');
+    assert.ok(Number.isFinite(Date.parse(row.capture.startedAt)));assert.ok(row.capture.durationMs>=0);
+  }
   assert.deepEqual(rows.filter(r=>r.type==='cgroup'&&r.role==='runner').map(r=>r.source),originals.map(r=>r.source));
   if(extra.length){
     assertHostMemoryCoverage(rows);

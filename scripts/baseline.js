@@ -1,6 +1,4 @@
 import assert from 'node:assert/strict';
-import { execFile } from 'node:child_process';
-import { promisify } from 'node:util';
 import { appendFileSync, existsSync, mkdirSync, mkdtempSync, readFileSync, unlinkSync, writeFileSync } from 'node:fs';
 import { delimiter, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -8,7 +6,7 @@ import { createHash } from 'node:crypto';
 import { seedFixture, verifyFixture, deleteFixture, savePrivate } from '../src/fixtures.js';
 import { validateConfig } from '../src/workload.js';
 import { controllerClient } from './client.js';
-import { capture, runtimeManifest } from './runtime.js';
+import { capture, runtimeManifest, execute } from './runtime.js';
 import { runWorkload, verifySizingHost } from './workload-run.js';
 import { nextCampaignTrial, classifyCampaignTrial, campaignCpuPressure, measurementStart } from '../src/campaign.js';
 
@@ -94,7 +92,7 @@ async function main() {
   // Let fetch process socket-close events while replacing the server; never retry requests across deployments.
   const compose = async args => {
     try {
-      const result = await promisify(execFile)('docker', ['compose', ...args], { timeout: 30000, maxBuffer: 1024 * 1024 });
+      const result = await execute('docker', ['compose', ...args], { timeout: 30000, maxBuffer: 1024 * 1024 });
       appendFileSync(`${directory}/docker-stdout.log`, result.stdout);
       appendFileSync(`${directory}/docker-stderr.log`, result.stderr);
     } catch (error) {

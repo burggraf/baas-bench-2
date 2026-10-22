@@ -1,9 +1,7 @@
 import assert from 'node:assert/strict';
-import { execFile } from 'node:child_process';
-import { promisify } from 'node:util';
+import { execute } from './runtime.js';
 import { closeSync, lstatSync, openSync, readFileSync, unlinkSync, writeFileSync } from 'node:fs';
 
-const execute = promisify(execFile);
 const docker = async args => (await execute('docker', args, { encoding: 'utf8', timeout: 15000, maxBuffer: 1024 * 1024 })).stdout.trim();
 const missing = error => /No such (object|container)/i.test(error.stderr ?? '');
 const format = '{"id":{{json .Id}},"name":{{json .Name}},"image":{{json .Image}},"running":{{json .State.Running}},"run":{{json (index .Config.Labels "baas-bench-2.run")}},"project":{{json (index .Config.Labels "com.docker.compose.project")}},"service":{{json (index .Config.Labels "com.docker.compose.service")}}}';
