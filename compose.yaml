@@ -5,6 +5,10 @@ services:
     cpus: 1.0
     mem_limit: 4g
     memswap_limit: 4g
+    ulimits:
+      nofile:
+        soft: 16384
+        hard: 16384
     environment:
       RUST_LOG: warn
     command: ["/app/trail", "--data-dir", "/app/traildepot", "run", "--address", "0.0.0.0:4000", "--admin-address", "127.0.0.1:4001"]

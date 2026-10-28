@@ -19,12 +19,21 @@ export function savePrivate(path, value, exclusive = false) {
   if (!exclusive) renameSync(target, path);
 }
 
+async function createFixtureRecords(client, table, records) {
+  // shortcut: one-row custom batches retain the server's single-row path; revisit if they outgrow guards.
+  const ids = await client.records(table).createBulk(records);
+  assert.ok(Array.isArray(ids) && ids.length === records.length &&
+    ids.every(id => typeof id === 'string' && id.length > 0) && new Set(ids).size === ids.length,
+  'Bulk preparation IDs must match the requested records');
+  return ids;
+}
+
 export async function seedFixture(config, createClient, persist) {
   validateConfig(config);
   const started = Date.now();
   const namespace = `bench${randomBytes(8).toString('hex')}`;
   const fixture = {
-    version: 1, status: 'pending', namespace, config, startedAt: new Date(started).toISOString(),
+    version: 1, status: 'pending', preparationMethod: 'sdk-bulk-per-user-v1', namespace, config, startedAt: new Date(started).toISOString(),
     users: Array.from({ length: config.dataset.users }, (_, i) => ({
       index: i, username: `${namespace}${i}`, password: `${randomBytes(24).toString('base64url')}aA1!`, posts: [], likes: [],
     })),
@@ -33,7 +42,7 @@ export async function seedFixture(config, createClient, persist) {
   try {
     const count = await createClient().records('posts').list({ pagination: { limit: 1 }, count: true });
     assert.equal(count.total_count, 0, 'Seed only an empty, isolated benchmark deployment');
-    // Concurrency one is intentional: deterministic logical order, no burst-hidden retries.
+    // One bounded per-user transaction at a time preserves logical order and lets SQLite process commit callbacks.
     for (const [i, user] of fixture.users.entries()) {
       const client = createClient();
       try {
@@ -41,9 +50,7 @@ export async function seedFixture(config, createClient, persist) {
         await client.login(user.username, user.password);
         assert.equal(client.user()?.username, user.username, 'Registered identity mismatch');
         user.id = client.user().id;
-        for (let j = 0; j < config.dataset.postsPerUser; j++) {
-          user.posts.push(await client.records('posts').create({ author: user.id, ...postFields(config, i, j) }));
-        }
+        user.posts = await createFixtureRecords(client, 'posts', Array.from({ length: config.dataset.postsPerUser }, (_, j) => ({ author: user.id, ...postFields(config, i, j) })));
       } finally { if (client.user()) assert.ok(await client.logout(), 'Preparation logout failed'); }
     }
     const posts = fixture.users.flatMap(u => u.posts);
@@ -51,11 +58,9 @@ export async function seedFixture(config, createClient, persist) {
       const client = createClient();
       try {
         await client.login(user.username, user.password);
-        for (let j = 0; j < config.dataset.likesPerUser; j++) {
-          const post = posts[((i + 1) * config.dataset.postsPerUser + j) % posts.length];
-          const id = await client.records('likes').create({ user: user.id, post });
-          user.likes.push({ id, post });
-        }
+        const records = Array.from({ length: config.dataset.likesPerUser }, (_, j) => ({ user: user.id, post: posts[((i + 1) * config.dataset.postsPerUser + j) % posts.length] }));
+        const ids = await createFixtureRecords(client, 'likes', records);
+        user.likes = ids.map((id, j) => ({ id, post: records[j].post }));
       } finally { if (client.user()) assert.ok(await client.logout(), 'Preparation logout failed'); }
     }
     fixture.status = 'ready';

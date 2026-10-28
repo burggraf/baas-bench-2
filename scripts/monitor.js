@@ -1,6 +1,9 @@
 import { spawn } from 'node:child_process';
+import assert from 'node:assert/strict';
+import fs from 'node:fs/promises';
+import { posix } from 'node:path';
 import { stripVTControlCharacters } from 'node:util';
-import { execute } from './runtime.js';
+import { execute, captureHostMemory } from './runtime.js';
 import { appendFileSync, closeSync, existsSync, openSync, readFileSync, writeFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { summarizeResources } from '../src/resources.js';
@@ -11,9 +14,13 @@ export function parseStatsLine(line) {
 }
 
 export function isTerminalSamplingRace(role, state, error) {
-  return role === 'runner' && state?.status === 'exited' && state.running === false &&
-    /^[a-f0-9]{64}$/.test(state.id) && error.code === 1 &&
-    new RegExp(`^Error response from daemon: container ${state.id} is not running\\s*$`, 'i').test(error.stderr ?? '');
+  if (role !== 'runner' || state?.status !== 'exited' || state.running !== false || !/^[a-f0-9]{64}$/.test(state.id)) return false;
+  if (error.code === 1 && new RegExp(`^Error response from daemon: container ${state.id} is not running\\s*$`, 'i').test(error.stderr ?? '')) return true;
+  if (error.killed !== false || error.signal !== null || error.cgroupCapture?.argv?.[1] !== state.id || state.oomKilled !== false || ![0, 99].includes(state.exitCode)) return false;
+  // Container shutdown can kill an in-flight exec or remove its instance before the client attaches.
+  return (error.code === 137 && error.stderr === '') || (error.code === 1 &&
+    new RegExp(`^container ${state.id} is not running\\s*$`).test(error.stdout ?? '') &&
+    /^Error response from daemon: No such exec instance: [a-f0-9]{64}\s*$/.test(error.stderr ?? ''));
 }
 
 export function parseRunnerCgroups(text, consumed, capturedMs, running) {
@@ -28,13 +35,37 @@ export function parseRunnerCgroups(text, consumed, capturedMs, running) {
   return { rows: added, consumed: rows.length, capturedMs };
 }
 
-const inspection = '{"id":{{json .Id}},"status":{{json .State.Status}},"running":{{json .State.Running}},"oomKilled":{{json .State.OOMKilled}},"exitCode":{{json .State.ExitCode}},"startedAt":{{json .State.StartedAt}},"finishedAt":{{json .State.FinishedAt}},"restarts":{{json .RestartCount}},"health":{{if index .State "Health"}}{{json .State.Health.Status}}{{else}}null{{end}},"run":{{json (index .Config.Labels "baas-bench-2.run")}},"nanoCpus":{{json .HostConfig.NanoCpus}},"cpuQuota":{{json .HostConfig.CpuQuota}},"cpuPeriod":{{json .HostConfig.CpuPeriod}},"cpuset":{{json .HostConfig.CpusetCpus}},"memoryLimit":{{json .HostConfig.Memory}},"memorySwap":{{json .HostConfig.MemorySwap}}}';
+const inspection = '{"id":{{json .Id}},"pid":{{json .State.Pid}},"status":{{json .State.Status}},"running":{{json .State.Running}},"oomKilled":{{json .State.OOMKilled}},"exitCode":{{json .State.ExitCode}},"startedAt":{{json .State.StartedAt}},"finishedAt":{{json .State.FinishedAt}},"restarts":{{json .RestartCount}},"health":{{if index .State "Health"}}{{json .State.Health.Status}}{{else}}null{{end}},"run":{{json (index .Config.Labels "baas-bench-2.run")}},"nanoCpus":{{json .HostConfig.NanoCpus}},"cpuQuota":{{json .HostConfig.CpuQuota}},"cpuPeriod":{{json .HostConfig.CpuPeriod}},"cpuset":{{json .HostConfig.CpusetCpus}},"memoryLimit":{{json .HostConfig.Memory}},"memorySwap":{{json .HostConfig.MemorySwap}}}';
 // Avoid scheduling four extra cat processes inside the CPU-throttled backend.
 const cgroupCommand = 'for f in cpu.stat memory.current memory.peak memory.events; do printf "\\n[%s]\\n" "$f"; while IFS= read -r line; do printf "%s\\n" "$line"; done < "/sys/fs/cgroup/$f" 2>/dev/null || printf "unavailable\\n"; done';
 
+export async function captureHostCgroups({ id, pid }) {
+  assert.match(id, /^[a-f0-9]{64}$/);
+  assert.ok(Number.isSafeInteger(pid) && pid > 0, 'Missing host container PID');
+  const began = performance.now(), options = { encoding: 'utf8', signal: AbortSignal.timeout(2000) };
+  const capture = { method: 'host-cgroup-v2', containerId: id, pid, startedAt: new Date().toISOString(), timeoutMs: 2000 };
+  let source = '';
+  try {
+    const membership = await fs.readFile(`/proc/${pid}/cgroup`, options);
+    const path = membership.match(/^0::(\/[^\0\r\n]*)\n?$/)?.[1];
+    assert.ok(path && posix.normalize(path) === path && new RegExp(`/(?:docker-${id}\\.scope|${id})$`).test(path), 'Refuse foreign or non-unified host cgroup');
+    capture.path = `/sys/fs/cgroup${path}`;
+    // Native host reads avoid spawning a process inside the one-CPU backend.
+    for (const name of ['cpu.stat', 'memory.current', 'memory.peak', 'memory.events']) {
+      source += `\n[${name}]\n`;
+      source += await fs.readFile(`${capture.path}/${name}`, options);
+    }
+    assert.equal(await fs.readFile(`/proc/${pid}/cgroup`, options), membership, 'Container cgroup membership changed during capture');
+    return { source, capture: { ...capture, durationMs: performance.now() - began, stdoutBytes: Buffer.byteLength(source) } };
+  } catch (error) {
+    error.cgroupCapture = { ...capture, durationMs: performance.now() - began, stdout: source, errorCode: error.code ?? null };
+    throw error;
+  }
+}
+
 export async function captureCgroups(target, docker) {
   const argv = ['exec', target, 'sh', '-c', cgroupCommand], began = performance.now();
-  const capture = { argv, startedAt: new Date().toISOString() };
+  const capture = { method: 'docker-exec', argv, startedAt: new Date().toISOString() };
   try {
     const { stdout, stderr } = await docker(argv);
     return { source: stdout, capture: { ...capture, durationMs: performance.now() - began, stdoutBytes: Buffer.byteLength(stdout), stderr, clientExitCode: 0 } };
@@ -110,7 +141,7 @@ async function collect(directory, backendId, runnerName, runnerCgroupFile, watch
     });
     streams.set(role, { child, ended });
   };
-  let runnerSeen = false, consumed = 0, capturedMs = -1;
+  let runnerId = null, consumed = 0, capturedMs = -1;
   const selfCgroups = state => {
     if (!existsSync(runnerCgroupFile)) {
       if (!state.running) record('error', 'runner', null, { operation: 'self_cgroup_missing' });
@@ -124,15 +155,15 @@ async function collect(directory, backendId, runnerName, runnerCgroupFile, watch
   };
   const sample = async (role, target) => {
     let state;
-    try { state = JSON.parse((await docker(['inspect', '--format', inspection, target])).stdout); }
+    try { state = JSON.parse((await docker(['inspect', '--format', inspection, role === 'runner' && runnerId ? runnerId : target])).stdout); }
     catch (error) {
       appendFileSync(`${directory}/inspect-stderr.log`, error.stderr ?? 'Invalid inspector JSON\n');
-      if (role !== 'runner' || runnerSeen || !/No such (object|container)/i.test(error.stderr ?? '')) record('error', role, null, { operation: 'inspect' });
+      if (role !== 'runner' || runnerId || !/No such (object|container)/i.test(error.stderr ?? '')) record('error', role, null, { operation: 'inspect' });
       return;
     }
     if (role === 'runner') {
-      if (state.run !== directory.split('/').at(-1)) { record('error', role, null, { operation: 'ownership' }); return; }
-      runnerSeen = true;
+      if (state.run !== directory.split('/').at(-1) || !/^[a-f0-9]{64}$/.test(state.id) || (runnerId && state.id !== runnerId)) { record('error', role, null, { operation: 'ownership' }); return; }
+      runnerId = state.id;
     }
     if (state.status === 'created') { record('discovery', role, state); return; }
     record('lifecycle', role, state);
@@ -143,7 +174,7 @@ async function collect(directory, backendId, runnerName, runnerCgroupFile, watch
     }
     if (state.running) {
       stats(role, state.id);
-      try { const result = await captureCgroups(state.id, docker); record('cgroup', role, result.source, { capture: result.capture }); }
+      try { const result = role === 'backend' && process.platform === 'linux' ? await captureHostCgroups(state) : await captureCgroups(state.id, docker); record('cgroup', role, result.source, { capture: result.capture }); }
       catch (error) {
         appendFileSync(`${directory}/cgroup-stderr.log`, error.stderr ?? 'Cgroup command failed\n');
         let terminal;
@@ -151,7 +182,7 @@ async function collect(directory, backendId, runnerName, runnerCgroupFile, watch
           try { terminal = JSON.parse((await docker(['inspect', '--format', inspection, state.id])).stdout); }
           catch (failure) { appendFileSync(`${directory}/inspect-stderr.log`, failure.stderr ?? 'Terminal inspection failed\n'); }
         }
-        if (isTerminalSamplingRace(role, terminal, error)) record('lifecycle', role, terminal);
+        if (isTerminalSamplingRace(role, terminal, error)) record('lifecycle', role, terminal, { terminalSamplingRace: error.cgroupCapture });
         else record('error', role, null, { operation: 'cgroup', exitCode: error.code, capture: error.cgroupCapture });
       }
     }
@@ -159,8 +190,7 @@ async function collect(directory, backendId, runnerName, runnerCgroupFile, watch
   const sampleHost = async () => {
     if (hostMemory !== '--host-memory') return;
     try {
-      const result = await execute('sysctl', ['-n', 'kern.memorystatus_vm_pressure_level'], { encoding: 'utf8', timeout: 2000, maxBuffer: 1024 * 1024 });
-      record('host_memory', 'host', { stdout: result.stdout, stderr: result.stderr, exitCode: 0 });
+      record('host_memory', 'host', await captureHostMemory());
     } catch (error) { record('error', 'host', { stdout: error.stdout ?? '', stderr: error.stderr ?? '', exitCode: error.code ?? null }, { operation: 'host_memory' }); }
   };
   process.on('message', message => { if (message === 'stop') stopping = true; });

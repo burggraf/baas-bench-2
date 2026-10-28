@@ -1,0 +1,177 @@
+{
+  "description": "Sanitized numeric extract from one preserved run; no new benchmark was executed. Times in the CSV are relative to the first complete diagnostic sample and the authoritative backend guard.",
+  "runtime": {
+    "serverVersion": "trail v0.35.3-0-g80e1c7ec (2026-10-23)\nsqlite: 3.53.2",
+    "backendPlatform": "linux/amd64",
+    "runnerPlatform": "linux/amd64",
+    "sdkVersion": "0.14.3",
+    "host": {
+      "platform": "linux",
+      "arch": "x64",
+      "release": "6.8.0-147-generic",
+      "cpuModel": "Intel(R) Xeon(R) Platinum 8268 CPU @ 2.90GHz",
+      "logicalCpus": 8,
+      "memoryBytes": 33606881280
+    },
+    "cgroup": {
+      "quota": 100000,
+      "period": 100000,
+      "memoryMax": 4294967296,
+      "swapMax": 0
+    },
+    "imageIndexDigest": "sha256:91d8115ff58fbb569e94460d006726e83106707c5aa70138367402ac7618cff4"
+  },
+  "workload": {
+    "version": "social-mixed-v1",
+    "seed": 20261020,
+    "dataset": {
+      "profile": "social-baseline",
+      "users": 10000,
+      "postsPerUser": 10,
+      "likesPerUser": 10
+    },
+    "vus": 1500,
+    "rampSeconds": 30,
+    "warmupSeconds": 60,
+    "measurementSeconds": 120,
+    "pageSize": 20,
+    "bodyBytes": 1024,
+    "thinkSeconds": [
+      1,
+      5
+    ],
+    "sessionSeconds": [
+      300,
+      900
+    ],
+    "weights": {
+      "listPublic": 35,
+      "listOwn": 15,
+      "read": 15,
+      "create": 5,
+      "like": 17,
+      "unlike": 5,
+      "edit": 8
+    }
+  },
+  "observed": {
+    "primaryStop": "backend_memory_guard",
+    "guardCurrentBytes": 4154036224,
+    "firstSample": {
+      "seconds_since_first_sample": 0,
+      "seconds_relative_to_guard": -53.728,
+      "cgroup_current_bytes": 461451264,
+      "cgroup_anon_bytes": 228786176,
+      "cgroup_file_bytes": 207589376,
+      "cgroup_kernel_bytes": 24616960,
+      "cgroup_socket_bytes": 0,
+      "process_rss_bytes": 272093184,
+      "process_rss_anon_bytes": 228749312,
+      "process_threads": 11,
+      "tokio_named_threads": 3,
+      "runnable_tokio_named_threads": 0,
+      "open_fds": 29,
+      "capture_duration_ms": 16.801769000012428,
+      "memory_max_events": 0,
+      "oom_kill_events": 0
+    },
+    "lastSample": {
+      "seconds_since_first_sample": 54.792,
+      "seconds_relative_to_guard": 1.064,
+      "cgroup_current_bytes": 4293644288,
+      "cgroup_anon_bytes": 3720720384,
+      "cgroup_file_bytes": 206811136,
+      "cgroup_kernel_bytes": 44929024,
+      "cgroup_socket_bytes": 5865472,
+      "process_rss_bytes": 3764027392,
+      "process_rss_anon_bytes": 3720683520,
+      "process_threads": 342,
+      "tokio_named_threads": 334,
+      "runnable_tokio_named_threads": 276,
+      "open_fds": 1452,
+      "capture_duration_ms": 138.0828189998865,
+      "memory_max_events": 3,
+      "oom_kill_events": 0
+    },
+    "sampleCount": 50,
+    "peakSampledThreads": 348,
+    "diagnosticErrors": 0,
+    "maxCaptureMs": 580.6551840002649,
+    "maxGapMs": 1582.9304089997895,
+    "backendFinal": {
+      "cpuStat": {
+        "usage_usec": 1941927278,
+        "user_usec": 1831629915,
+        "system_usec": 110297363,
+        "core_sched.force_idle_usec": 0,
+        "nr_periods": 21351,
+        "nr_throttled": 1802,
+        "throttled_usec": 352841882,
+        "nr_bursts": 0,
+        "burst_usec": 0
+      },
+      "memoryEvents": {
+        "low": 0,
+        "high": 0,
+        "max": 54,
+        "oom": 0,
+        "oom_kill": 0,
+        "oom_group_kill": 0
+      },
+      "memoryCurrentBytes": 4294094848,
+      "memoryPeakBytes": 4294963200
+    },
+    "backendInspection": {
+      "oomKilled": false,
+      "restarts": 0,
+      "health": "healthy"
+    },
+    "metrics": {
+      "lines": 51695,
+      "points": 51666,
+      "measurementPoints": 0,
+      "httpRequests": 3363,
+      "httpStatuses": {
+        "0": 3251,
+        "200": 99,
+        "504": 13
+      },
+      "login": {
+        "requests": 3224,
+        "statuses": {
+          "0": 3164,
+          "200": 47,
+          "504": 13
+        }
+      },
+      "successfulLoginCounter": 47,
+      "offeredVuGauge": 1500,
+      "actionRequested": 172,
+      "actionCompleted": 129,
+      "actionFailed": 87,
+      "measuredCompleted": {},
+      "timedHttpDeletes": 6
+    },
+    "runnerLifetimePeakBytes": 2675105792
+  },
+  "provenance": {
+    "completionVerificationSha256": "bea5a394aee16872df42d67ac5bc933518839a076f8d200d326a8184bd9de0cf",
+    "sourceEvidenceSha256": {
+      "results/server-point-1500-0353-dhXJx6/timed-memory.jsonl": "36479c8821a3052a9029681a3ab636a297f8a81d8229bd0ab8c875d0cfdca46d",
+      "results/server-point-1500-0353-dhXJx6/memory-analysis.json": "f4bfd0285a80026b0d1808c4f7467bf95931eb0f884519d387025abbc182556e",
+      "results/server-point-1500-0353-dhXJx6/outcome-audit.json": "ae9d45d277bec41c85dc00d8cdf98518da88725d7f2ddf7ca5fe958cbfba8de7",
+      "results/social-TZrHxX/resource-safety-stop.json": "b23b131745e46c1f3a948ce4d9143d5edf98a74c29c91398bd025fa9f1c45d6a",
+      "results/baseline-RtPm8P/trial-1.json": "bea61ad7247bfdb9e0113244f49798387fe0f9354497d8e67a7ba361c1935580",
+      "src/k6/social.js": "2a7710ce6908f563849641df99689d206a82be361c475be04bbe4a4e98f6529e",
+      "src/k6/transport.js": "8e4537086d71b705e0f23c2c2394e677b256906e0c0dd2442974b2fae37d632c",
+      "backends/trailbase/configuration/config.textproto": "49508c492df861ea76e2f6a161863b07d6e59576420720fb5f1015645ffc32a7",
+      "backends/trailbase/configuration/migrations/main/U1792454400__social_schema.sql": "05e1e23c24f928621aeac3b9db7d80b120f03c55724526b90752895376f0d99a"
+    }
+  },
+  "limitations": [
+    "One stopped full-workload attempt, not a minimized or repeated login-only reproduction.",
+    "No native allocation-stack attribution; anonymous RSS and thread growth do not prove a leak.",
+    "Counters overlap and are sequential snapshots; not an exact additive memory decomposition.",
+    "HTTP status 0 includes timeout/network/interruption; exported login events are not unique authenticated users."
+  ]
+}

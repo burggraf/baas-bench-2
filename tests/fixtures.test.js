@@ -8,6 +8,7 @@ import { seedFixture, verifyFixture, deleteFixture, savePrivate } from '../src/f
 export function memoryClients() {
   const users = new Map(), posts = new Map(), likes = new Map();
   let sequence = 0, sessions = 0;
+  const calls = [];
   const factory = () => {
     let user;
     return {
@@ -22,8 +23,10 @@ export function memoryClients() {
       },
       records(table) {
         const rows = table === 'posts' ? posts : likes;
+        const insert = fields => { const id = `r${++sequence}`; rows.set(id, { id, ...fields, created_at: 1, updated_at: 1 }); return id; };
         return {
-          async create(fields) { const id = `r${++sequence}`; rows.set(id, { id, ...fields, created_at: 1, updated_at: 1 }); return id; },
+          async create(fields) { calls.push({ table, method: 'create', size: 1 }); return insert(fields); },
+          async createBulk(records) { calls.push({ table, method: 'createBulk', size: records.length }); return records.map(insert); },
           async list(opts = {}) {
             const filtered = [...rows.values()].filter(row => (table !== 'likes' || row.user === user.id) && (opts.filters ?? []).every(f => row[f.column] === f.value));
             return { records: filtered.slice(0, opts.pagination?.limit ?? 20), ...(opts.count ? { total_count: filtered.length } : {}) };
@@ -32,7 +35,7 @@ export function memoryClients() {
       },
     };
   };
-  return { factory, users, posts, likes, sessions: () => sessions };
+  return { factory, users, posts, likes, calls, sessions: () => sessions };
 }
 const config = JSON.parse(readFileSync('configs/smoke.json'));
 
@@ -84,7 +87,7 @@ test('partial seeds remain failed, keep credentials for cleanup, and cannot veri
   const factory = () => {
     const client = backend.factory();
     const records = client.records;
-    client.records = table => ({ ...records(table), create: async () => { throw new Error('injected failure'); } });
+    client.records = table => ({ ...records(table), create: async () => { throw new Error('injected failure'); }, createBulk: async () => { throw new Error('injected failure'); } });
     return client;
   };
   await assert.rejects(() => seedFixture(config, factory, f => { saved = structuredClone(f); }), /injected failure/);
@@ -92,6 +95,50 @@ test('partial seeds remain failed, keep credentials for cleanup, and cannot veri
   assert.ok(saved.users[0].password);
   assert.equal(backend.sessions(), 0);
   await assert.rejects(() => verifyFixture(config, saved, backend.factory), /ready/);
+});
+
+test('preparation batches each user through the official SDK without changing the verified logical baseline', async () => {
+  const backend = memoryClients();
+  const fixture = await seedFixture(config, backend.factory, () => {});
+  assert.equal(fixture.preparationMethod, 'sdk-bulk-per-user-v1');
+  assert.deepEqual(backend.calls, ['posts', 'likes'].flatMap(table => Array.from({ length: config.dataset.users }, () => ({ table, method: 'createBulk', size: 10 }))));
+  assert.equal(fixture.baseline.logicalHash, '4dda0571fa660dc11df1d1b1dc897685d52233cde45306719d47061ea3631350');
+});
+
+test('malformed bulk IDs fail closed for either table, without individual-create fallback or another batch', async () => {
+  for (const table of ['posts', 'likes']) for (const response of [undefined, [], Array(10).fill('duplicate'), Array(10).fill(7)]) {
+    const backend = memoryClients(); let saved, attempts = 0;
+    const factory = () => {
+      const client = backend.factory(), records = client.records;
+      client.records = name => ({ ...records(name), ...(name === table ? { createBulk: async rows => { attempts++; await records(name).createBulk(rows); return response; } } : {}) });
+      return client;
+    };
+    await assert.rejects(() => seedFixture(config, factory, f => { saved = structuredClone(f); }), /Bulk preparation IDs/);
+    assert.equal(attempts, 1); assert.equal(saved.status, 'failed'); assert.equal(backend.sessions(), 0);
+    assert.ok(saved.users[0].password); assert.equal(backend.calls.some(c => c.method === 'create'), false);
+    await assert.rejects(() => verifyFixture(config, saved, backend.factory), /ready/);
+  }
+});
+
+test('a committed-but-unacknowledged batch preserves the original error and failed fixture without retries or deletion', async () => {
+  const backend = memoryClients(), failure = new Error('unacknowledged bulk write'); let saved, attempts = 0;
+  const factory = () => {
+    const client = backend.factory(), records = client.records;
+    client.records = table => ({ ...records(table), createBulk: async rows => { attempts++; await records(table).createBulk(rows); throw failure; } });
+    return client;
+  };
+  await assert.rejects(() => seedFixture(config, factory, f => { saved = structuredClone(f); }), e => e === failure);
+  assert.equal(attempts, 1); assert.equal(saved.status, 'failed'); assert.equal(saved.users[0].posts.length, 0);
+  assert.equal(backend.posts.size, 10); assert.equal(backend.users.size, 1); assert.equal(backend.sessions(), 0);
+  assert.ok(saved.users[0].password);
+});
+
+test('single-row custom fixtures still use supported bulk calls and retain exact API verification', async () => {
+  const backend = memoryClients(), custom = { ...config, dataset: { profile: 'custom', users: 2, postsPerUser: 1, likesPerUser: 1 } };
+  const fixture = await seedFixture(custom, backend.factory, () => {});
+  assert.equal(fixture.preparationMethod, 'sdk-bulk-per-user-v1');
+  assert.deepEqual(backend.calls.map(c => [c.method, c.size]), Array.from({ length: 4 }, () => ['createBulk', 1]));
+  assert.deepEqual([fixture.baseline.users, fixture.baseline.posts, fixture.baseline.likes], [2, 2, 2]);
 });
 
 test('private fixture files and directory are restricted and existing file is not clobbered on creation', () => {

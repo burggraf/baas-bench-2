@@ -19,9 +19,9 @@ const cleanResources=()=>{
   assert.equal(capture('docker',['network','ls','-q','--filter','label=com.docker.compose.project=baas-bench-2-pilot']),'');
   assert.equal(existsSync('.fixtures/operation.lock'),false);
 };
-for(const memoryBytes of [2147483648,4294967296]) {
-const extra=memoryBytes===4294967296?['--runner-memory=4g']:[],suffix=extra.length?' (4-GiB/host-guarded)':'';
-test('bounded campaign smoke makes distinct fresh 2/4-user trials, applies live guards and retains original private-free evidence'+suffix,{timeout:180000,skip:extra.length>0&&process.platform!=='darwin'},async()=>{
+for(const {memoryBytes,backendMemoryStopFraction=.85} of [...[2147483648,4294967296,17179869184].map(memoryBytes=>({memoryBytes})),{memoryBytes:17179869184,backendMemoryStopFraction:.95}]) {
+const gib=memoryBytes/1073741824,extra=[...(gib>=4?[`--runner-memory=${gib}g`]:[]),...(backendMemoryStopFraction===.95?['--backend-memory-stop=95']:[])],suffix=extra.length?` (${gib}-GiB/host-guarded${backendMemoryStopFraction===.95?'; backend95%':''})`:'';
+test('bounded campaign smoke makes distinct fresh 2/4-user trials, applies live guards and retains original private-free evidence'+suffix,{timeout:180000,skip:extra.length>0&&!['darwin','linux'].includes(process.platform)},async()=>{
   assert.equal(existsSync(fixturePath),false);
   const passwords=new Set();
   const watcher=watch('.fixtures',()=>{try{const f=read(fixturePath);if(f.status==='used')for(const u of f.users)passwords.add(u.password);}catch{}});
@@ -30,7 +30,7 @@ test('bounded campaign smoke makes distinct fresh 2/4-user trials, applies live 
   const root=result.stdout.match(/Campaign proof: (results\/baseline-[A-Za-z0-9]{6})/)?.[1];assert.ok(root);
   const report=read(`${root}/report.json`);assert.equal(report.kind,'bounded-local-discovery');assert.equal(report.valid,true);assert.equal(report.certified,false);
   assert.equal(report.search.stop,'search_ceiling_reached');assert.equal(report.search.lowerVus,4);assert.equal(report.search.upperVus,null);
-  assert.deepEqual(report.pilotVolumeBefore,report.pilotVolumeAfter);assert.equal(report.trials.length,2);assert.equal(passwords.size,8);
+  assert.deepEqual(report.pilotVolumeBefore,report.pilotVolumeAfter);assert.equal(report.safetyPolicy.backendMemoryStopFraction,backendMemoryStopFraction);assert.equal(report.trials.length,2);assert.equal(passwords.size,8);
   assert.equal(new Set(report.trials.map(t=>t.identityHash)).size,2);assert.equal(new Set(report.trials.map(t=>t.baseline.logicalHash)).size,1);
   const dirs=[root];
   for(const[i,t]of report.trials.entries()){
@@ -39,11 +39,11 @@ test('bounded campaign smoke makes distinct fresh 2/4-user trials, applies live 
     assert.equal(t.classification.verdict,'pass');assert.equal(t.classification.certified,false);assert.equal(t.generatorCheck.sustainedCpuPressure,false);
     assert.equal(t.workload.report.sloEvidence,'insufficient_samples');assert.equal(t.workload.report.certified,false);assert.equal(t.apiReset.posts,0);
     assert.equal(t.workload.report.resources.generatorHeadroom,'unverified');
-    const guard=read(`${d}/campaign-guard.json`);assert.ok(guard.observations>10);assert.equal(guard.stop,null);assert.equal(guard.memoryStopFraction,.85);
+    const guard=read(`${d}/campaign-guard.json`);assert.ok(guard.observations>10);assert.equal(guard.stop,null);assert.equal(guard.memoryStopFraction,.85);assert.equal(guard.backendMemoryStopFraction,backendMemoryStopFraction);assert.equal(t.backendMemoryStopFraction,backendMemoryStopFraction);assert.equal(read(`${d}/manifest.json`).backendMemoryStopFraction,backendMemoryStopFraction);
     const rows=readFileSync(`${d}/resources.jsonl`,'utf8').trim().split('\n').map(JSON.parse);assert.deepEqual(summarizeResources(rows),t.workload.report.resources);
     assert.deepEqual(readFileSync(`${d}/runner-limits.txt`,'utf8').trim().split(/\s+/).map(Number),[400000,100000,memoryBytes,0]);
     assert.deepEqual(t.workload.report.runnerBudget,{cpus:4,memoryBytes});
-    if(extra.length){assert.equal(guard.hostMemoryGuard,true);assertHostMemoryCoverage(rows);assert.ok(rows.filter(r=>r.type==='cgroup'&&r.role==='runner').every(r=>vmMemoryStop(r.source)===null));}
+    if(extra.length){assert.equal(guard.hostMemoryGuard,true);assertHostMemoryCoverage(rows,memoryBytes);assert.ok(rows.filter(r=>r.type==='cgroup'&&r.role==='runner').every(r=>vmMemoryStop(r.source)===null));}
     for(const[p,h]of Object.entries(read(`${d}/manifest.json`).hashes))assert.equal(hash(p),h,p);
     const volume=JSON.parse(capture('docker',['volume','inspect',t.volume.Name]))[0];assertBaselineVolume(volume,root.split('/').at(-1),i+1,8);assert.deepEqual(volume,t.volume);
   }
@@ -51,7 +51,7 @@ test('bounded campaign smoke makes distinct fresh 2/4-user trials, applies live 
   for(const d of dirs)scan(d);assert.equal(existsSync(fixturePath),false);cleanResources();
 });
 
-test('campaign SIGTERM stops all later trials, preserves the used private fixture and requires explicit exact-volume SDK cleanup'+suffix,{timeout:120000,skip:extra.length>0&&process.platform!=='darwin'},async()=>{
+test('campaign SIGTERM stops all later trials, preserves the used private fixture and requires explicit exact-volume SDK cleanup'+suffix,{timeout:120000,skip:extra.length>0&&!['darwin','linux'].includes(process.platform)},async()=>{
   assert.equal(existsSync(fixturePath),false);
   const logs=mkdtempSync('results/campaign-interruption-'),out=openSync(`${logs}/stdout.log`,'w'),err=openSync(`${logs}/stderr.log`,'w');
   const child=spawn(process.execPath,['scripts/baseline.js','--campaign','--smoke',...extra],{stdio:['ignore',out,err]});
@@ -67,7 +67,7 @@ test('campaign SIGTERM stops all later trials, preserves the used private fixtur
     child.kill('SIGTERM');assert.equal((await ended).code,143);cleanResources();
     const root=`results/${op.baselineRunId}`,report=read(`${root}/report.json`),fixture=read(fixturePath),trial=read(`${root}/trial-1.json`);
     assert.equal(report.valid,false);assert.equal(report.trials.length,0);assert.equal(report.activeTrial.number,1);assert.equal(report.activeTrial.workloadDirectory,op.workloadDirectory);assert.equal(trial.workload.directory,op.workloadDirectory);assert.equal(existsSync(`${root}/trial-2.compose.json`),false);assert.equal(fixture.status,'used');
-    assert.equal(read(`${root}/failure.json`).interrupted,'SIGTERM');
+    assert.equal(read(`${root}/failure.json`).interrupted,'SIGTERM');assert.equal(trial.backendMemoryStopFraction,backendMemoryStopFraction);assert.equal(read(`${op.workloadDirectory}/campaign-guard.json`).backendMemoryStopFraction,backendMemoryStopFraction);
     const volume=JSON.parse(capture('docker',['volume','inspect',fixture.volume]))[0];assertBaselineVolume(volume,op.baselineRunId,1,8);assert.deepEqual(volume,trial.volume);
     const env={...process.env,COMPOSE_FILE:[resolve('compose.yaml'),resolve(`${root}/trial-1.compose.json`)].join(delimiter),COMPOSE_PROJECT_NAME:'baas-bench-2-pilot',COMPOSE_PATH_SEPARATOR:delimiter};
     const compose=async args=>(await execute('docker',['compose',...args],{env,timeout:30000})).stdout.trim();let backendId;

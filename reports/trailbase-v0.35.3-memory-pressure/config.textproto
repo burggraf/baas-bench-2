@@ -1,0 +1,27 @@
+email {}
+server {
+  application_name: "BaaS Bench Pilot"
+  site_url: "http://localhost:4000"
+}
+auth {
+  user_identifier: ONLY_USERNAME
+}
+record_apis: [
+  {
+    name: "posts"
+    table_name: "posts"
+    acl_world: [READ]
+    acl_authenticated: [CREATE, READ, UPDATE, DELETE]
+    create_access_rule: "_REQ_.author = _USER_.id AND 'id' NOT IN _REQ_FIELDS_ AND 'created_at' NOT IN _REQ_FIELDS_ AND 'updated_at' NOT IN _REQ_FIELDS_"
+    update_access_rule: "_ROW_.author = _USER_.id AND 'author' NOT IN _REQ_FIELDS_ AND 'id' NOT IN _REQ_FIELDS_ AND 'created_at' NOT IN _REQ_FIELDS_ AND 'updated_at' NOT IN _REQ_FIELDS_"
+    delete_access_rule: "_ROW_.author = _USER_.id"
+  },
+  {
+    name: "likes"
+    table_name: "likes"
+    acl_authenticated: [CREATE, READ, DELETE]
+    create_access_rule: "_REQ_.user = _USER_.id AND 'id' NOT IN _REQ_FIELDS_ AND 'created_at' NOT IN _REQ_FIELDS_"
+    read_access_rule: "_ROW_.user = _USER_.id"
+    delete_access_rule: "_ROW_.user = _USER_.id"
+  }
+]

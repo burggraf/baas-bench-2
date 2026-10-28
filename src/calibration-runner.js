@@ -6,7 +6,7 @@ import{fileURLToPath}from'node:url';
 
 export function runnerBudget(id, profile) {
   assert.match(id,/^(social-[A-Za-z0-9]{6}|calibration-[A-Za-z0-9]{6}-(10|25|40|100|400|1600)(-vu(32|128)|-vu128-(2cpu-1g|4cpu-2g))?)$/);
-  if(profile!==undefined){assert.equal(profile,'4cpu-4g');assert.match(id,/^social-[A-Za-z0-9]{6}$/);return {cpus:4,memoryBytes:4294967296};}
+  if(profile!==undefined){assert.ok(['4cpu-4g','4cpu-16g'].includes(profile));assert.match(id,/^social-[A-Za-z0-9]{6}$/);return {cpus:4,memoryBytes:profile==='4cpu-16g'?17179869184:4294967296};}
   const cpus=id.startsWith('social-')||id.endsWith('-4cpu-2g')?4:2;
   return {cpus,memoryBytes:cpus===4?2147483648:1073741824};
 }
@@ -16,7 +16,7 @@ export function readCgroupSnapshot(directory='/sys/fs/cgroup', vmInfoPath) {
 }
 if(process.argv[1]===fileURLToPath(import.meta.url)) {
   const[id,...args]=process.argv.slice(2);
-  const profile=args[0]==='--profile=4cpu-4g'?args.shift().slice('--profile='.length):undefined;
+  const profile=args[0]?.startsWith('--profile=')?args.shift().slice('--profile='.length):undefined;
   const budget=runnerBudget(id,profile);assert.equal(args[0],'run');
   const directory=`/results/${id}`,began=process.hrtime.bigint();
   const limits=['cpu.max','memory.max','memory.swap.max'].map(name=>readFileSync(`/sys/fs/cgroup/${name}`,'utf8')).join('');

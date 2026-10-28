@@ -58,6 +58,17 @@ test('4-GiB supervisor can retain original VM meminfo alongside original self-cg
   const file=join(dir,'vm');writeFileSync(file,vm());
   assert.ok(supervisor.readCgroupSnapshot(dir,file).includes(`[vm.meminfo]\n${vm()}`));assert.ok(!supervisor.readCgroupSnapshot(dir).includes('[vm.meminfo]'));
 });
+test('Linux host memory samples enforce the existing reserve and zero-swap policy without macOS sysctl',()=>{
+  const row=stdout=>({type:'host_memory',role:'host',source:{platform:'linux',stdout,stderr:'',exitCode:0}});
+  assert.equal(safety.campaignResourceStop(row(vm()),4*GiB),null);
+  assert.equal(safety.campaignResourceStop(row(vm(GiB/2)),4*GiB),'vm_memory_reserve');
+  assert.equal(safety.campaignResourceStop(row(vm(6*GiB,8*GiB)),4*GiB),'vm_swap_pressure');
+  assert.equal(safety.campaignResourceStop(row(''),4*GiB),'invalid_vm_telemetry');
+  assert.equal(safety.campaignResourceStop({...row(vm()),source:{...row(vm()).source,exitCode:1}},4*GiB),'invalid_host_telemetry');
+  assert.equal(safety.campaignResourceStop({...row(vm()),source:{...row(vm()).source,platform:'win32'}},4*GiB),'invalid_host_telemetry');
+  safety.assertHostMemoryCoverage([{...row(vm()),elapsedMs:0},{...row(vm()),elapsedMs:1000}]);
+});
+
 test('host pressure samples must span the run without missing, invalid or greater-than-five-second gaps',()=>{
   assert.equal(typeof safety.assertHostMemoryCoverage,'function');
   const row=elapsedMs=>({type:'host_memory',role:'host',elapsedMs,source:{stdout:'1\n',stderr:'',exitCode:0}});

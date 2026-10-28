@@ -3,6 +3,7 @@ import { execFile, execFileSync, spawn } from 'node:child_process';
 import { promisify } from 'node:util';
 import { createHash } from 'node:crypto';
 import { closeSync, openSync, readFileSync, writeFileSync, writeSync } from 'node:fs';
+import { cpus, platform, release, totalmem } from 'node:os';
 
 const executeFile = promisify(execFile);
 export async function execute(command, args, options) {
@@ -10,6 +11,17 @@ export async function execute(command, args, options) {
   // A timed-out CLI can handle SIGTERM and exit zero, making plain promisify(execFile) resolve.
   if (pending.child.killed) throw Object.assign(new Error('Command was killed despite a zero exit status'), { ...result, code: 'ERR_CHILD_PROCESS_KILLED', killed: true, signal: pending.child.signalCode, exitCode: pending.child.exitCode, timeoutMs: options?.timeout ?? null });
   return result;
+}
+
+export function nativeContainerPlatform(architecture = process.arch) {
+  assert.ok(['x64', 'arm64'].includes(architecture), 'Only native AMD64/ARM64 benchmark hosts are supported');
+  return `linux/${architecture === 'x64' ? 'amd64' : 'arm64'}`;
+}
+
+export async function captureHostMemory(hostPlatform = process.platform) {
+  assert.ok(['linux', 'darwin'].includes(hostPlatform), 'Host memory monitoring requires Linux or macOS');
+  const result = await execute(hostPlatform === 'linux' ? 'cat' : 'sysctl', hostPlatform === 'linux' ? ['/proc/meminfo'] : ['-n', 'kern.memorystatus_vm_pressure_level'], { encoding: 'utf8', timeout: 2000, maxBuffer: 1024 * 1024 });
+  return { platform: hostPlatform, ...result, exitCode: 0 };
 }
 
 export const capture = (command, args) => execFileSync(command, args, { encoding: 'utf8', timeout: 30000 }).trim();
@@ -27,14 +39,18 @@ export function runtimeManifest(paths) {
   assert.equal(backend.cpus, 1); assert.equal(backend.memoryBytes, 4294967296);
   assert.equal(backend.memorySwapBytes, backend.memoryBytes);
   assert.equal(cgroup.quota / cgroup.period, 1); assert.equal(cgroup.memoryMax, 4294967296); assert.equal(cgroup.swapMax, 0);
+  const backendPlatform = capture('docker', ['image', 'inspect', inspection.Image, '--format', '{{.Os}}/{{.Architecture}}']);
+  const runnerPlatform = capture('docker', ['image', 'inspect', 'baas-bench-2-pilot-runner', '--format', '{{.Os}}/{{.Architecture}}']);
+  assert.equal(backendPlatform, nativeContainerPlatform(), 'Backend must run natively');
+  assert.equal(runnerPlatform, nativeContainerPlatform(), 'Runner must run natively');
   return {
     startedAt: new Date().toISOString(), controllerNodeVersion: process.version,
+    host: { platform: platform(), arch: process.arch, release: release(), cpuModel: cpus()[0]?.model, logicalCpus: cpus().length, memoryBytes: totalmem() },
     revision: capture('git', ['rev-parse', 'HEAD']), dirty: capture('git', ['status', '--porcelain']).length > 0,
     serverVersion: capture('docker', ['compose', 'exec', '-T', 'trailbase', '/app/trail', '--version']),
     sdkVersion: JSON.parse(readFileSync('package-lock.json')).packages['node_modules/trailbase'].version,
     runnerImageId: capture('docker', ['image', 'inspect', 'baas-bench-2-pilot-runner', '--format', '{{.Id}}']),
-    backendPlatform: capture('docker', ['image', 'inspect', inspection.Image, '--format', '{{.Os}}/{{.Architecture}}']),
-    runnerPlatform: capture('docker', ['image', 'inspect', 'baas-bench-2-pilot-runner', '--format', '{{.Os}}/{{.Architecture}}']),
+    backendPlatform, runnerPlatform,
     backend, cgroup, hashes: Object.fromEntries(paths.map(path => [path, hash(path)])),
   };
 }

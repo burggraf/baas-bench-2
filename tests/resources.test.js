@@ -17,6 +17,25 @@ test('runner exit between inspection and cgroup read is a verified transition, n
   assert.equal(isTerminalSamplingRace('runner', { ...state, exitCode: 137 }, error), true);
 });
 
+test('Docker-killed in-flight exec is a terminal race only for its exact cleanly exited runner, never timeout/OOM/backend', () => {
+  const id='a'.repeat(64),state={id,status:'exited',running:false,exitCode:0,oomKilled:false};
+  const error={code:137,stderr:'',killed:false,signal:null,cgroupCapture:{argv:['exec',id,'sh','-c','read counters']}};
+  assert.equal(isTerminalSamplingRace('runner',state,error),true);
+  assert.equal(isTerminalSamplingRace('runner',{...state,exitCode:99},error),true);
+  for(const patch of [{running:true},{status:'dead'},{oomKilled:true},{exitCode:137},{id:'b'.repeat(64)}])assert.equal(isTerminalSamplingRace('runner',{...state,...patch},error),false);
+  for(const patch of [{code:1},{killed:true},{signal:'SIGTERM'},{stderr:'permission denied'},{cgroupCapture:undefined}])assert.equal(isTerminalSamplingRace('runner',state,{...error,...patch}),false);
+  assert.equal(isTerminalSamplingRace('backend',state,error),false);
+});
+
+test('Docker removed-exec race requires exact not-running stdout, native exec error and verified clean runner', () => {
+  const id='a'.repeat(64),state={id,status:'exited',running:false,exitCode:0,oomKilled:false};
+  const error={code:1,stdout:`container ${id} is not running\r\n`,stderr:`Error response from daemon: No such exec instance: ${'b'.repeat(64)}\n`,killed:false,signal:null,cgroupCapture:{argv:['exec',id,'sh','-c','read counters']}};
+  assert.equal(isTerminalSamplingRace('runner',state,error),true);
+  for(const patch of [{stdout:''},{stdout:`container ${'c'.repeat(64)} is not running\r\n`},{stderr:'No such exec instance\n'},{killed:true},{signal:'SIGTERM'},{cgroupCapture:undefined}])assert.equal(isTerminalSamplingRace('runner',state,{...error,...patch}),false);
+  for(const patch of [{running:true},{oomKilled:true},{exitCode:137},{id:'c'.repeat(64)}])assert.equal(isTerminalSamplingRace('runner',{...state,...patch},error),false);
+  assert.equal(isTerminalSamplingRace('backend',state,error),false);
+});
+
 test('Docker streaming terminal controls are parsed without changing retained raw bytes', () => {
   assert.deepEqual(parseStatsLine('\u001b[J\u001b[H{"CPUPerc":"1.78%"}\u001b[K'), { CPUPerc: '1.78%' });
   assert.equal(parseStatsLine('\u001b[K'), null);

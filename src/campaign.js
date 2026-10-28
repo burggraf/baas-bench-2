@@ -51,29 +51,39 @@ export function classifyCampaignTrial(report, summary, cpuPressure) {
 }
 
 // Conservative safety limits, not a claim that crossing them proves backend/generator capacity.
-export function campaignResourceStop(row, runnerMemoryBytes=2147483648) {
-  assert.ok([2147483648,4294967296].includes(runnerMemoryBytes));
+export function campaignResourceStop(row, runnerMemoryBytes=2147483648, backendMemoryStopFraction=0.85) {
+  assert.ok([2147483648,4294967296,17179869184].includes(runnerMemoryBytes));
+  assert.ok([0.85,0.95].includes(backendMemoryStopFraction));
+  assert.ok(backendMemoryStopFraction===0.85||runnerMemoryBytes===17179869184, 'Backend95 requires the explicit16GiB profile');
   if(row.type==='error')return 'invalid_telemetry';
   if(row.type==='lifecycle'){
     if(row.source.oomKilled)return `${row.role}_oom`;
     if(row.role==='backend'&&(!row.source.running||row.source.health!=='healthy'))return 'backend_health';
     if(row.role==='runner'&&row.source.status==='exited'&&![0,99].includes(row.source.exitCode))return 'runner_abnormal_exit';
   }
-  if(row.type==='host_memory'&&runnerMemoryBytes===4294967296){
-    if(row.source?.exitCode!==0||typeof row.source?.stdout!=='string'||row.source.stderr!==''||!/^\d+\s*$/.test(row.source.stdout))return 'invalid_host_telemetry';
+  if(row.type==='host_memory'&&runnerMemoryBytes>=4294967296){
+    if(row.source?.exitCode!==0||typeof row.source?.stdout!=='string'||row.source.stderr!=='')return 'invalid_host_telemetry';
+    if(row.source.platform==='linux')return vmMemoryStop(row.source.stdout);
+    if((row.source.platform!==undefined&&row.source.platform!=='darwin')||!/^\d+\s*$/.test(row.source.stdout))return 'invalid_host_telemetry';
     if(row.source.stdout.trim()!=='1')return 'macos_memory_pressure';
   }
   if(row.type==='cgroup'){
     const g=parseCgroup(row.source),limit=row.role==='runner'?runnerMemoryBytes:4294967296;
     if(g.memoryCurrentBytes===null||!['max','oom','oom_kill'].every(k=>Number.isSafeInteger(g.memoryEvents[k])))return 'invalid_telemetry';
     if(['max','oom','oom_kill'].some(k=>g.memoryEvents[k]>0))return `${row.role}_memory_events`;
-    if(g.memoryCurrentBytes>=limit*0.85)return `${row.role}_memory_guard`;
-    if(row.role==='runner'&&runnerMemoryBytes===4294967296)return vmMemoryStop(row.source.match(/\[vm\.meminfo\]\n([^[]*)/)?.[1]??'');
+    if(g.memoryCurrentBytes>=limit*(row.role==='backend'?backendMemoryStopFraction:0.85))return `${row.role}_memory_guard`;
+    if(row.role==='runner'&&runnerMemoryBytes>=4294967296)return vmMemoryStop(row.source.match(/\[vm\.meminfo\]\n([^[]*)/)?.[1]??'');
   }
   return null;
 }
 
-export function vmMemoryStop(source, initial=false) {
+export function prestartMemoryReserve(runnerMemoryBytes=4294967296) {
+  assert.ok([4294967296,17179869184].includes(runnerMemoryBytes));
+  // The large profile reserves the full backend budget too, before its preparation allocations occur.
+  return runnerMemoryBytes*0.85+1073741824+(runnerMemoryBytes===17179869184?4294967296:0);
+}
+
+export function vmMemoryStop(source, initial=false, runnerMemoryBytes=4294967296) {
   if(typeof source!=='string')return 'invalid_vm_telemetry';
   const values={};
   for(const name of ['MemTotal','MemAvailable','SwapTotal','SwapFree']){
@@ -84,16 +94,16 @@ export function vmMemoryStop(source, initial=false) {
   }
   if(values.MemTotal<=0||values.MemAvailable>values.MemTotal||values.SwapFree>values.SwapTotal)return 'invalid_vm_telemetry';
   if(values.SwapFree!==values.SwapTotal)return 'vm_swap_pressure';
-  if(values.MemAvailable<(initial?4294967296*0.85+1073741824:1073741824))return 'vm_memory_reserve';
+  if(values.MemAvailable<(initial?prestartMemoryReserve(runnerMemoryBytes):1073741824))return 'vm_memory_reserve';
   return null;
 }
 
-export function assertHostMemoryCoverage(records) {
+export function assertHostMemoryCoverage(records, runnerMemoryBytes=4294967296) {
   const host=records.filter(r=>r.type==='host_memory'&&r.role==='host');
   assert.ok(host.length>=2,'Missing host pressure samples');
   const times=[0,...host.map(r=>r.elapsedMs),Math.max(...records.map(r=>r.elapsedMs))];
   assert.ok(times.every((v,i)=>Number.isFinite(v)&&v>=0&&(!i||(v>=times[i-1]&&v-times[i-1]<=5000))),'Gapped/reordered host pressure samples');
-  assert.ok(host.every(r=>campaignResourceStop(r,4294967296)===null),'Invalid/unsafe host pressure samples');
+  assert.ok(host.every(r=>campaignResourceStop(r,runnerMemoryBytes)===null),'Invalid/unsafe host pressure samples');
 }
 
 export async function measurementStart(path) {

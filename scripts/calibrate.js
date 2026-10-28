@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { appendFileSync, existsSync, mkdirSync, mkdtempSync, readFileSync, unlinkSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { arch, cpus, platform, release, totalmem } from 'node:os';
-import { capture, hash, runRunner, execute } from './runtime.js';
+import { capture, hash, runRunner, execute, nativeContainerPlatform } from './runtime.js';
 import { startMonitor } from './monitor.js';
 import { savePrivate } from '../src/fixtures.js';
 import { calibrationPlan, assertCalibrationContainer, summarizeCalibration } from '../src/calibration.js';
@@ -25,7 +25,8 @@ async function main() {
   assert.equal(capture('docker',['network','ls','-q','--filter',`label=com.docker.compose.project=${project}`]),'','Inspect leftover calibration network first');
   assert.ok(!existsSync('.fixtures/trailbase.json')&&!existsSync('.fixtures/recovery.lock'),'Resolve fixture/recovery claim first');
   const image=capture('docker',['image','inspect','baas-bench-2-pilot-runner','--format','{{.Id}}']);
-  assert.equal(capture('docker',['image','inspect',image,'--format','{{.Os}}/{{.Architecture}}']),'linux/arm64','This local calibration is ARM64 only');
+  const imagePlatform=capture('docker',['image','inspect',image,'--format','{{.Os}}/{{.Architecture}}']);
+  assert.equal(imagePlatform,nativeContainerPlatform(),'Calibration runner must run natively');
   mkdirSync('results',{recursive:true});const directory=mkdtempSync('results/calibration-'),run=directory.split('/').at(-1);
   const operation={version:1,pid:process.pid,command:'calibration',runId:run,project,runnerImageId:image,startedAt:new Date().toISOString()};
   savePrivate('.fixtures/operation.lock',operation,true);
@@ -37,7 +38,7 @@ async function main() {
     'Open arrival-rate iterations are not concurrent active users; this is not the social workload or BaaS capacity.',
     'Static uncompressed 20-post pages exercise official SDK/query/transport/JSON/validation cost only; no auth, writes, sessions, target search or database.',
     'Non-HTTP time includes connection/queueing, SDK processing, validation and millisecond timer quantization; it is not isolated SDK cost. Never subtract percentiles.',
-    'Target and runner share the same M1/OrbStack host; target, VM, thermal, VU allocation and raw-output/monitoring limits can constrain delivery.',
+    'Target and runner share the same host; target, virtualization, thermal, VU allocation and raw-output/monitoring limits can constrain delivery.',
     'A Node OS-only supervisor captures runner cgroups including final counters; its cost shares the runner budget. All API traffic remains direct SDK/k6, not a Node bridge.',
     'Comparisons run in listed profile order at each rate, sequentially without randomization/repetition; host drift and order effects are not isolated.',
     'Budget comparison changes CPU and RAM together at fixed 128 VUs; it does not isolate CPU versus memory or certify independent-host headroom.',
@@ -50,7 +51,7 @@ async function main() {
   const owned=()=>ids().map(id=>{const s=inspect(id);assertCalibrationContainer(s,run,image);return s;});
   try {
     const paths=['runner/Dockerfile','compose.calibration.yaml','package.json','package-lock.json','scripts/build.js','scripts/calibrate.js','scripts/monitor.js','scripts/runtime.js','src/calibration.js','src/calibration-target.js','src/calibration-runner.js','src/workload.js','src/k6/calibration.js','src/k6/transport.js','dist/calibration.js'];
-    json(`${directory}/manifest.json`,{kind:report.kind,calibration:plan,revision:capture('git',['rev-parse','HEAD']),dirty:!!capture('git',['status','--porcelain']),startedAt:operation.startedAt,controllerNode:process.version,host:{platform:platform(),arch:arch(),release:release(),cpuModel:cpus()[0]?.model,logicalCpus:cpus().length,memoryBytes:totalmem()},imageId:image,platform:'linux/arm64',sdkVersion:JSON.parse(readFileSync('package-lock.json')).packages['node_modules/trailbase'].version,docker:JSON.parse(capture('docker',['info','--format','{"cpus":{{.NCPU}},"memoryBytes":{{.MemTotal}},"kernel":{{json .KernelVersion}}}'])),hashes:Object.fromEntries(paths.map(p=>[p,hash(p)]))});
+    json(`${directory}/manifest.json`,{kind:report.kind,calibration:plan,revision:capture('git',['rev-parse','HEAD']),dirty:!!capture('git',['status','--porcelain']),startedAt:operation.startedAt,controllerNode:process.version,host:{platform:platform(),arch:arch(),release:release(),cpuModel:cpus()[0]?.model,logicalCpus:cpus().length,memoryBytes:totalmem()},imageId:image,platform:imagePlatform,sdkVersion:JSON.parse(readFileSync('package-lock.json')).packages['node_modules/trailbase'].version,docker:JSON.parse(capture('docker',['info','--format','{"cpus":{{.NCPU}},"memoryBytes":{{.MemTotal}},"kernel":{{json .KernelVersion}}}'])),hashes:Object.fromEntries(paths.map(p=>[p,hash(p)]))});
     cancellation.signal.throwIfAborted();await compose(['up','-d','--wait','target']);cancellation.signal.throwIfAborted();
     const target=owned().find(s=>s.Config.Labels['com.docker.compose.service']==='target');assert.ok(target);
     assert.deepEqual(target.HostConfig.PortBindings,{});assert.equal(target.HostConfig.NanoCpus,1e9);assert.equal(target.HostConfig.Memory,268435456);assert.equal(target.HostConfig.MemorySwap,268435456);

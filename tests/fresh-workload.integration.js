@@ -13,9 +13,9 @@ import {summarizeResources} from '../src/resources.js';
 import {assertHostMemoryCoverage,vmMemoryStop} from '../src/campaign.js';
 
 const execute=promisify(execFile);
-for(const memoryBytes of [2147483648,4294967296]) {
-const extra=memoryBytes===4294967296?['--runner-memory=4g']:[],suffix=extra.length?' (4-GiB/host-guarded)':'';
-test('fresh full-workload smoke enforces the approved runner budget, API-cleans only its new deployment and retains auditable private-free evidence'+suffix, {timeout:180000,skip:extra.length>0&&process.platform!=='darwin'}, async()=>{
+for(const memoryBytes of [2147483648,4294967296,17179869184]) {
+const gib=memoryBytes/1073741824,extra=gib>=4?[`--runner-memory=${gib}g`]:[],suffix=extra.length?` (${gib}-GiB/host-guarded)`:'';
+test('fresh full-workload smoke enforces the approved runner budget, API-cleans only its new deployment and retains auditable private-free evidence'+suffix, {timeout:180000,skip:extra.length>0&&!['darwin','linux'].includes(process.platform)}, async()=>{
   assert.equal(existsSync('.fixtures/trailbase.json'),false);
   let credentials=[],savedFixture;
   const watcher=watch('.fixtures',()=>{try {const f=JSON.parse(readFileSync('.fixtures/trailbase.json'));if(f.users?.length)credentials=f.users;if(f.status==='used')savedFixture=f;}catch{}});
@@ -41,17 +41,23 @@ test('fresh full-workload smoke enforces the approved runner budget, API-cleans 
   const rows=readFileSync(`${run}/resources.jsonl`,'utf8').trim().split('\n').map(JSON.parse);
   assert.deepEqual(summarizeResources(rows),workload.resources);
   for(const row of rows.filter(r=>r.type==='cgroup'&&r.role==='backend')){
-    assert.deepEqual(row.capture.argv.slice(0,4),['exec',workload.resources.containers.backend.first.id,'sh','-c']);
-    assert.equal(row.capture.clientExitCode,0);assert.equal(row.capture.stdoutBytes,Buffer.byteLength(row.source));assert.equal(typeof row.capture.stderr,'string');
+    assert.equal(row.capture.method,process.platform==='linux'?'host-cgroup-v2':'docker-exec');
+    if(process.platform==='linux'){
+      assert.equal(row.capture.containerId,workload.resources.containers.backend.first.id);assert.ok(row.capture.pid>0);assert.equal(row.capture.timeoutMs,2000);
+      assert.equal(row.capture.clientExitCode,undefined);assert.equal(row.capture.argv,undefined);
+    }else{
+      assert.deepEqual(row.capture.argv.slice(0,4),['exec',workload.resources.containers.backend.first.id,'sh','-c']);assert.equal(row.capture.clientExitCode,0);assert.equal(typeof row.capture.stderr,'string');
+    }
+    assert.equal(row.capture.stdoutBytes,Buffer.byteLength(row.source));
     assert.ok(Number.isFinite(Date.parse(row.capture.startedAt)));assert.ok(row.capture.durationMs>=0);
   }
   assert.deepEqual(rows.filter(r=>r.type==='cgroup'&&r.role==='runner').map(r=>r.source),originals.map(r=>r.source));
   if(extra.length){
-    assertHostMemoryCoverage(rows);
+    assertHostMemoryCoverage(rows,memoryBytes);
     assert.ok(originals.every(r=>r.source.includes('[vm.meminfo]')&&vmMemoryStop(r.source)===null));
     assert.equal(JSON.parse(readFileSync(`${run}/campaign-guard.json`)).hostMemoryGuard,true);
-    const before=JSON.parse(readFileSync(`${run}/host-before-run.json`));assert.equal(vmMemoryStop(before.vm.stdout,true),null);assert.equal(before.host.stdout.trim(),'1');
-    assert.equal(JSON.parse(readFileSync(`${run}/manifest.json`)).runnerProfile,'4cpu-4g');
+    const before=JSON.parse(readFileSync(`${run}/host-before-run.json`));assert.equal(vmMemoryStop(before.vm.stdout,true,memoryBytes),null);assert.equal(before.host.platform,process.platform);if(process.platform==='linux')assert.equal(vmMemoryStop(before.host.stdout,true,memoryBytes),null);else assert.equal(before.host.stdout.trim(),'1');
+    assert.equal(JSON.parse(readFileSync(`${run}/manifest.json`)).runnerProfile,`4cpu-${gib}g`);
   }
   for(const[path,digest]of Object.entries(JSON.parse(readFileSync(`${run}/manifest.json`)).hashes))assert.equal(hash(path),digest,path);
   assert.equal(credentials.length,4,'capture this run’s real passwords in test memory before SDK deletion');
@@ -66,7 +72,7 @@ test('fresh full-workload smoke enforces the approved runner budget, API-cleans 
   assert.equal(JSON.parse(capture('docker',['volume','inspect',trial.volume.Name]))[0].CreatedAt,trial.volume.CreatedAt);
 });
 
-test('SIGTERM preserves the used fresh fixture, removes owned resources, and ordinary pilot commands still refuse its volume'+suffix, {timeout:120000,skip:extra.length>0&&process.platform!=='darwin'}, async()=>{
+test('SIGTERM preserves the used fresh fixture, removes owned resources, and ordinary pilot commands still refuse its volume'+suffix, {timeout:120000,skip:extra.length>0&&!['darwin','linux'].includes(process.platform)}, async()=>{
   assert.equal(existsSync('.fixtures/trailbase.json'),false);
   const logs=mkdtempSync('results/fresh-interruption-'),out=openSync(`${logs}/stdout.log`,'w'),err=openSync(`${logs}/stderr.log`,'w');
   const child=spawn(process.execPath,['scripts/baseline.js','--workload','--smoke',...extra],{stdio:['ignore',out,err]});
