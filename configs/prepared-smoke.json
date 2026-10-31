@@ -1,0 +1,15 @@
+{
+  "version": "social-prepared-v1",
+  "seed": 20261020,
+  "dataset": { "profile": "smoke-only", "users": 4, "postsPerUser": 10, "likesPerUser": 10 },
+  "vus": 2,
+  "rampSeconds": 1,
+  "warmupSeconds": 2,
+  "measurementSeconds": 12,
+  "pageSize": 20,
+  "bodyBytes": 1024,
+  "thinkSeconds": [0.05, 0.1],
+  "sessionSeconds": [3, 5],
+  "weights": { "listPublic": 35, "listOwn": 15, "read": 15, "create": 5, "like": 17, "unlike": 5, "edit": 8 },
+  "authPreparation": { "loginsPerSecond": 5, "timeoutSeconds": 30 }
+}

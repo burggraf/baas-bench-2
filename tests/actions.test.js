@@ -82,6 +82,23 @@ test('like search wraps an exhausted offset and still scans past an already-like
   assert.ok(backend.likes.some(l => l.post === 'p1'));
 });
 
+for(const version of ['social-mixed-v1','social-prepared-v1'])test(`${version} like search progresses after a short feed page without changing legacy offsets`,async()=>{
+  const c={...config,version},backend=api(),state=initialState(user,['p2'],c),offsets=[];
+  const original=backend.client.records;
+  backend.client.records=table=>{
+    const methods=original(table);
+    if(table==='posts')methods.list=async opts=>{
+      const offset=opts.pagination.offset;offsets.push(offset);
+      if(version==='social-prepared-v1')assert.equal(offset%c.pageSize,0,'Native page-based SDK requires aligned offsets');
+      return {records:offset===c.pageSize?[backend.posts[1]]:offset>c.pageSize?[]:[backend.posts[0]]};
+    };
+    return methods;
+  };
+  await performAction(backend.client,state,'like',c,()=>0,()=>{});
+  assert.deepEqual(offsets,[c.pageSize,version==='social-prepared-v1'?c.pageSize*2:c.pageSize+1,0]);
+  assert.ok(backend.likes.some(l=>l.post==='p1'));
+});
+
 test('caches stay bounded and malformed/foreign records fail validation', async () => {
   const state = initialState({ ...user, posts: Array.from({ length: 200 }, (_, i) => `p${i}`), likes: Array.from({ length: 200 }, (_, i) => ({ id: `l${i}`, post: `p${i}` })) }, Array.from({ length: 200 }, (_, i) => `p${i}`), config);
   assert.ok(state.owned.length <= 100 && state.visible.length <= 100 && state.likes.length <= 100);

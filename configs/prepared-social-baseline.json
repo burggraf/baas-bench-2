@@ -1,0 +1,15 @@
+{
+  "version": "social-prepared-v1",
+  "seed": 20261020,
+  "dataset": { "profile": "social-baseline", "users": 10000, "postsPerUser": 10, "likesPerUser": 10 },
+  "vus": 1000,
+  "rampSeconds": 30,
+  "warmupSeconds": 60,
+  "measurementSeconds": 120,
+  "pageSize": 20,
+  "bodyBytes": 1024,
+  "thinkSeconds": [1, 5],
+  "sessionSeconds": [300, 900],
+  "weights": { "listPublic": 35, "listOwn": 15, "read": 15, "create": 5, "like": 17, "unlike": 5, "edit": 8 },
+  "authPreparation": { "loginsPerSecond": 5, "timeoutSeconds": 600 }
+}

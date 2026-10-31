@@ -18,7 +18,9 @@ export function isTerminalSamplingRace(role, state, error) {
   if (error.code === 1 && new RegExp(`^Error response from daemon: container ${state.id} is not running\\s*$`, 'i').test(error.stderr ?? '')) return true;
   if (error.killed !== false || error.signal !== null || error.cgroupCapture?.argv?.[1] !== state.id || state.oomKilled !== false || ![0, 99].includes(state.exitCode)) return false;
   // Container shutdown can kill an in-flight exec or remove its instance before the client attaches.
-  return (error.code === 137 && error.stderr === '') || (error.code === 1 &&
+  return (error.code === 128 && error.stderr === '' && ['OCI runtime exec failed: exec failed: cannot exec in a stopped container\r\n', 'OCI runtime exec failed: exec failed: unable to start container process: error executing setns process: exit status 1\r\n', 'OCI runtime exec failed: exec failed: unable to start container process: error writing config to pipe: write init-p: broken pipe\r\n'].includes(error.stdout)) ||
+    (error.code === 137 && error.stderr === '') ||
+    (error.code === 1 && error.stdout === '' && error.stderr === 'unable to upgrade to tcp, received 409\n') || (error.code === 1 &&
     new RegExp(`^container ${state.id} is not running\\s*$`).test(error.stdout ?? '') &&
     /^Error response from daemon: No such exec instance: [a-f0-9]{64}\s*$/.test(error.stderr ?? ''));
 }

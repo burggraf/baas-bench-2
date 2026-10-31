@@ -4,7 +4,9 @@ import { delimiter, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { createHash } from 'node:crypto';
 import { seedFixture, verifyFixture, deleteFixture, savePrivate } from '../src/fixtures.js';
-import { validateConfig } from '../src/workload.js';
+import {readPreparedTemplate,assertPreparedTemplateVolume,fixtureForPreparedRun,preparedDirectoryDigest,copyPreparedDirectory} from '../src/prepared-template.js';
+import * as workloadContract from '../src/workload.js';
+const { validateConfig } = workloadContract;
 import { controllerClient } from './client.js';
 import { capture, runtimeManifest, execute, captureHostMemory, hash } from './runtime.js';
 import { captureCgroups, captureHostCgroups } from './monitor.js';
@@ -13,6 +15,17 @@ import { nextCampaignTrial, classifyCampaignTrial, campaignCpuPressure, measurem
 
 const project = 'baas-bench-2-pilot', fixturePath = '.fixtures/trailbase.json';
 export function baselinePlan(args) {
+  const templates=args.filter(arg=>arg.startsWith('--prepared-template='));
+  if(templates.length){
+    assert.equal(templates.length,1);assert.ok(args.includes('--prepared-sessions'),'Templates require the normal prepared single-point profile');
+    const preparedTemplatePath=templates[0].slice('--prepared-template='.length);assert.ok(preparedTemplatePath.endsWith('.json')&&!preparedTemplatePath.includes('\0'),'Use a private template JSON file');
+    return {...baselinePlan(args.filter(arg=>arg!==templates[0])),preparedTemplatePath};
+  }
+  if (args.includes('--prepared-sessions')) {
+    const {smoke,vus}=workloadContract.preparedArguments(args),configPath=smoke?'configs/prepared-smoke.json':'configs/prepared-social-baseline.json';
+    const config=validateConfig({...JSON.parse(readFileSync(configPath)),...(vus===undefined?{}:{vus})});
+    return {preparedSessions:true,workload:true,configPath,config,trials:1,runnerBudget:{cpus:4,memoryBytes:17179869184},runnerProfile:'4cpu-16g',hostSafety:true};
+  }
   if (args.includes('--backend-memory-stop=95')) {
     assert.ok(new Set(args).size === args.length && args.includes('--campaign') && args.includes('--runner-memory=16g'), 'Backend95 requires the explicit16GiB campaign');
     return { ...baselinePlan(args.filter(a => a !== '--backend-memory-stop=95')), backendMemoryStopFraction: 0.95 };
@@ -112,7 +125,16 @@ const pilotState = () => {
 async function main() {
   const plan = baselinePlan(process.argv.slice(2));
   let { config } = plan;
-  const { workload, campaign, runnerProfile, hostSafety, backendMemoryStopFraction = 0.85 } = plan;
+  const template=plan.preparedTemplatePath?readPreparedTemplate(plan.preparedTemplatePath):null;
+  const templateFileHash=template?hash(plan.preparedTemplatePath):null;
+  if(template)fixtureForPreparedRun(template,config,'preflight-only');
+  const checkTemplate=async()=>{
+    assert.equal(hash(plan.preparedTemplatePath),templateFileHash,'Template credentials changed');
+    const state=volumeState(template.volume);assertPreparedTemplateVolume(state,template);
+    assert.equal(capture('docker',['ps','-aq','--filter',`volume=${state.Name}`]),'','Template must remain unmounted');
+    assert.deepEqual(await preparedDirectoryDigest(state.Mountpoint),template.preparedTemplate.tree,'Template data changed');return state;
+  };
+  const { workload, campaign, preparedSessions, runnerProfile, hostSafety, backendMemoryStopFraction = 0.85 } = plan;
   if (hostSafety) assert.ok(['linux', 'darwin'].includes(process.platform), 'Host-pressure guarded runs require Linux or macOS');
   const next = trials => nextCampaignTrial(trials.map(t => ({ ...t.candidate, verdict: t.classification.verdict })), plan.search);
   let configPath = plan.configPath;
@@ -130,7 +152,7 @@ async function main() {
   const handlers = Object.fromEntries(['SIGINT', 'SIGTERM'].map(signal => [signal, () => { interrupted ??= signal; cancellation.abort(); }]));
   for (const [signal, handler] of Object.entries(handlers)) process.on(signal, handler);
   if (workload && !campaign) { configPath = `${directory}/workload-config.json`; json(configPath, config); }
-  const report = { kind: campaign ? 'bounded-local-discovery' : workload ? 'fresh-deployment-workload-sizing' : 'fresh-deployment-baseline-proof', ...(campaign ? { limits: plan.search, safetyPolicy: { memoryStopFraction: 0.85, backendMemoryStopFraction, measuredRunnerCpuCores: 3.6, cpuWindowSeconds: 5 }, generatorHeadroom: 'unverified' } : {}), valid: false, certified: false, config, ...(workload ? { runnerBudget: plan.runnerBudget } : {}), ...(hostSafety ? { runnerProfile, hostSafety: { memoryStopFraction: 0.85, backendMemoryStopFraction, liveVmReserveBytes: 1073741824, prestartVmReserveBytes: prestartMemoryReserve(plan.runnerBudget.memoryBytes), requireZeroVmSwapUsed: true, ...(process.platform === 'darwin' ? { normalMacosPressure: '1' } : { hostMemorySource: '/proc/meminfo' }), measuredRunnerCpuCores: 3.6, cpuWindowSeconds: 5 } } : {}), pilotVolumeBefore: pilotState(), trials: [], limitations: ['Logical equivalence, not capacity/headroom certification; short fixed-load tails may be insufficient.', 'New volumes are retained, never deleted; caches/host state are not normalized.', 'Crash/partial-seed recovery requires manual inspection of the recorded trial volume; social recover does not support fresh-workload claims.'] };
+  const report = { kind: preparedSessions ? 'prepared-session-single-point' : campaign ? 'bounded-local-discovery' : workload ? 'fresh-deployment-workload-sizing' : 'fresh-deployment-baseline-proof', ...(preparedSessions?{workloadVersion:config.version,authPreparation:config.authPreparation,discovery:false}:{}), ...(campaign ? { limits: plan.search, safetyPolicy: { memoryStopFraction: 0.85, backendMemoryStopFraction, measuredRunnerCpuCores: 3.6, cpuWindowSeconds: 5 }, generatorHeadroom: 'unverified' } : {}), valid: false, certified: false, config, ...(workload ? { runnerBudget: plan.runnerBudget } : {}), ...(hostSafety ? { runnerProfile, hostSafety: { memoryStopFraction: 0.85, backendMemoryStopFraction, liveVmReserveBytes: 1073741824, prestartVmReserveBytes: prestartMemoryReserve(plan.runnerBudget.memoryBytes), requireZeroVmSwapUsed: true, ...(process.platform === 'darwin' ? { normalMacosPressure: '1' } : { hostMemorySource: '/proc/meminfo' }), measuredRunnerCpuCores: 3.6, cpuWindowSeconds: 5 } } : {}), pilotVolumeBefore: pilotState(), trials: [], limitations: ['Logical equivalence, not capacity/headroom certification; short fixed-load tails may be insufficient.', 'New volumes are retained, never deleted; caches/host state are not normalized.', 'Crash/partial-seed recovery requires manual inspection of the recorded trial volume; social recover does not support fresh-workload claims.'] };
   // Let fetch process socket-close events while replacing the server; never retry requests across deployments.
   const compose = async args => {
     try {
@@ -165,6 +187,15 @@ async function main() {
       operation.trialVolume = name; savePrivate('.fixtures/operation.lock', operation);
       let backendId, trialError;
       try {
+        let templateEvidence;
+        if(template){
+          assert.equal(process.platform,'linux','Offline local-volume copying requires Linux');
+          const source=await checkTemplate();
+          assert.equal(capture('docker',['ps','-aq','--filter',`volume=${name}`]),'','Copy target must be unmounted');
+          const tree=await copyPreparedDirectory(source.Mountpoint,volume.Mountpoint);assert.deepEqual(tree,template.preparedTemplate.tree);
+          templateEvidence={id:template.preparedTemplate.id,sourceVolume:source.Name,templateFileHash,sourceFixtureHash:template.preparedTemplate.sourceFixtureHash,tree,applicationMutatesTemplate:false};
+          cancellation.signal.throwIfAborted();
+        }
         await compose(['up', '-d', '--wait', 'trailbase']);
         backendId = capture('docker', ['compose', 'ps', '-q', 'trailbase']);
         assertBaselineBackend(backendState(backendId), backendId, name);
@@ -173,21 +204,27 @@ async function main() {
           writeFileSync(`${directory}/trial-${trial}.disk-before-seed.txt`, disk);
           const free = Number(disk.trim().split('\n').at(-1).trim().split(/\s+/)[3]);
           assert.ok(Number.isSafeInteger(free) && free >= 5 * 1024 * 1024, 'Campaign requires at least 5 GiB available before preparation');
-          console.log(`${campaign ? 'Campaign' : 'Sizing'} trial ${trial}: API preparation started; ${config.dataset.users} accounts.`);
+          console.log(`${campaign ? 'Campaign' : 'Sizing'} trial ${trial}: ${template?'copied baseline API verification':'API preparation'} started; ${config.dataset.users} accounts.`);
         }
         if (hostSafety) await verifySizingHost(`${directory}/trial-${trial}-host-before-seed`, backendId, plan.runnerBudget.memoryBytes);
-        const runtime = runtimeManifest(['package-lock.json', 'compose.yaml', override, 'backends/trailbase/Dockerfile', 'backends/trailbase/configuration/config.textproto', 'backends/trailbase/configuration/migrations/main/U1792454400__social_schema.sql', 'src/fixtures.js', 'src/workload.js', 'scripts/baseline.js', 'scripts/client.js', 'scripts/runtime.js', 'scripts/monitor.js', ...(workload ? ['scripts/workload-run.js', 'scripts/recovery.js', 'scripts/build.js', 'src/actions.js', 'src/report.js', 'src/resources.js', 'src/auth.js', 'src/base64.js', 'src/k6/social.js', 'src/k6/transport.js', 'src/calibration-runner.js', 'src/campaign.js', plan.configPath] : []), configPath]);
+        const runtime = runtimeManifest(['package-lock.json', 'compose.yaml', override, 'backends/trailbase/Dockerfile', 'backends/trailbase/configuration/config.textproto', 'backends/trailbase/configuration/migrations/main/U1792454400__social_schema.sql', 'src/fixtures.js', 'src/prepared-template.js', 'src/workload.js', 'scripts/baseline.js', 'scripts/client.js', 'scripts/runtime.js', 'scripts/monitor.js', ...(workload ? ['scripts/workload-run.js', 'scripts/recovery.js', 'scripts/build.js', 'src/actions.js', 'src/report.js', 'src/resources.js', 'src/auth.js', 'src/base64.js', 'src/k6/social.js', 'src/k6/transport.js', 'src/calibration-runner.js', 'src/campaign.js', ...(preparedSessions?['src/prepared-gate.js','src/prepared-evidence.js','src/pocketbase.js','runner/Dockerfile']:[]), ...(template?['scripts/prepared-template.js']:[]), plan.configPath] : []), configPath]);
         const requestLog = `${directory}/trial-${trial}.controller-requests.jsonl`;
         const createClient = () => controllerClient(cancellation.signal, row => appendFileSync(requestLog, JSON.stringify(row) + '\n'));
         let initial = true;
         const persist = value => { savePrivate(fixturePath, { ...value, volume: name, preparation: runtime }, initial); initial = false; };
-        const fixture = await seedFixture(config, createClient, persist);
+        if(template){
+          assert.equal(runtime.sdkVersion,template.preparation.sdkVersion);assert.equal(runtime.serverVersion,template.preparation.serverVersion);
+          const original=JSON.parse(capture('docker',['image','inspect',template.preparation.backend.imageId]))[0],current=JSON.parse(capture('docker',['image','inspect',runtime.backend.imageId]))[0];
+          assert.deepEqual(current.RootFS,original.RootFS,'Template backend filesystem version differs');assert.equal(current.Os,original.Os);assert.equal(current.Architecture,original.Architecture);
+        }
+        const fixture = template?fixtureForPreparedRun(template,config,name):await seedFixture(config, createClient, persist);
+        if(template)persist(fixture);
         if (workload) Object.assign(fixture, { volume: name, preparation: runtime });
         const baseline = await verifyFixture(config, fixture, createClient);
         assert.equal(baseline.logicalHash, fixture.baseline.logicalHash);
         if (report.trials.length) assert.equal(baseline.logicalHash, report.trials[0].baseline.logicalHash, 'Fresh baselines differ');
-        if (campaign || hostSafety) console.log(`${campaign ? 'Campaign' : 'Sizing'} trial ${trial}: API baseline verified; ${fixture.seedSeconds.toFixed(3)}s seed/initial verification.`);
-        const evidence = { ...(campaign ? { candidate } : {}), backendMemoryStopFraction, volume, backendId, runtime, baseline, preparationMethod: fixture.preparationMethod, seedSeconds: fixture.seedSeconds, identityHash: digest(fixture.users.map(u => u.id)), volumeRetained: true };
+        if (campaign || hostSafety) console.log(`${campaign ? 'Campaign' : 'Sizing'} trial ${trial}: API baseline verified; ${template?'registration not exercised (verified template copy)':fixture.seedSeconds.toFixed(3)+'s seed/initial verification'}.`);
+        const evidence = { ...(campaign ? { candidate } : {}), ...(template?{template:templateEvidence}:{}), backendMemoryStopFraction, volume, backendId, runtime, baseline, preparationMethod: fixture.preparationMethod, seedSeconds: fixture.seedSeconds, identityHash: digest(fixture.users.map(u => u.id)), volumeRetained: true };
         // Persist preparation evidence before deleting its accounts; never publish credentials.
         json(`${directory}/trial-${trial}.json`, evidence);
         if (workload) {
@@ -195,17 +232,26 @@ async function main() {
           operation.workloadDirectory = workloadDirectory; savePrivate('.fixtures/operation.lock', operation);
           evidence.workload = { directory: workloadDirectory, report: null };
           json(`${directory}/trial-${trial}.json`, evidence);
-          if (campaign) { report.activeTrial.workloadDirectory = workloadDirectory; json(`${directory}/report.json`, report); }
+          if (campaign || preparedSessions) { report.activeTrial = {...report.activeTrial,number:trial,workloadDirectory,volume:name}; json(`${directory}/report.json`, report); }
           const result = await runWorkload({ directory: workloadDirectory, config, configPath, fixture, baseline, runtime, operation, signal: cancellation.signal, interruption: () => interrupted, boundedRunner: true, campaign: !!campaign, runnerProfile, backendMemoryStopFraction });
           evidence.workload = { directory: workloadDirectory, report: result };
           if (campaign || hostSafety) {
-            const measuredAt = await measurementStart(`${workloadDirectory}/k6-metrics.json.gz`);
-            const originals = readFileSync(`${workloadDirectory}/runner-cgroups.jsonl`, 'utf8').trim().split('\n').map(JSON.parse);
-            const pressure = campaignCpuPressure(originals, measuredAt, config.measurementSeconds);
-            evidence.generatorCheck = { measurementStartedAt: new Date(measuredAt).toISOString(), sustainedCpuPressure: pressure, headroom: 'unverified' };
-            if (campaign) evidence.classification = classifyCampaignTrial(result, JSON.parse(readFileSync(`${workloadDirectory}/k6-summary.json`)), pressure);
+            let measuredAt=null,pressure=null,cpuEvidenceInvalid=false;
+            try {
+              if (!preparedSessions || result.preparedEvidenceValid) {
+                measuredAt=preparedSessions?result.phaseTiming.measurementAt:await measurementStart(`${workloadDirectory}/k6-metrics.json.gz`);
+                const originals=readFileSync(`${workloadDirectory}/runner-cgroups.jsonl`,'utf8').trim().split('\n').map(JSON.parse);
+                pressure=campaignCpuPressure(originals,measuredAt,config.measurementSeconds);
+              }
+            } catch(error) {if(!preparedSessions)throw error;cpuEvidenceInvalid=true;}
+            evidence.generatorCheck = {measurementStartedAt:measuredAt===null?null:new Date(measuredAt).toISOString(),sustainedCpuPressure:pressure,completeWindow:pressure!==null,headroom:'unverified'};
+            if (campaign || preparedSessions) evidence.classification = cpuEvidenceInvalid?{verdict:'invalid',reasons:['measurement_cpu_window_evidence'],certified:false}:classifyCampaignTrial(result,preparedSessions&&!result.preparedEvidenceValid?{metrics:{}}:existsSync(`${workloadDirectory}/k6-summary.json`)?JSON.parse(readFileSync(`${workloadDirectory}/k6-summary.json`)):{metrics:{}},pressure);
           }
           json(`${directory}/trial-${trial}.json`, evidence);
+          if (preparedSessions) {
+            report.trials.push(evidence);delete report.activeTrial;
+            if (!result.cleanupVerified||evidence.classification.verdict!=='pass'||!result.valid) throw Object.assign(new Error('Prepared single point invalid or failed; original evidence/used fixture retained'),{retainLock:result.cleanupVerified===false});
+          }
           if (hostSafety) assert.equal(evidence.generatorCheck.sustainedCpuPressure, false, 'Stop sizing on measured generator CPU pressure; preserve private fixture');
           if (campaign) assert.ok(['pass', 'slo_failure'].includes(evidence.classification.verdict), 'Stop campaign on invalid/generator-limited evidence; preserve private fixture');
         }
@@ -213,7 +259,7 @@ async function main() {
         const posts = (await createClient().records('posts').list({ pagination: { limit: 1 }, count: true })).total_count;
         assert.equal(posts, 0, 'API cleanup must leave zero public posts');
         evidence.apiReset = { posts }; json(`${directory}/trial-${trial}.json`, evidence);
-        unlinkSync(fixturePath); report.trials.push(evidence);
+        unlinkSync(fixturePath); if(!preparedSessions)report.trials.push(evidence);
         if (campaign) { delete report.activeTrial; report.search = next(report.trials); console.log(`Campaign trial ${trial}: ${evidence.classification.verdict}; API cleanup zero posts, volume retained.`); }
       } catch (error) { trialError = error; throw error; }
       finally {
@@ -229,6 +275,7 @@ async function main() {
             if (ids.length) await capturePreparationEvidence(`${directory}/trial-${trial}`, backendId, `.fixtures/backend-logs/${run}-${trial}`);
           } finally { await compose(['down']); }
           assert.equal(containerIds().length, 0);
+          if(template)await checkTemplate();
         } catch (error) {
           uncertain = true;
           if (!trialError) throw error;

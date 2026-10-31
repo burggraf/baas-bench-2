@@ -15,7 +15,7 @@ export function createTransport(baseUrl, request) {
         if (!path.startsWith('/api/') || url.origin !== base.origin || !url.pathname.startsWith('/api/')) {
           throw new Error('Expected a same-origin API path');
         }
-        target = { path, href: url.href, name: url.pathname.replace(/^(\/api\/records\/v1\/[^/]+)\/[^/]+$/, '$1/:id') };
+        target = { path, href: url.href, name: url.pathname.replace(/^(\/api\/records\/v1\/[^/]+)\/[^/]+$/, '$1/:id').replace(/^(\/api\/collections\/[^/]+\/records)\/[^/]+$/, '$1/:id') };
         // Mutable objects must be revalidated; retain at most one immutable path per client.
         if (typeof path === 'string') previous = target;
       }

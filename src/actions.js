@@ -73,7 +73,8 @@ export async function performAction(client, state, action, config, rng, prerequi
         prerequisite();
         const result = await page(false, state.offset);
         state.visible = result.records.map(p => p.id);
-        state.offset = result.records.length ? state.offset + result.records.length : 0;
+        // Prepared feed walks must also support the native page-based SDK; legacy offsets stay unchanged.
+        state.offset = result.records.length ? state.offset + (config.version === 'social-prepared-v1' ? config.pageSize : result.records.length) : 0;
       }
     }
     unavailable();

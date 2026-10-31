@@ -27,12 +27,13 @@ export async function captureHostMemory(hostPlatform = process.platform) {
 export const capture = (command, args) => execFileSync(command, args, { encoding: 'utf8', timeout: 30000 }).trim();
 export const hash = path => createHash('sha256').update(readFileSync(path)).digest('hex');
 
-export function runtimeManifest(paths) {
-  const backendId = capture('docker', ['compose', 'ps', '-q', 'trailbase']);
+export function runtimeManifest(paths, { service = 'trailbase', executable = '/app/trail', sdk = 'trailbase' } = {}) {
+  assert.ok(['trailbase', 'pocketbase'].includes(service));
+  const backendId = capture('docker', ['compose', 'ps', '-q', service]);
   assert.ok(backendId, 'Start the pilot first: npm run pilot:up');
   const [inspection] = JSON.parse(capture('docker', ['inspect', backendId]));
   assert.equal(inspection.State.Health.Status, 'healthy');
-  const cgroup = JSON.parse(capture('docker', ['compose', 'exec', '-T', 'trailbase', 'sh', '-c',
+  const cgroup = JSON.parse(capture('docker', ['compose', 'exec', '-T', service, 'sh', '-c',
     'read -r quota period < /sys/fs/cgroup/cpu.max; read -r memory < /sys/fs/cgroup/memory.max; read -r swap < /sys/fs/cgroup/memory.swap.max; printf "{\\"quota\\":%s,\\"period\\":%s,\\"memoryMax\\":%s,\\"swapMax\\":%s}" "$quota" "$period" "$memory" "$swap"',
   ]));
   const backend = { imageId: inspection.Image, cpus: inspection.HostConfig.NanoCpus / 1e9, memoryBytes: inspection.HostConfig.Memory, memorySwapBytes: inspection.HostConfig.MemorySwap };
@@ -47,8 +48,8 @@ export function runtimeManifest(paths) {
     startedAt: new Date().toISOString(), controllerNodeVersion: process.version,
     host: { platform: platform(), arch: process.arch, release: release(), cpuModel: cpus()[0]?.model, logicalCpus: cpus().length, memoryBytes: totalmem() },
     revision: capture('git', ['rev-parse', 'HEAD']), dirty: capture('git', ['status', '--porcelain']).length > 0,
-    serverVersion: capture('docker', ['compose', 'exec', '-T', 'trailbase', '/app/trail', '--version']),
-    sdkVersion: JSON.parse(readFileSync('package-lock.json')).packages['node_modules/trailbase'].version,
+    serverVersion: capture('docker', ['compose', 'exec', '-T', service, executable, '--version']),
+    sdkVersion: JSON.parse(readFileSync('package-lock.json')).packages[`node_modules/${sdk}`].version,
     runnerImageId: capture('docker', ['image', 'inspect', 'baas-bench-2-pilot-runner', '--format', '{{.Id}}']),
     backendPlatform, runnerPlatform,
     backend, cgroup, hashes: Object.fromEntries(paths.map(path => [path, hash(path)])),

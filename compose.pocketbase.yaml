@@ -1,0 +1,44 @@
+name: baas-bench-2-pilot
+services:
+  pocketbase:
+    build: ./backends/pocketbase
+    cpus: 1.0
+    mem_limit: 4g
+    memswap_limit: 4g
+    ulimits:
+      nofile:
+        soft: 16384
+        hard: 16384
+    ports:
+      - "127.0.0.1:4000:4000"
+    volumes:
+      - pocketbase-data:/app/pb_data
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "--silent", "http://127.0.0.1:4000/api/health"]
+      interval: 2s
+      timeout: 2s
+      retries: 30
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "2"
+  runner:
+    build:
+      context: .
+      dockerfile: runner/Dockerfile
+    profiles: ["test"]
+    cpus: 4.0
+    mem_limit: 16g
+    memswap_limit: 16g
+    environment:
+      BASE_URL: http://pocketbase:4000
+      BENCH_BACKEND: pocketbase
+    volumes:
+      - ./dist:/scripts:ro
+      - ./results:/results
+    depends_on:
+      pocketbase:
+        condition: service_healthy
+volumes:
+  pocketbase-data:

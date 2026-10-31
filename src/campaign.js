@@ -29,6 +29,11 @@ export function nextCampaignTrial(history, limits) {
 
 export function classifyCampaignTrial(report, summary, cpuPressure) {
   const verdict=(value,reasons)=>({verdict:value,reasons,certified:false,generatorHeadroom:'unverified'});
+  const prepared=report.workloadVersion==='social-prepared-v1';
+  if(prepared&&report.preparation?.status!=='released')return verdict('invalid',['auth_preparation_failed']);
+  if(prepared&&(report.cleanupVerified===false||report.executionFailed||report.safetyStop))return verdict('invalid',['prepared_execution_or_cleanup']);
+  if(prepared&&!report.preparedEvidenceValid)return verdict('invalid',['prepared_user_evidence']);
+  if(prepared&&summary.metrics?.['http_req_failed{traffic:control}']?.value!==0)return verdict('invalid',['control_traffic_failure']);
   if(!report.workloadValid||!report.resources?.valid||report.interrupted||![0,99].includes(report.exitStatus))return verdict('invalid',['workload_or_resource_evidence']);
   if(cpuPressure)return verdict('generator_limited',['sustained_measured_runner_cpu_pressure']);
   const reasons=[];
@@ -37,7 +42,7 @@ export function classifyCampaignTrial(report, summary, cpuPressure) {
     if(!a||!Number.isSafeInteger(a.count)||a.count<=0||a.requested!==a.count||!Number.isSafeInteger(a.failures)||a.failures<0||a.failures>a.count||![a.p95Ms,a.p99Ms].every(v=>Number.isFinite(v)&&v>=0))return verdict('invalid',[`missing_or_invalid_action:${name}`]);
     if(a.p95Ms>(['listPublic','listOwn','read'].includes(name)?500:750)||a.p99Ms>2000||a.failures/a.count>=0.01)reasons.push(`observed_action_slo:${name}`);
   }
-  for(const name of ['auth_failed','auth_http_failed','logical_failed{phase:measurement}','http_req_failed']){
+  for(const name of ['auth_failed','auth_http_failed','logical_failed{phase:measurement}',prepared?'http_req_failed{traffic:backend}':'http_req_failed']){
     const rate=summary.metrics?.[name]?.value;
     if(!Number.isFinite(rate)||rate<0||rate>1)return verdict('invalid',[`missing_or_invalid_rate:${name}`]);
     if(name.startsWith('auth_')?rate>0:rate>=0.01)reasons.push(`observed_rate:${name}`);

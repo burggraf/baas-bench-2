@@ -9,7 +9,7 @@ import { fileURLToPath } from 'node:url';
 test('secondary evidence failure preserves the primary seed error and still shuts down only the owned backend',t=>{
   const directory=mkdtempSync(join(tmpdir(),'baseline-error-')),repo=fileURLToPath(new URL('../',import.meta.url)),id='a'.repeat(64);
   t.after(()=>rmSync(directory,{recursive:true}));
-  for(const p of ['package-lock.json','compose.yaml','backends/trailbase/Dockerfile','backends/trailbase/configuration/config.textproto','backends/trailbase/configuration/migrations/main/U1792454400__social_schema.sql','src/fixtures.js','src/workload.js','scripts/baseline.js','scripts/client.js','scripts/runtime.js','scripts/monitor.js','configs/smoke.json']){mkdirSync(dirname(join(directory,p)),{recursive:true});copyFileSync(join(repo,p),join(directory,p));}
+  for(const p of ['package-lock.json','compose.yaml','backends/trailbase/Dockerfile','backends/trailbase/configuration/config.textproto','backends/trailbase/configuration/migrations/main/U1792454400__social_schema.sql','src/fixtures.js','src/prepared-template.js','src/workload.js','scripts/baseline.js','scripts/client.js','scripts/runtime.js','scripts/monitor.js','configs/smoke.json']){mkdirSync(dirname(join(directory,p)),{recursive:true});copyFileSync(join(repo,p),join(directory,p));}
   writeFileSync(join(directory,'preload.mjs'),"globalThis.fetch=async()=>{throw Object.assign(new Error('private error message'),{name:'PrimarySeedFailure'});};\n");
   mkdirSync(join(directory,'bin'));
   writeFileSync(join(directory,'bin/git'),'#!/usr/bin/env node\nif(process.argv[2]===\'rev-parse\')console.log(\'1\'.repeat(40));\n',{mode:0o700});

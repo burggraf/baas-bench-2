@@ -36,6 +36,29 @@ test('Docker removed-exec race requires exact not-running stdout, native exec er
   assert.equal(isTerminalSamplingRace('backend',state,error),false);
 });
 
+for (const stdout of ['OCI runtime exec failed: exec failed: cannot exec in a stopped container\r\n', 'OCI runtime exec failed: exec failed: unable to start container process: error executing setns process: exit status 1\r\n']) test(`OCI exec128 shutdown form is accepted only for the exact cleanly exited runner (${stdout.includes('setns') ? 'setns' : 'stopped'})`, () => {
+  const id = 'd'.repeat(64), state = { id, status: 'exited', running: false, oomKilled: false, exitCode: 0 };
+  const error = { code: 128, stdout, stderr: '', killed: false, signal: null, cgroupCapture: { argv: ['exec', id, 'sh', '-c', 'read counters'] } };
+  assert.equal(isTerminalSamplingRace('runner', state, error), true);
+  assert.equal(isTerminalSamplingRace('runner', { ...state, exitCode: 99 }, error), true);
+  for (const patch of [{ running: true }, { status: 'dead' }, { oomKilled: true }, { exitCode: 137 }, { id: 'e'.repeat(64) }]) assert.equal(isTerminalSamplingRace('runner', { ...state, ...patch }, error), false);
+  for (const patch of [{ code: 1 }, { stdout: 'OCI runtime exec failed: permission denied\r\n' }, { stdout: error.stdout + 'extra' }, { stderr: 'permission denied' }, { killed: true }, { signal: 'SIGTERM' }, { cgroupCapture: undefined }]) assert.equal(isTerminalSamplingRace('runner', state, { ...error, ...patch }), false);
+  assert.equal(isTerminalSamplingRace('backend', state, error), false);
+});
+
+for(const form of [
+  {name:'init-p broken pipe',code:128,stdout:'OCI runtime exec failed: exec failed: unable to start container process: error writing config to pipe: write init-p: broken pipe\r\n',stderr:''},
+  {name:'TCP upgrade 409',code:1,stdout:'',stderr:'unable to upgrade to tcp, received 409\n'},
+])test(`observed ${form.name} shutdown race requires exact message and clean owned runner`,()=>{
+  const id='f'.repeat(64),state={id,status:'exited',running:false,oomKilled:false,exitCode:0};
+  const error={...form,killed:false,signal:null,cgroupCapture:{argv:['exec',id,'sh','-c','read counters']}};
+  assert.equal(isTerminalSamplingRace('runner',state,error),true);
+  assert.equal(isTerminalSamplingRace('runner',{...state,exitCode:99},error),true);
+  assert.equal(isTerminalSamplingRace('backend',state,error),false);
+  for(const patch of [{running:true},{status:'dead'},{oomKilled:true},{exitCode:137},{exitCode:null},{id:'a'.repeat(64)}])assert.equal(isTerminalSamplingRace('runner',{...state,...patch},error),false);
+  for(const patch of [{code:form.code===128?1:128},{stdout:form.stdout+'extra'},{stderr:form.stderr+'extra'},{killed:true},{signal:'SIGTERM'},{code:'ETIMEDOUT'},{cgroupCapture:undefined},{cgroupCapture:{argv:['exec','a'.repeat(64),'sh']}}])assert.equal(isTerminalSamplingRace('runner',state,{...error,...patch}),false);
+});
+
 test('Docker streaming terminal controls are parsed without changing retained raw bytes', () => {
   assert.deepEqual(parseStatsLine('\u001b[J\u001b[H{"CPUPerc":"1.78%"}\u001b[K'), { CPUPerc: '1.78%' });
   assert.equal(parseStatsLine('\u001b[K'), null);

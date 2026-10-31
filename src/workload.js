@@ -4,8 +4,14 @@ export function validateConfig(c) {
   const require = (ok, message) => { if (!ok) throw new Error(`Invalid config: ${message}`); };
   const keys = (object, names) => object && typeof object === 'object' &&
     Object.keys(object).length === names.length && names.every(name => Object.hasOwn(object, name));
-  require(keys(c, ['version', 'seed', 'dataset', 'vus', 'rampSeconds', 'warmupSeconds', 'measurementSeconds', 'pageSize', 'bodyBytes', 'thinkSeconds', 'sessionSeconds', 'weights']), 'unknown/missing fields');
-  require(c.version === 'social-mixed-v1', 'version');
+  const prepared = c?.version === 'social-prepared-v1';
+  require(keys(c, ['version', 'seed', 'dataset', 'vus', 'rampSeconds', 'warmupSeconds', 'measurementSeconds', 'pageSize', 'bodyBytes', 'thinkSeconds', 'sessionSeconds', 'weights', ...(prepared ? ['authPreparation'] : [])]), 'unknown/missing fields');
+  require(prepared || c.version === 'social-mixed-v1', 'version');
+  if (prepared) {
+    require(keys(c.authPreparation, ['loginsPerSecond', 'timeoutSeconds']), 'authPreparation fields');
+    const { loginsPerSecond, timeoutSeconds } = c.authPreparation;
+    require(Number.isFinite(loginsPerSecond) && loginsPerSecond > 0 && Number.isFinite(timeoutSeconds) && timeoutSeconds > 0 && timeoutSeconds <= 3600 && c.vus / loginsPerSecond < timeoutSeconds, 'authPreparation rate/deadline');
+  }
   for (const name of ['seed', 'vus', 'pageSize', 'bodyBytes']) require(Number.isSafeInteger(c[name]) && c[name] > 0, name);
   require(c.seed <= 0xffffffff && c.pageSize <= 100 && c.bodyBytes <= 16384, 'seed/page/body bounds');
   for (const name of ['rampSeconds', 'warmupSeconds', 'measurementSeconds']) require(Number.isFinite(c[name]) && c[name] > 0, name);
@@ -23,6 +29,56 @@ export function validateConfig(c) {
   require(keys(c.weights, actions) && actions.every(a => Number.isFinite(c.weights[a]) && c.weights[a] >= 0) &&
     actions.reduce((sum, a) => sum + c.weights[a], 0) === 100, 'weights must total 100');
   return c;
+}
+
+export function preparedArguments(args) {
+  const candidate = args.find(arg => /^--vus=[1-9]\d*$/.test(arg));
+  if (args.length !== 2 || new Set(args).size !== 2 || !args.includes('--prepared-sessions') || !args.every(arg => typeof arg === 'string' && ['--prepared-sessions', '--smoke', candidate].includes(arg))) throw new Error('Usage: --prepared-sessions --smoke | --vus=N');
+  return { smoke: args.includes('--smoke'), ...(candidate ? { vus: Number(candidate.slice(6)) } : {}) };
+}
+
+export function preparedTokenTiming(claims, loginAtMs) {
+  const expiresAtMs = claims.exp * 1000;
+  if (!Number.isFinite(claims.exp) || !Number.isFinite(expiresAtMs) || !Number.isFinite(loginAtMs) || loginAtMs <= 0 || expiresAtMs <= loginAtMs ||
+      (claims.iat !== undefined && (!Number.isFinite(claims.iat) || claims.iat <= 0 || claims.iat >= claims.exp))) throw new Error('Invalid native token timing');
+  // PocketBase omits iat: expiry is authoritative, but native TTL is then unknown.
+  return {loginAtMs, expiresAtMs, ttlSeconds:claims.iat === undefined ? null : claims.exp - claims.iat};
+}
+
+export function createPreparedClock(wallNow, monotonicNow) {
+  let reference, previous = -Infinity;
+  const fail = (reason, before, wall, after) => {
+    const error = new Error('prepared_clock_inconsistent');
+    const finite = value => Number.isFinite(value) ? value : null;
+    error.clockEvidence = {reason, wall:finite(wall), monoBefore:finite(before), monoAfter:finite(after), referenceLow:reference?.low ?? null, referenceHigh:reference?.high ?? null};
+    throw error;
+  };
+  const sample = () => {
+    for (let attempt = 0; attempt < 3; attempt++) {
+      const before = monotonicNow(), wall = wallNow(), after = monotonicNow();
+      if (![before,wall,after].every(Number.isFinite) || before < 0 || before < previous || after < before) fail('invalid_clock',before,wall,after);
+      previous = after;
+      // Discard a preempted read, not clock drift; persistent uncertainty fails closed.
+      if (after-before <= 1) return {wall,before,after,low:wall-after,high:wall-before};
+      if (attempt === 2) fail('sampling_uncertain',before,wall,after);
+    }
+  };
+  reference = sample();
+  return () => {
+    const current = sample();
+    // Worst-case drift includes sampling uncertainty, never adds it to the 100ms policy.
+    if (Math.max(Math.abs(current.low-reference.high),Math.abs(current.high-reference.low)) > 100) fail('clock_drift',current.before,current.wall,current.after);
+    return current.wall;
+  };
+}
+
+export function preparedSchedule(config, releaseAt, ordinal) {
+  if (!Number.isFinite(releaseAt) || releaseAt <= 0 || !Number.isSafeInteger(ordinal) || ordinal < 1 || ordinal > config.vus) throw new Error('Invalid prepared schedule');
+  return {
+    activationAt: releaseAt + (ordinal - 1) / config.vus * config.rampSeconds * 1000,
+    measurementAt: releaseAt + (config.rampSeconds + config.warmupSeconds) * 1000,
+    endAt: releaseAt + (config.rampSeconds + config.warmupSeconds + config.measurementSeconds) * 1000,
+  };
 }
 
 // Separate instances for actions, pacing, session lengths, and target selection.

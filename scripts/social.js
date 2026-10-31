@@ -25,6 +25,7 @@ const json = (path, data) => writeFileSync(path, JSON.stringify(data, null, 2));
 try {
   assert.ok(['prepare', 'run', 'auth', 'auth-smoke', 'reset', 'recover'].includes(command) && !extra.length, 'Usage: node scripts/social.js prepare|run|auth|auth-smoke|reset|recover [config.json]');
   const config = validateConfig(JSON.parse(readFileSync(configPath)));
+  assert.equal(config.version,'social-mixed-v1','Prepared sessions require fresh bounded controllers: baseline or pocketbase --prepared-sessions');
   mkdirSync('.fixtures', { recursive: true, mode: 0o700 });
   const parent = lstatSync('.fixtures');
   assert.ok(parent.isDirectory() && !parent.isSymbolicLink() && !(parent.mode & 0o077), 'Use a private .fixtures directory (0700)');
