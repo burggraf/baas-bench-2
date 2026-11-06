@@ -55,3 +55,15 @@ test('backwards elapsed clock fails closed',()=>{
 test('legacy wall clock behavior remains unguarded',()=>{
   const c=harness(false);c.initialize();c.jumpWall(10000);assert.equal(c.read(),1010000);
 });
+
+test('phase classification uses one fresh sample and preserves every exact boundary', () => {
+  const phaseSource = source.slice(source.indexOf('const phase ='), source.indexOf('\nexport default async function'));
+  const config = { rampSeconds: 1, warmupSeconds: 2, measurementSeconds: 12 };
+  for (const [at, expected] of [[999, 'ramp'], [1000, 'ramp'], [1999, 'ramp'], [2000, 'warmup'], [3999, 'warmup'], [4000, 'measurement'], [15999, 'measurement'], [16000, 'cleanup']]) {
+    let samples = 0;
+    const phase = new Function('prepared', 'config', 'applicationStart', 'clockNow', phaseSource + '\nreturn phase;')(true, config, 1000, () => { samples++; return at; });
+    assert.equal(phase(), expected); assert.equal(samples, 1);
+  }
+  const preparation = new Function('prepared', 'config', 'applicationStart', 'clockNow', phaseSource + '\nreturn phase;')(true, config, null, () => assert.fail());
+  assert.equal(preparation(), 'preparation');
+});

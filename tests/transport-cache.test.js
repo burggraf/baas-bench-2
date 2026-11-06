@@ -4,7 +4,7 @@ import PolyfillURL from 'core-js-pure/actual/url/index.js';
 import { createTransport } from '../src/k6/transport.js';
 
 for (const URLClass of [globalThis.URL, PolyfillURL]) {
-  test(`reuses only the last validated path metadata (${URLClass === PolyfillURL ? 'k6 polyfill' : 'native'})`, async () => {
+  test(`reuses bounded validated URL metadata (${URLClass === PolyfillURL ? 'k6 polyfill' : 'native'})`, async () => {
     const originalURL = globalThis.URL;
     let parses = 0;
     globalThis.URL = class extends URLClass { constructor(...args) { super(...args); parses++; } };
@@ -14,7 +14,8 @@ for (const URLClass of [globalThis.URL, PolyfillURL]) {
         calls.push(args);
         return { status: calls.length === 2 ? 403 : 200, body: JSON.stringify({ request: calls.length }) };
       });
-      const path = '/api/records/v1/posts?limit=20';
+      // Noncanonical paths exercise the full parser and bounded metadata cache.
+      const path = '/api/records/v1/./posts?limit=20';
       const first = await transport.fetch(path, { headers: { Authorization: 'Bearer first-test' } });
       const second = await transport.fetch(path, { method: 'POST', body: 'new body', headers: { Authorization: 'Bearer second-test' } });
       assert.equal(parses, 2, 'base plus one path parse; repeated requests still reach the server');
@@ -33,11 +34,15 @@ for (const URLClass of [globalThis.URL, PolyfillURL]) {
       const afterRejections = parses;
       await transport.fetch(path);
       assert.equal(parses, afterRejections, 'rejected paths must not replace the validated entry');
-      await transport.fetch('/api/records/v1/posts/record-id?expand=author');
+      await transport.fetch('/api/records/v1/posts/./record-id?expand=author');
       await transport.fetch(path);
-      assert.equal(parses, afterRejections + 2, 'a different path is validated and evicts the single old entry');
+      assert.equal(parses, afterRejections + 1, 'alternating paths reuse validated metadata');
       assert.equal(calls.at(-2)[3].tags.name, '/api/records/v1/posts/:id');
       assert.equal(calls.at(-1)[3].tags.name, '/api/records/v1/posts');
+      const beforeEviction = parses;
+      for (let i = 0; i < 32; i++) await transport.fetch('/api/records/v1/posts/./id' + i);
+      await transport.fetch(path);
+      assert.equal(parses, beforeEviction + 33, 'old paths are evicted after 32 entries');
       const other = createTransport('http://other:4000', async (_method, url) => {
         assert.equal(url, 'http://other:4000/api/records/v1/posts?limit=20');
         return { status: 200, body: '{}' };

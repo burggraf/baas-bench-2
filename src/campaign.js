@@ -125,11 +125,12 @@ export async function measurementStart(path) {
   } finally {lines.close();input.destroy();gzip.destroy();}
 }
 
-export function campaignCpuPressure(rows, measurementStart, seconds) {
+export function campaignCpuPressure(rows, measurementStart, seconds, runnerCpus=4) {
+  assert.ok([4,6,7].includes(runnerCpus),'Use a supported CPU budget');
   const samples=rows.filter(r=>Date.parse(r.at)>=measurementStart&&Date.parse(r.at)<=measurementStart+seconds*1000);
   for(let i=0;i<samples.length;i++)for(let j=i+1;j<samples.length&&samples[j].elapsedMs-samples[i].elapsedMs<=6000;j++){
     const elapsed=samples[j].elapsedMs-samples[i].elapsedMs;
-    if(elapsed>=5000&&(parseCgroup(samples[j].source).cpuStat.usage_usec-parseCgroup(samples[i].source).cpuStat.usage_usec)/(elapsed*1000)>=3.6)return true;
+    if(elapsed>=5000&&(parseCgroup(samples[j].source).cpuStat.usage_usec-parseCgroup(samples[i].source).cpuStat.usage_usec)/(elapsed*1000)>=runnerCpus*0.9)return true;
   }
   return false;
 }

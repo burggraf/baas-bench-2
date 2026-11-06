@@ -3,9 +3,10 @@ import {readFileSync,writeFileSync} from 'node:fs';
 import {resolve} from 'node:path';
 import {controllerClient} from './client.js';
 import {savePrivate} from '../src/fixtures.js';
+import {writePayloadCache} from './payload-cache.js';
 import {summarize} from '../src/report.js';
 import {summarizeAuth} from '../src/auth.js';
-import {runnerBudget} from '../src/calibration-runner.js';
+import {runnerBudget,runnerGcEnvironment} from '../src/calibration-runner.js';
 import {capture,hash,runRunner,execute,captureHostMemory} from './runtime.js';
 import {startMonitor} from './monitor.js';
 import {stopOwnedRunner} from './recovery.js';
@@ -37,10 +38,12 @@ async function endCounts(fixture,signal,createClient) {
 }
 
 // Both callers verify their deployment/volume before entering this shared, single-use runner lifecycle.
-export async function runWorkload({directory,config,configPath,fixture,baseline,runtime,operation,signal,interruption=()=>null,authMode=null,boundedRunner=false,campaign=false,runnerProfile,backendMemoryStopFraction=0.85,service='trailbase',dataPath='/app/traildepot',fixturePath='.fixtures/trailbase.json',createClient=controllerClient}) {
+export async function runWorkload({directory,config,configPath,fixture,baseline,runtime,operation,signal,interruption=()=>null,authMode=null,boundedRunner=false,campaign=false,runnerProfile,runnerGc,backendMemoryStopFraction=0.85,service='trailbase',dataPath='/app/traildepot',fixturePath='.fixtures/trailbase.json',createClient=controllerClient}) {
   const prepared=config.version==='social-prepared-v1';
-  assert.ok(!prepared||authMode===null&&boundedRunner&&runnerProfile==='4cpu-16g'&&backendMemoryStopFraction===0.85,'Prepared sessions require the normal bounded single-point profile');
-  const authCheck=authMode!==null,bundle=authCheck?'auth':'social',path=fixturePath,id=directory.split('/').at(-1);
+  const gcEnvironment=runnerGcEnvironment(runnerProfile,runnerGc);
+  assert.ok(runnerGc===undefined||prepared&&service==='trailbase','GC tuning requires prepared TrailBase');
+  assert.ok(!prepared||authMode===null&&boundedRunner&&['4cpu-16g','6cpu-16g','7cpu-16g'].includes(runnerProfile)&&backendMemoryStopFraction===0.85,'Prepared sessions require the normal bounded single-point profile');
+  const authCheck=authMode!==null,bundle=authCheck?'auth':service==='trailbase'?'social-trailbase':'social',path=fixturePath,id=directory.split('/').at(-1);
   assert.equal(fixture.status,'ready','Baseline is partial/used: reset/reseed before every trial');
   assert.deepEqual(fixture.config,config);
   capture('npm',['run','build']);
@@ -50,7 +53,10 @@ export async function runWorkload({directory,config,configPath,fixture,baseline,
   const backendId=capture('docker',['compose','ps','-q',service]);
   if(hostSafety)await verifySizingHost(`${directory}/host-before-run`,backendId,budget.memoryBytes);
   const start={...baseline,storageBytes:storageBytes(service,dataPath)};
-  json(`${directory}/manifest.json`,{backendMemoryStopFraction,kind:authCheck?'native-sdk-auth-correctness':prepared?'prepared-session-fixed-vu-exploratory':'fixed-vu-exploratory',...(prepared?{workloadVersion:config.version,gateProtocol:'loopback-prepared-v1',authPreparation:{...config.authPreparation,concurrency:1,retries:0},applicationClock:'common-release',nativeTokenClock:'original-preparation-login'}:{}),...(authCheck?{mode:authMode}:{}),...(budget?{runnerBudget:budget,measurementPurpose:prepared?'prepared-session-application-point':'full-workload-generator-sizing',...(runnerProfile?{runnerProfile,hostSafety:true}:{})}:{}),...runtime,config,hashes:{...runtime.hashes,[`dist/${bundle}.js`]:hash(`dist/${bundle}.js`)},fixtureHash:hash(path),preparationMethod:fixture.preparationMethod,seedSeconds:fixture.seedSeconds,preparation:fixture.preparation,baseline});
+  const payloadPath=`${directory}/payload-cache.json`;
+  const payloadCache=prepared?{file:'payload-cache.json',...await writePayloadCache(payloadPath,config,signal)}:null;
+  if(prepared)assert.equal(hash(payloadPath),payloadCache.sha256,'Payload preparation hash mismatch');
+  json(`${directory}/manifest.json`,{backendMemoryStopFraction,...(prepared?{payloadCache}:{}),...(runnerGc?{runnerGc,runnerGcEnvironment:gcEnvironment}:{}),kind:authCheck?'native-sdk-auth-correctness':prepared?'prepared-session-fixed-vu-exploratory':'fixed-vu-exploratory',...(prepared?{workloadVersion:config.version,gateProtocol:'loopback-prepared-v1',actionClock:'explicit-action-start-v2',authPreparation:{...config.authPreparation,concurrency:1,retries:0},applicationClock:'common-release',nativeTokenClock:'original-preparation-login'}:{}),...(authCheck?{mode:authMode}:{}),...(budget?{runnerBudget:budget,measurementPurpose:prepared?'prepared-session-application-point':'full-workload-generator-sizing',...(runnerProfile?{runnerProfile,hostSafety:true}:{})}:{}),...runtime,config,hashes:{...runtime.hashes,[`dist/${bundle}.js`]:hash(`dist/${bundle}.js`),...(prepared?{[payloadPath]:payloadCache.sha256}:{})},fixtureHash:hash(path),preparationMethod:fixture.preparationMethod,seedSeconds:fixture.seedSeconds,preparation:fixture.preparation,baseline});
   json(`${directory}/fixtures.json`,{recipe:config.dataset,seed:config.seed,baseline,fixtureHash:hash(path)});
   json(`${directory}/config.json`,config);
   // Consume before launching: crashes/failed runs must never silently reuse a mutated baseline.
@@ -69,7 +75,7 @@ export async function runWorkload({directory,config,configPath,fixture,baseline,
   try {
     operation.monitorPid=monitor.pid;savePrivate('.fixtures/operation.lock',operation);
     const args=['run','--out',`json=/results/${id}/k6-metrics.json.gz`,'--summary-export',`/results/${id}/k6-summary.json`,`/scripts/${bundle}.js`];
-    status=await runRunner(directory,'k6',boundedRunner?['node','/work/calibration-runner.js',id,...(runnerProfile?[`--profile=${runnerProfile}`]:[]),...(prepared?['--prepared-sessions']:[]),...args]:['k6',...args],[...(authCheck?['-e',`AUTH_CHECK_MODE=${authMode}`]:[]),'--name',runnerName,'--label',`baas-bench-2.run=${id}`,'-v',`${resolve(path)}:/private/fixture.json:ro`,'-v',`${resolve(configPath)}:/config/run.json:ro`,...(boundedRunner?['-v',`${resolve('src/calibration-runner.js')}:/work/calibration-runner.js:ro`]:[]),...(prepared?['-v',`${resolve('src/prepared-gate.js')}:/work/prepared-gate.js:ro`,'-v',`${resolve('src/workload.js')}:/work/workload.js:ro`]:[])],{remove:false,signal:guard?AbortSignal.any([signal,guard.signal]):signal});
+    status=await runRunner(directory,'k6',boundedRunner?['node','/work/calibration-runner.js',id,...(runnerProfile?[`--profile=${runnerProfile}`]:[]),...(runnerGc?[`--gc=${runnerGc}`]:[]),...(prepared?['--prepared-sessions']:[]),...args]:['k6',...args],[...Object.entries(gcEnvironment).flatMap(([key,value])=>['-e',`${key}=${value}`]),...(authCheck?['-e',`AUTH_CHECK_MODE=${authMode}`]:[]),'--name',runnerName,'--label',`baas-bench-2.run=${id}`,'-v',`${resolve(path)}:/private/fixture.json:ro`,'-v',`${resolve(configPath)}:/config/run.json:ro`,...(boundedRunner?['-v',`${resolve('src/calibration-runner.js')}:/work/calibration-runner.js:ro`]:[]),...(prepared?['-e',`PREPARED_PAYLOAD_SHA256=${payloadCache.sha256}`,'-v',`${resolve(payloadPath)}:/config/payload-cache.json:ro`,'-v',`${resolve('src/prepared-gate.js')}:/work/prepared-gate.js:ro`,'-v',`${resolve('src/workload.js')}:/work/workload.js:ro`]:[])],{remove:false,signal:guard?AbortSignal.any([signal,guard.signal]):signal});
   } catch(error) {
     if(!prepared)throw error;
     executionFailed=true;
@@ -92,6 +98,7 @@ export async function runWorkload({directory,config,configPath,fixture,baseline,
     assert.equal(limits[0]/limits[1],budget.cpus);assert.equal(limits[2],budget.memoryBytes);assert.equal(limits[3],0);
     for(const boundary of ['first','last']){const policy=resources.containers.runner[boundary];assert.equal(policy.nanoCpus,budget.cpus*1e9);assert.equal(policy.memoryLimit,budget.memoryBytes);assert.equal(policy.memorySwap,budget.memoryBytes);}
   }
+  if(runnerGc){const actual=JSON.parse(readFileSync(`${directory}/runner-gc.json`));assert.deepEqual(actual,{profile:runnerProfile,gc:runnerGc,environment:gcEnvironment,childInheritsEnvironment:true});}
   if(hostSafety)assertHostMemoryCoverage(readFileSync(`${directory}/resources.jsonl`,'utf8').trim().split('\n').map(JSON.parse),budget.memoryBytes);
   } catch(error) {
     if(!prepared)throw error;
@@ -114,7 +121,7 @@ export async function runWorkload({directory,config,configPath,fixture,baseline,
   if(!skipEnd)try{end={...await endCounts(fixture,signal,createClient),storageBytes:storageBytes(service,dataPath)};}
   catch(error){if(!prepared)throw error;executionFailed=true;interrupted=interruption();}
   const unchanged=!authCheck||(end?.posts===start.posts&&end?.likes===start.likes);
-  const report={...workload,workloadValid:workload.valid,valid:!interrupted&&status===0&&workload.valid&&resources.valid&&unchanged&&cleanupVerified&&!executionFailed&&!safetyStop,...(prepared?{cleanupVerified,executionFailed,safetyStop,nativeChildExit}:{}),interrupted:interrupted??null,...(budget?{runnerBudget:budget}:{}),resources,exitStatus:status??null,start,end};
+  const report={...workload,workloadValid:workload.valid,valid:!interrupted&&status===0&&workload.valid&&resources.valid&&unchanged&&cleanupVerified&&!executionFailed&&!safetyStop,...(prepared?{cleanupVerified,executionFailed,safetyStop,nativeChildExit}:{}),interrupted:interrupted??null,...(budget?{runnerBudget:budget}:{}),...(runnerGc?{runnerGc,runnerGcEnvironment:gcEnvironment}:{}),resources,exitStatus:status??null,start,end};
   if(authCheck)report.naturalExpiryCovered=report.valid&&workload.naturalExpiryCovered;
   json(`${directory}/report.json`,report);
   const lines=authCheck?['# Native SDK authentication correctness','','**Not a capacity/SLO/soak result.**','',`Mode: ${authMode}; valid: ${report.valid}; natural expiry covered: ${report.naturalExpiryCovered}.`,...report.limitations.map(l=>`- ${l}`)]:[prepared?'# Exploratory prepared-session application report':'# Exploratory fixed-VU smoke report','','**Not a capacity result.**','',`Dataset: ${config.dataset.profile}; VUs: ${config.vus}; measurement: ${config.measurementSeconds}s.`,`Workload validity: ${report.valid}; sample evidence: ${report.sloEvidence}; k6 exit: ${status}.`,'','| Action | Completed | Failed | Observed % | p95 ms | SLO evidence |','|---|---:|---:|---:|---:|---|',...Object.entries(report.actions).map(([name,a])=>`| ${name} | ${a.count} | ${a.failures} | ${a.observedPercent.toFixed(2)} | ${a.p95Ms??'n/a'} | ${a.slo} |`),'',`Posts: ${report.start.posts} -> ${report.end?.posts??'unavailable'}; likes: ${report.start.likes} -> ${report.end?.likes??'unavailable'}.`,'',...(prepared?[`- Preparation: ${report.preparation.status}; ready users: ${report.preparation.readyUsers??'unavailable'}; measured users: ${report.participation?.measuredUsers??'unavailable'}.`,`- Measured login tails: ${report.authenticationEvidence.login.state}; refresh: ${report.authenticationEvidence.refresh.state}.`]:[]),...report.limitations.map(l=>`- ${l}`),`- Resource evidence valid: ${resources.valid}; stability: ${resources.stability}; generator headroom: ${resources.generatorHeadroom}.`,...resources.issues.map(issue=>`- Resource issue: ${issue}`),...resources.limitations.map(l=>`- ${l}`),'- Natural token expiry not certified.'];

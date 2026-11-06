@@ -7,7 +7,9 @@ import {hash,capture} from '../scripts/runtime.js';
 import {savePrivate} from '../src/fixtures.js';
 
 const read=p=>JSON.parse(readFileSync(p));
-for(const backend of ['trailbase','pocketbase'])for(const mode of ['success','failed-login','cancel-preparation','cancel-measurement'])test(`prepared ${backend} ${mode}`,{timeout:180000},async()=>{
+const trailbaseRunnerGc=process.env.PREPARED_TEST_RUNNER_GC;assert.ok(trailbaseRunnerGc===undefined||trailbaseRunnerGc==='150');
+const trailbaseRunnerCpus=Number(process.env.PREPARED_TEST_RUNNER_CPUS??6);assert.ok([6,7].includes(trailbaseRunnerCpus));
+for(const backend of ['trailbase','pocketbase'])for(const mode of ['success','failed-login','cancel-preparation','cancel-measurement',...(backend==='trailbase'?['boundary-delay']:[])])test(`prepared ${backend} ${mode}`,{timeout:180000},async()=>{
   assert.match(process.cwd(),/\/\.fixtures\/prepared-(native|regression)-[A-Za-z0-9-]+$/,'Run native tests only in a fresh isolated validation workspace');
   const controller=backend==='trailbase'?'baseline':'pocketbase',fixturePath=`.fixtures/${backend}.json`;
   assert.equal(existsSync(fixturePath),false);
@@ -16,10 +18,11 @@ for(const backend of ['trailbase','pocketbase'])for(const mode of ['success','fa
     assert.equal(source.split(needle).length,2,'Fault injection must modify exactly one SDK login site');
     writeFileSync('src/k6/social.js',source.replace(needle,"await client.login(user.username, currentPhase === 'preparation' && exec.vu.idInTest === 2 ? user.password + 'incorrect' : user.password);"));
   }
+  if(mode==='boundary-delay'){const mark='const tags = { action, phase: currentPhase };';assert.equal(source.split(mark).length,2);writeFileSync('src/k6/social.js',source.replace(mark,mark+"\n      if(prepared && exec.vu.idInTest===1 && actionSequence===0 && currentPhase==='ramp') sleep(Math.max(0,(applicationStart+config.rampSeconds*1000+102-Date.now())/1000));"));}
   execFileSync('npm',['run','build'],{stdio:'pipe'});
   const logs=mkdtempSync('results/prepared-native-');
   if(mode==='failed-login')writeFileSync(logs+'/fault.json',JSON.stringify({kind:'test-only wrong password for prepared VU2',sourceHash:hash('src/k6/social.js')}));
-  const child=spawn(process.execPath,[`scripts/${controller}.js`,'--prepared-sessions','--smoke'],{stdio:['ignore','pipe','pipe']});
+  const child=spawn(process.execPath,[`scripts/${controller}.js`,'--prepared-sessions','--smoke',...(backend==='trailbase'?[`--runner-cpus=${trailbaseRunnerCpus}`,...(trailbaseRunnerGc?['--runner-gc=150']:[])]:[])],{stdio:['ignore','pipe','pipe']});
   let stdout='',credentials=[],workload,signalled=false,signalTimer;
   const observe=()=>{
     try{
@@ -37,7 +40,7 @@ for(const backend of ['trailbase','pocketbase'])for(const mode of ['success','fa
   const timeout=setTimeout(()=>child.kill('SIGTERM'),150000);
   let code;
   try{code=await new Promise((resolve,reject)=>{child.once('error',reject);child.once('close',resolve);});}
-  finally{clearTimeout(timeout);clearTimeout(signalTimer);fixtureWatch.close();resultWatch.close();if(mode==='failed-login'){writeFileSync('src/k6/social.js',source);execFileSync('npm',['run','build'],{stdio:'pipe'});}}
+  finally{clearTimeout(timeout);clearTimeout(signalTimer);fixtureWatch.close();resultWatch.close();if(['failed-login','boundary-delay'].includes(mode)){writeFileSync('src/k6/social.js',source);execFileSync('npm',['run','build'],{stdio:'pipe'});}}
   assert.equal(capture('docker',['ps','-aq','--filter','label=com.docker.compose.project=baas-bench-2-pilot']),'');
   assert.equal(capture('docker',['network','ls','-q','--filter','label=com.docker.compose.project=baas-bench-2-pilot']),'');
   assert.equal(existsSync('.fixtures/operation.lock'),false);
@@ -45,7 +48,12 @@ for(const backend of ['trailbase','pocketbase'])for(const mode of ['success','fa
   assert.ok(directory,`Missing controller pointer; inspect ${logs}`);
   if(!workload){const pointer=controller==='baseline'?read(directory+'/trial-1.json').workload:read(directory+'/point-2/workload.json');workload=pointer.directory;}
   assert.ok(workload);
-  if(mode==='success'){
+  const manifest=read(workload+'/manifest.json');
+  assert.equal(manifest.payloadCache.sha256,hash(workload+'/payload-cache.json'));
+  assert.equal(manifest.hashes[workload+'/payload-cache.json'],manifest.payloadCache.sha256);
+  assert.equal(manifest.payloadCache.recipe.users,2);
+  for(const input of ['src/payload-cache.js','src/k6/payload-cache.js','scripts/payload-cache.js'])assert.equal(manifest.hashes[input],hash(input));
+  if(['success','boundary-delay'].includes(mode)){
     assert.equal(code,0,`Inspect ${logs}`);const r=read(workload+'/report.json');
     assert.equal(r.kind,'prepared-session-fixed-vu-exploratory');assert.equal(r.valid,true);assert.equal(r.preparedEvidenceValid,true);
     assert.equal(r.preparation.readyUsers,2);assert.equal(r.preparation.loginAttempts,2);assert.equal(r.preparation.protectedReadSuccesses,2);
@@ -55,7 +63,9 @@ for(const backend of ['trailbase','pocketbase'])for(const mode of ['success','fa
     assert.equal(r.phaseTiming.endAt-r.phaseTiming.measurementAt,12000);assert.equal(r.authFailures,0);
     assert.equal(r.traffic.controlRequests,4);assert.equal(r.traffic.controlFailureRate,0);
     for(const a of Object.values(r.actions)){assert.ok(a.count>0);assert.equal(a.failures,0);}
-    assert.equal(r.resources.containers.backend.first.nanoCpus,1e9);assert.equal(r.resources.containers.runner.first.memoryLimit,17179869184);
+    assert.equal(r.resources.containers.backend.first.nanoCpus,1e9);for(const boundary of ['first','last'])assert.equal(r.resources.containers.runner[boundary].nanoCpus,backend==='trailbase'?trailbaseRunnerCpus*1e9:4e9);assert.equal(r.resources.containers.runner.first.memoryLimit,17179869184);
+    if(backend==='trailbase'&&trailbaseRunnerGc){const expected={GOGC:'150',GOMEMLIMIT:'12GiB'};assert.deepEqual(read(workload+'/runner-gc.json'),{profile:'7cpu-16g',gc:150,environment:expected,childInheritsEnvironment:true});assert.deepEqual(r.runnerGcEnvironment,expected);assert.equal(r.runnerGc,150);assert.deepEqual(read(workload+'/manifest.json').runnerGcEnvironment,expected);}
+    if(mode==='boundary-delay'){const points=gunzipSync(readFileSync(workload+'/k6-metrics.json.gz')).toString().trim().split('\n').map(JSON.parse);const start=points.find(p=>p.type==='Point'&&p.metric==='prepared_action_start'&&p.data.metadata?.ordinal==='1'&&p.data.metadata?.sequence==='1');const rampEnd=r.phaseTiming.releaseAt+1000;assert.equal(start.data.tags.phase,'ramp');assert.ok(start.data.value<rampEnd);assert.ok(Date.parse(start.data.time)>=rampEnd+100);}
     assert.equal(existsSync(fixturePath),false,'Successful point cleans only its test-owned fixture');
   }else{
     assert.notEqual(code,0);const fixture=read(fixturePath);assert.equal(fixture.status,'used');

@@ -3,6 +3,7 @@ import {readFileSync,createReadStream} from 'node:fs';
 import {createHash} from 'node:crypto';
 import {createGunzip} from 'node:zlib';
 import {createInterface} from 'node:readline';
+import {preparedActionPhase} from './prepared-actions.js';
 import {preparedSchedule} from './workload.js';
 
 // Reconcile original events, never an aggregate count or a reconstructed successful run.
@@ -46,17 +47,33 @@ export async function reconcilePrepared(directory,config) {
       preparation.nativeTtlKnownUsers=ttls.length;
       for(const [ordinal,row]of ready)assert.ok(row.expiresAtMs>preparedSchedule(config,released.releaseAt,ordinal).activationAt+10000);
       preparation.remainingLifetimeAtReleaseSeconds={min:Math.min(...[...ready.values()].map(r=>(r.expiresAtMs-released.releaseAt)/1000)),max:Math.max(...[...ready.values()].map(r=>(r.expiresAtMs-released.releaseAt)/1000))};
+      const starts=new Map(),requests=new Map();let identityStorage=null;
       const input=createReadStream(`${directory}/k6-metrics.json.gz`),gzip=createGunzip(),lines=createInterface({input:input.pipe(gzip),crlfDelay:Infinity});
       input.on('error',error=>gzip.destroy(error));
       try {
         for await(const line of lines){
           const point=JSON.parse(line);if(point.type!=='Point')continue;
-          if(point.metric==='action_requested'){
-            const at=Date.parse(point.data?.time),phase=point.data?.tags?.phase,rampEnd=phaseTiming.releaseAt+config.rampSeconds*1000;
-            assert.ok(Number.isFinite(at)&&['ramp','warmup','measurement'].includes(phase)&&at>=phaseTiming.releaseAt&&at<phaseTiming.endAt);
-            if(phase==='ramp')assert.ok(at<rampEnd+1);
-            if(phase==='warmup')assert.ok(at>=rampEnd-1&&at<phaseTiming.measurementAt+1);
-            if(phase==='measurement')assert.ok(at>=phaseTiming.measurementAt-1);
+          if(['action_requested','prepared_action_start'].includes(point.metric)){
+            const {value,time,tags,metadata}=point.data??{},emitted=Date.parse(time);
+            const storage=metadata&&('ordinal' in metadata||'sequence' in metadata)?'metadata':'tags';
+            const identity=storage==='metadata'?metadata:tags;
+            if(storage==='metadata')assert.ok(!('ordinal' in tags)&&!('sequence' in tags));
+            if(identityStorage===null)identityStorage=storage;
+            assert.equal(storage,identityStorage,'Mixed action identity protocols');
+            const ordinal=Number(identity?.ordinal),sequence=Number(identity?.sequence);
+            assert.ok(Number.isSafeInteger(ordinal)&&ordinal>=1&&ordinal<=config.vus&&String(ordinal)===identity.ordinal);
+            assert.ok(Number.isSafeInteger(sequence)&&sequence>=1&&String(sequence)===identity.sequence);
+            assert.ok(Object.hasOwn(config.weights,tags.action)&&['ramp','warmup','measurement'].includes(tags.phase));
+            assert.ok(Number.isFinite(emitted)&&emitted>=phaseTiming.releaseAt-101&&emitted<=phaseTiming.endAt+30000);
+            const key=ordinal+':'+sequence,target=point.metric==='prepared_action_start'?starts:requests;
+            assert.ok(!target.has(key));
+            if(point.metric==='prepared_action_start'){
+              assert.ok(Number.isFinite(value)&&value<phaseTiming.endAt);
+              assert.equal(preparedActionPhase(config,phaseTiming.releaseAt,value),tags.phase);
+              // The original native clock permits <=100 ms wall/monotonic skew; allow ms truncation.
+              assert.ok(emitted>=value-101);
+            }else assert.equal(value,1);
+            target.set(key,{value,emitted,action:tags.action,phase:tags.phase,ordinal,sequence});
           }
           if(point.metric!=='prepared_user')continue;
           const event=point.data?.tags?.event,ordinal=point.data?.value,at=Date.parse(point.data?.time);
@@ -68,6 +85,23 @@ export async function reconcilePrepared(directory,config) {
           sets[event].set(ordinal,at);
         }
       } finally {lines.close();input.destroy();gzip.destroy();}
+      assert.equal(starts.size,requests.size);
+      const sequences=new Map();let maximumEmissionDelayMilliseconds=0;
+      for(const [key,start]of starts){
+        const request=requests.get(key);assert.ok(request);
+        assert.equal(request.action,start.action);assert.equal(request.phase,start.phase);
+        assert.ok(request.emitted>=start.emitted-1);
+        assert.ok(start.value>=preparedSchedule(config,phaseTiming.releaseAt,start.ordinal).activationAt-1);
+        maximumEmissionDelayMilliseconds=Math.max(maximumEmissionDelayMilliseconds,request.emitted-start.value);
+        const list=sequences.get(start.ordinal)??[];list.push(start);sequences.set(start.ordinal,list);
+      }
+      assert.equal(sequences.size,config.vus);
+      for(const list of sequences.values()){
+        assert.ok(list.some(start=>start.phase==='measurement'));
+        list.sort((a,b)=>a.sequence-b.sequence);
+        for(let i=0;i<list.length;i++){assert.equal(list[i].sequence,i+1);if(i)assert.ok(list[i].value>=list[i-1].value);}
+      }
+      preparation.actionStarts={protocol:identityStorage==='metadata'?'explicit-action-start-v2':'explicit-action-start-v1',matchedStarts:starts.size,maximumEmissionDelayMilliseconds};
       participation.measuredUsers=sets.entered.size;participation.completedUsers=sets.completed.size;
       participation.missingMeasurementUsers=config.vus-sets.entered.size;participation.missingCompletions=config.vus-sets.completed.size;
       participation.drainMilliseconds=sets.completed.size?Math.max(0,...[...sets.completed.values()].map(at=>at-phaseTiming.endAt)):null;

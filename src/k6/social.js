@@ -11,7 +11,9 @@ import { pocketbaseClient } from '../pocketbase.js';
 import { createTransport } from './transport.js';
 import { createAtob } from '../base64.js';
 import { actions, validateConfig, random, chooseAction, preparedSchedule, preparedTokenTiming, createPreparedClock } from '../workload.js';
+import { preparedActionPhase } from '../prepared-actions.js';
 import { initialState, performAction } from '../actions.js';
+import { loadPayloadCache } from './payload-cache.js';
 
 globalThis.URL = URL;
 globalThis.URLSearchParams = URLSearchParams;
@@ -24,6 +26,7 @@ const users = new SharedArray('identities', () => {
   return fixture.users;
 });
 const visible = new SharedArray('visible posts', () => JSON.parse(open('/private/fixture.json')).visible);
+const payloadFields = prepared ? loadPayloadCache(config, __ENV.PREPARED_PAYLOAD_SHA256) : undefined;
 const requested = new Counter('action_requested'), completed = new Counter('action_completed');
 const failed = new Counter('action_failed'), duration = new Trend('action_duration', true);
 const failureRate = new Rate('logical_failed'), prerequisites = new Counter('prerequisite_calls');
@@ -33,6 +36,7 @@ const logins = new Counter('auth_login_count'), authDuration = new Trend('auth_d
 const authFailed = new Rate('auth_failed'), authHttp = new Trend('auth_http_duration', true);
 const tokenTtl = new Trend('access_token_ttl_seconds');
 const refreshes = new Counter('auth_refresh_count'), authHttpFailed = new Rate('auth_http_failed');
+const actionStarts = prepared ? new Trend('prepared_action_start') : null;
 const lifecycle = prepared ? new Trend('prepared_user') : null;
 const loginAttempts = prepared ? new Counter('auth_login_attempts') : null;
 const loginFailures = prepared ? new Counter('auth_login_failed') : null;
@@ -101,8 +105,12 @@ const clockNow = () => {
     throw error;
   }
 };
-const phase = () => !prepared ? (Date.now() - exec.scenario.startTime < (config.rampSeconds + config.warmupSeconds) * 1000 ? 'warmup' : 'measurement') :
-  applicationStart === null ? 'preparation' : clockNow() < applicationStart + config.rampSeconds * 1000 ? 'ramp' : clockNow() < applicationStart + (config.rampSeconds + config.warmupSeconds) * 1000 ? 'warmup' : clockNow() < applicationStart + (config.rampSeconds + config.warmupSeconds + config.measurementSeconds) * 1000 ? 'measurement' : 'cleanup';
+const phase = () => {
+  if (!prepared) return Date.now() - exec.scenario.startTime < (config.rampSeconds + config.warmupSeconds) * 1000 ? 'warmup' : 'measurement';
+  if (applicationStart === null) return 'preparation';
+  const at = clockNow();
+  return at < applicationStart + config.rampSeconds * 1000 ? 'ramp' : at < applicationStart + (config.rampSeconds + config.warmupSeconds) * 1000 ? 'warmup' : at < applicationStart + (config.rampSeconds + config.warmupSeconds + config.measurementSeconds) * 1000 ? 'measurement' : 'cleanup';
+};
 
 export default async function () {
   if (done) { sleep(0.1); return; }
@@ -166,7 +174,7 @@ export default async function () {
       }
     }
   };
-  let sessionEnd = 0, entered = false, normalCompletion = false;
+  let sessionEnd = 0, entered = false, normalCompletion = false, actionSequence = 0;
   unavailable.add(0); invalid.add(0); refreshes.add(0);
   try {
     if (prepared) {
@@ -207,22 +215,37 @@ export default async function () {
       }
     }
     while (now() < end) {
-      currentPhase = phase();
+      if (!prepared) currentPhase = phase();
       if (!client.user() || Date.now() >= sessionEnd) {
+        if (prepared) currentPhase = phase();
         try {
           if (client.user()) await auth('logout');
           await auth('login');
           sessionEnd = Date.now() + uniform(config.sessionSeconds, sessionRandom) * 1000;
         } catch { sleep(Math.min(uniform(config.thinkSeconds, pacingRandom), Math.max(0, (end - Date.now()) / 1000))); continue; }
       }
-      currentPhase = phase();
-      if (prepared) { if (now() >= end) break; currentPhase = phase(); }
-      const action = chooseAction(config.weights, actionRandom), tags = { action, phase: currentPhase };
+      if (!prepared) currentPhase = phase();
+      const action = chooseAction(config.weights, actionRandom);
+      const actionStart = prepared ? now() : null;
+      if (prepared) { currentPhase = preparedActionPhase(config,applicationStart,actionStart); if (currentPhase === 'cleanup') break; }
+      const tags = { action, phase: currentPhase };
       if (prepared && currentPhase === 'measurement' && !entered) { lifecycle.add(exec.vu.idInTest,{event:'entered'}); entered = true; }
-      requested.add(1, tags);
+      if (prepared) {
+        // Unique action IDs are raw evidence, not dimensions for metric aggregation.
+        const metadata = exec.vu.metrics.metadata;
+        metadata.ordinal = String(exec.vu.idInTest);
+        metadata.sequence = String(++actionSequence);
+        try {
+          actionStarts.add(actionStart,tags);
+          requested.add(1,tags);
+        } finally {
+          delete metadata.ordinal;
+          delete metadata.sequence;
+        }
+      } else requested.add(1,tags);
       const started = Date.now(); let success = false;
       try {
-        await performAction(client, state, action, config, targetRandom, () => prerequisites.add(1, tags));
+        await performAction(client, state, action, config, targetRandom, () => prerequisites.add(1, tags), payloadFields);
         success = true;
       } catch (error) {
         const reason = ['unavailable_target', 'invalid_response'].includes(error.message) ? error.message :

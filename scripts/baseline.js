@@ -14,16 +14,36 @@ import { runWorkload, verifySizingHost } from './workload-run.js';
 import { nextCampaignTrial, classifyCampaignTrial, campaignCpuPressure, measurementStart, prestartMemoryReserve } from '../src/campaign.js';
 
 const project = 'baas-bench-2-pilot', fixturePath = '.fixtures/trailbase.json';
-export function baselinePlan(args) {
+export function baselinePlan(args) { return preparedProfilePlan(args); }
+
+function preparedProfilePlan(args, preparedCpus = 4) {
+  const gcFlags=args.filter(a=>a.startsWith('--runner-gc='));
+  if(gcFlags.length){
+    assert.deepEqual(gcFlags,['--runner-gc=150'],'Use the supported explicit GC tuning');
+    const plan=preparedProfilePlan(args.filter(a=>a!==gcFlags[0]),preparedCpus);
+    assert.ok(plan.preparedSessions&&plan.runnerProfile==='7cpu-16g','GC tuning requires the prepared seven-CPU profile');
+    return {...plan,runnerGc:150};
+  }
+  const cpuFlags=args.filter(a=>a.startsWith('--runner-cpus='));
+  if(cpuFlags.length){
+    assert.ok(cpuFlags.length===1&&['--runner-cpus=6','--runner-cpus=7'].includes(cpuFlags[0]),'Use one supported explicit CPU profile');
+    assert.ok(args.includes('--prepared-sessions'),'Explicit CPU profiles require prepared sessions');
+    const cpus=Number(cpuFlags[0].slice('--runner-cpus='.length)),plan=preparedProfilePlan(args.filter(a=>a!==cpuFlags[0]),cpus);
+    assert.ok(args.includes('--smoke')||(cpus===6?plan.config.vus===1500:plan.config.vus>=2000&&plan.config.vus<=10000&&plan.config.vus%500===0),'Use 1500 users at six CPUs or 500-user steps from 2000 through 10000 at seven CPUs, or correctness smoke');
+    return {...plan,runnerBudget:{cpus,memoryBytes:17179869184},runnerProfile:`${cpus}cpu-16g`};
+  }
   const templates=args.filter(arg=>arg.startsWith('--prepared-template='));
   if(templates.length){
     assert.equal(templates.length,1);assert.ok(args.includes('--prepared-sessions'),'Templates require the normal prepared single-point profile');
     const preparedTemplatePath=templates[0].slice('--prepared-template='.length);assert.ok(preparedTemplatePath.endsWith('.json')&&!preparedTemplatePath.includes('\0'),'Use a private template JSON file');
-    return {...baselinePlan(args.filter(arg=>arg!==templates[0])),preparedTemplatePath};
+    return {...preparedProfilePlan(args.filter(arg=>arg!==templates[0]),preparedCpus),preparedTemplatePath};
   }
   if (args.includes('--prepared-sessions')) {
     const {smoke,vus}=workloadContract.preparedArguments(args),configPath=smoke?'configs/prepared-smoke.json':'configs/prepared-social-baseline.json';
-    const config=validateConfig({...JSON.parse(readFileSync(configPath)),...(vus===undefined?{}:{vus})});
+    const base=JSON.parse(readFileSync(configPath));
+    // Keep admission at five logins/second, with the original 200-second startup margin.
+    const authPreparation=preparedCpus===7&&!smoke?{...base.authPreparation,timeoutSeconds:Math.max(base.authPreparation.timeoutSeconds,Math.ceil(vus/base.authPreparation.loginsPerSecond)+200)}:base.authPreparation;
+    const config=validateConfig({...base,...(vus===undefined?{}:{vus}),authPreparation});
     return {preparedSessions:true,workload:true,configPath,config,trials:1,runnerBudget:{cpus:4,memoryBytes:17179869184},runnerProfile:'4cpu-16g',hostSafety:true};
   }
   if (args.includes('--backend-memory-stop=95')) {
@@ -134,7 +154,7 @@ async function main() {
     assert.equal(capture('docker',['ps','-aq','--filter',`volume=${state.Name}`]),'','Template must remain unmounted');
     assert.deepEqual(await preparedDirectoryDigest(state.Mountpoint),template.preparedTemplate.tree,'Template data changed');return state;
   };
-  const { workload, campaign, preparedSessions, runnerProfile, hostSafety, backendMemoryStopFraction = 0.85 } = plan;
+  const { workload, campaign, preparedSessions, runnerProfile, runnerGc, hostSafety, backendMemoryStopFraction = 0.85 } = plan;
   if (hostSafety) assert.ok(['linux', 'darwin'].includes(process.platform), 'Host-pressure guarded runs require Linux or macOS');
   const next = trials => nextCampaignTrial(trials.map(t => ({ ...t.candidate, verdict: t.classification.verdict })), plan.search);
   let configPath = plan.configPath;
@@ -152,7 +172,7 @@ async function main() {
   const handlers = Object.fromEntries(['SIGINT', 'SIGTERM'].map(signal => [signal, () => { interrupted ??= signal; cancellation.abort(); }]));
   for (const [signal, handler] of Object.entries(handlers)) process.on(signal, handler);
   if (workload && !campaign) { configPath = `${directory}/workload-config.json`; json(configPath, config); }
-  const report = { kind: preparedSessions ? 'prepared-session-single-point' : campaign ? 'bounded-local-discovery' : workload ? 'fresh-deployment-workload-sizing' : 'fresh-deployment-baseline-proof', ...(preparedSessions?{workloadVersion:config.version,authPreparation:config.authPreparation,discovery:false}:{}), ...(campaign ? { limits: plan.search, safetyPolicy: { memoryStopFraction: 0.85, backendMemoryStopFraction, measuredRunnerCpuCores: 3.6, cpuWindowSeconds: 5 }, generatorHeadroom: 'unverified' } : {}), valid: false, certified: false, config, ...(workload ? { runnerBudget: plan.runnerBudget } : {}), ...(hostSafety ? { runnerProfile, hostSafety: { memoryStopFraction: 0.85, backendMemoryStopFraction, liveVmReserveBytes: 1073741824, prestartVmReserveBytes: prestartMemoryReserve(plan.runnerBudget.memoryBytes), requireZeroVmSwapUsed: true, ...(process.platform === 'darwin' ? { normalMacosPressure: '1' } : { hostMemorySource: '/proc/meminfo' }), measuredRunnerCpuCores: 3.6, cpuWindowSeconds: 5 } } : {}), pilotVolumeBefore: pilotState(), trials: [], limitations: ['Logical equivalence, not capacity/headroom certification; short fixed-load tails may be insufficient.', 'New volumes are retained, never deleted; caches/host state are not normalized.', 'Crash/partial-seed recovery requires manual inspection of the recorded trial volume; social recover does not support fresh-workload claims.'] };
+  const report = { kind: preparedSessions ? 'prepared-session-single-point' : campaign ? 'bounded-local-discovery' : workload ? 'fresh-deployment-workload-sizing' : 'fresh-deployment-baseline-proof', ...(preparedSessions?{workloadVersion:config.version,authPreparation:config.authPreparation,discovery:false}:{}), ...(campaign ? { limits: plan.search, safetyPolicy: { memoryStopFraction: 0.85, backendMemoryStopFraction, measuredRunnerCpuCores: plan.runnerBudget.cpus * 0.9, cpuWindowSeconds: 5 }, generatorHeadroom: 'unverified' } : {}), valid: false, certified: false, config, ...(runnerGc?{runnerGc}:{}), ...(workload ? { runnerBudget: plan.runnerBudget } : {}), ...(hostSafety ? { runnerProfile, hostSafety: { memoryStopFraction: 0.85, backendMemoryStopFraction, liveVmReserveBytes: 1073741824, prestartVmReserveBytes: prestartMemoryReserve(plan.runnerBudget.memoryBytes), requireZeroVmSwapUsed: true, ...(process.platform === 'darwin' ? { normalMacosPressure: '1' } : { hostMemorySource: '/proc/meminfo' }), measuredRunnerCpuCores: plan.runnerBudget.cpus * 0.9, cpuWindowSeconds: 5 } } : {}), pilotVolumeBefore: pilotState(), trials: [], limitations: ['Logical equivalence, not capacity/headroom certification; short fixed-load tails may be insufficient.', 'New volumes are retained, never deleted; caches/host state are not normalized.', 'Crash/partial-seed recovery requires manual inspection of the recorded trial volume; social recover does not support fresh-workload claims.'] };
   // Let fetch process socket-close events while replacing the server; never retry requests across deployments.
   const compose = async args => {
     try {
@@ -207,7 +227,7 @@ async function main() {
           console.log(`${campaign ? 'Campaign' : 'Sizing'} trial ${trial}: ${template?'copied baseline API verification':'API preparation'} started; ${config.dataset.users} accounts.`);
         }
         if (hostSafety) await verifySizingHost(`${directory}/trial-${trial}-host-before-seed`, backendId, plan.runnerBudget.memoryBytes);
-        const runtime = runtimeManifest(['package-lock.json', 'compose.yaml', override, 'backends/trailbase/Dockerfile', 'backends/trailbase/configuration/config.textproto', 'backends/trailbase/configuration/migrations/main/U1792454400__social_schema.sql', 'src/fixtures.js', 'src/prepared-template.js', 'src/workload.js', 'scripts/baseline.js', 'scripts/client.js', 'scripts/runtime.js', 'scripts/monitor.js', ...(workload ? ['scripts/workload-run.js', 'scripts/recovery.js', 'scripts/build.js', 'src/actions.js', 'src/report.js', 'src/resources.js', 'src/auth.js', 'src/base64.js', 'src/k6/social.js', 'src/k6/transport.js', 'src/calibration-runner.js', 'src/campaign.js', ...(preparedSessions?['src/prepared-gate.js','src/prepared-evidence.js','src/pocketbase.js','runner/Dockerfile']:[]), ...(template?['scripts/prepared-template.js']:[]), plan.configPath] : []), configPath]);
+        const runtime = runtimeManifest(['package-lock.json', 'compose.yaml', override, 'backends/trailbase/Dockerfile', 'backends/trailbase/configuration/config.textproto', 'backends/trailbase/configuration/migrations/main/U1792454400__social_schema.sql', 'src/fixtures.js', 'src/prepared-template.js', 'src/workload.js', 'scripts/baseline.js', 'scripts/client.js', 'scripts/runtime.js', 'scripts/monitor.js', ...(workload ? ['scripts/workload-run.js', 'scripts/recovery.js', 'scripts/build.js', 'src/actions.js', 'src/payload-cache.js', 'src/k6/payload-cache.js', 'scripts/payload-cache.js', 'src/report.js', 'src/resources.js', 'src/auth.js', 'src/base64.js', 'src/k6/social.js', 'src/k6/transport.js', 'src/calibration-runner.js', 'src/campaign.js', ...(preparedSessions?['src/prepared-gate.js','src/prepared-evidence.js','src/prepared-actions.js','src/pocketbase.js','runner/Dockerfile']:[]), ...(template?['scripts/prepared-template.js']:[]), plan.configPath] : []), configPath]);
         const requestLog = `${directory}/trial-${trial}.controller-requests.jsonl`;
         const createClient = () => controllerClient(cancellation.signal, row => appendFileSync(requestLog, JSON.stringify(row) + '\n'));
         let initial = true;
@@ -233,7 +253,7 @@ async function main() {
           evidence.workload = { directory: workloadDirectory, report: null };
           json(`${directory}/trial-${trial}.json`, evidence);
           if (campaign || preparedSessions) { report.activeTrial = {...report.activeTrial,number:trial,workloadDirectory,volume:name}; json(`${directory}/report.json`, report); }
-          const result = await runWorkload({ directory: workloadDirectory, config, configPath, fixture, baseline, runtime, operation, signal: cancellation.signal, interruption: () => interrupted, boundedRunner: true, campaign: !!campaign, runnerProfile, backendMemoryStopFraction });
+          const result = await runWorkload({ directory: workloadDirectory, config, configPath, fixture, baseline, runtime, operation, signal: cancellation.signal, interruption: () => interrupted, boundedRunner: true, campaign: !!campaign, runnerProfile, runnerGc, backendMemoryStopFraction });
           evidence.workload = { directory: workloadDirectory, report: result };
           if (campaign || hostSafety) {
             let measuredAt=null,pressure=null,cpuEvidenceInvalid=false;
@@ -241,10 +261,10 @@ async function main() {
               if (!preparedSessions || result.preparedEvidenceValid) {
                 measuredAt=preparedSessions?result.phaseTiming.measurementAt:await measurementStart(`${workloadDirectory}/k6-metrics.json.gz`);
                 const originals=readFileSync(`${workloadDirectory}/runner-cgroups.jsonl`,'utf8').trim().split('\n').map(JSON.parse);
-                pressure=campaignCpuPressure(originals,measuredAt,config.measurementSeconds);
+                pressure=campaignCpuPressure(originals,measuredAt,config.measurementSeconds,plan.runnerBudget.cpus);
               }
             } catch(error) {if(!preparedSessions)throw error;cpuEvidenceInvalid=true;}
-            evidence.generatorCheck = {measurementStartedAt:measuredAt===null?null:new Date(measuredAt).toISOString(),sustainedCpuPressure:pressure,completeWindow:pressure!==null,headroom:'unverified'};
+            evidence.generatorCheck = {measurementStartedAt:measuredAt===null?null:new Date(measuredAt).toISOString(),sustainedCpuPressure:pressure,completeWindow:pressure!==null,headroom:'unverified',cpuBudgetCores:plan.runnerBudget.cpus,cpuGuardCores:plan.runnerBudget.cpus*0.9};
             if (campaign || preparedSessions) evidence.classification = cpuEvidenceInvalid?{verdict:'invalid',reasons:['measurement_cpu_window_evidence'],certified:false}:classifyCampaignTrial(result,preparedSessions&&!result.preparedEvidenceValid?{metrics:{}}:existsSync(`${workloadDirectory}/k6-summary.json`)?JSON.parse(readFileSync(`${workloadDirectory}/k6-summary.json`)):{metrics:{}},pressure);
           }
           json(`${directory}/trial-${trial}.json`, evidence);

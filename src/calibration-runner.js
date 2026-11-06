@@ -6,9 +6,16 @@ import{fileURLToPath}from'node:url';
 
 export function runnerBudget(id, profile) {
   assert.match(id,/^(social-[A-Za-z0-9]{6}|calibration-[A-Za-z0-9]{6}-(10|25|40|100|400|1600)(-vu(32|128)|-vu128-(2cpu-1g|4cpu-2g))?)$/);
-  if(profile!==undefined){assert.ok(['4cpu-4g','4cpu-16g'].includes(profile));assert.match(id,/^social-[A-Za-z0-9]{6}$/);return {cpus:4,memoryBytes:profile==='4cpu-16g'?17179869184:4294967296};}
+  if(profile!==undefined){assert.ok(['4cpu-4g','4cpu-16g','6cpu-16g','7cpu-16g'].includes(profile));assert.match(id,/^social-[A-Za-z0-9]{6}$/);return {cpus:profile==='7cpu-16g'?7:profile==='6cpu-16g'?6:4,memoryBytes:profile.endsWith('-16g')?17179869184:4294967296};}
   const cpus=id.startsWith('social-')||id.endsWith('-4cpu-2g')?4:2;
   return {cpus,memoryBytes:cpus===4?2147483648:1073741824};
+}
+
+// Go's soft runtime limit leaves room below the unchanged 85% cgroup memory guard.
+export function runnerGcEnvironment(profile, gc) {
+  if(gc===undefined)return {};
+  assert.equal(profile,'7cpu-16g');assert.equal(gc,150);
+  return {GOGC:'150',GOMEMLIMIT:'12GiB'};
 }
 
 export function readCgroupSnapshot(directory='/sys/fs/cgroup', vmInfoPath) {
@@ -17,10 +24,16 @@ export function readCgroupSnapshot(directory='/sys/fs/cgroup', vmInfoPath) {
 if(process.argv[1]===fileURLToPath(import.meta.url)) {
   const[id,...args]=process.argv.slice(2);
   const profile=args[0]?.startsWith('--profile=')?args.shift().slice('--profile='.length):undefined;
+  const gc=args[0]?.startsWith('--gc=')?Number(args.shift().slice('--gc='.length)):undefined;
   const prepared=args[0]==='--prepared-sessions';if(prepared)args.shift();
+  const gcEnvironment=runnerGcEnvironment(profile,gc);if(gc!==undefined)assert.equal(prepared,true);
   const budget=runnerBudget(id,profile);assert.equal(args[0],'run');
-  if(prepared)assert.equal(profile,'4cpu-16g');
+  if(prepared)assert.ok(['4cpu-16g','6cpu-16g','7cpu-16g'].includes(profile));
   const directory=`/results/${id}`,began=process.hrtime.bigint();
+  if(gc!==undefined){
+    for(const [key,value]of Object.entries(gcEnvironment))assert.equal(process.env[key],value,'Runner GC environment mismatch');
+    writeFileSync(`${directory}/runner-gc.json`,JSON.stringify({profile,gc,environment:{GOGC:process.env.GOGC,GOMEMLIMIT:process.env.GOMEMLIMIT},childInheritsEnvironment:true}));
+  }
   const limits=['cpu.max','memory.max','memory.swap.max'].map(name=>readFileSync(`/sys/fs/cgroup/${name}`,'utf8')).join('');
   writeFileSync(`${directory}/runner-limits.txt`,limits);
   const[quota,period,memory,swap]=limits.trim().split(/\s+/).map(Number);

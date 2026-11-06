@@ -36,9 +36,22 @@ export function assertPreparedTemplateVolume(volume,fixture) {
   assert.equal(volume.Driver,'local');assert.equal(volume.Scope,'local');assert.ok(!volume.Options||Object.keys(volume.Options).length===0);
   assert.equal(volume.Labels?.['baas-bench-2.prepared-template'],template.id);assert.equal(volume.Labels?.['baas-bench-2.source-fixture'],template.sourceFixtureHash);
 }
+export function assertPreparedTemplateConfig(config,original) {
+  validateConfig(config);
+  const comparison={...config,vus:original.vus};
+  if(config.authPreparation.timeoutSeconds!==original.authPreparation.timeoutSeconds){
+    assert.ok(config.dataset.profile==='social-baseline'&&config.vus>=2500&&config.vus<=10000&&config.vus%500===0,'Preparation extension requires a baseline population step');
+    assert.equal(original.authPreparation.timeoutSeconds,600);
+    assert.equal(config.authPreparation.loginsPerSecond,5);
+    assert.equal(config.authPreparation.timeoutSeconds,config.vus/5+200,'Keep the admission rate and startup margin');
+    comparison.authPreparation={...config.authPreparation,timeoutSeconds:original.authPreparation.timeoutSeconds};
+  }
+  assert.deepEqual(comparison,original,'Only execution VU count and its bounded preparation deadline may differ from the verified template');
+}
+
 export function fixtureForPreparedRun(template,config,volume) {
   const metadata=templateMetadata(template);
-  validateConfig(config);assert.deepEqual({...config,vus:template.config.vus},template.config,'Only execution VU count may differ from the verified template');
+  assertPreparedTemplateConfig(config,template.config);
   assert.ok(typeof volume==='string'&&volume.length>0&&volume!==template.volume);
   const fixture=structuredClone(template);delete fixture.preparedTemplate;fixture.config=structuredClone(config);fixture.volume=volume;
   fixture.templateOrigin={id:metadata.id,volume:template.volume,treeHash:metadata.tree.sha256,sourceFixtureHash:metadata.sourceFixtureHash,sourceSeedSeconds:template.seedSeconds};

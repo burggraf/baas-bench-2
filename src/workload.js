@@ -104,9 +104,9 @@ export function postFields(config, user, sequence) {
   let seed = config.seed;
   for (const char of `${user}:${sequence}`) seed = Math.imul(seed ^ char.charCodeAt(0), 16777619);
   const rng = random(seed), alphabet = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-  let body = '';
-  for (let i = 0; i < config.bodyBytes; i++) body += alphabet[Math.floor(rng() * alphabet.length)];
-  return { title: `Post ${user} ${sequence}`.slice(0, 100), body };
+  const body = new Array(config.bodyBytes);
+  for (let i = 0; i < config.bodyBytes; i++) body[i] = alphabet[Math.floor(rng() * alphabet.length)];
+  return { title: `Post ${user} ${sequence}`.slice(0, 100), body: body.join('') };
 }
 
 export function chooseAction(weights, rng) {

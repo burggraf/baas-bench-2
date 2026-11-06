@@ -105,3 +105,20 @@ test('caches stay bounded and malformed/foreign records fail validation', async 
   const backend = api(); backend.posts[0].author = 'foreign';
   await assert.rejects(() => performAction(backend.client, state, 'listOwn', config, () => 0, () => {}), /invalid_response/);
 });
+
+test('like membership is rebuilt after a probe discovers a previously unknown like', async () => {
+  const backend = api(), state = initialState({ ...user, likes: [] }, ['p2'], config);
+  const records = backend.client.records, probes = [];
+  backend.client.records = table => {
+    const methods = records(table);
+    if (table === 'likes') {
+      const list = methods.list;
+      methods.list = opts => { probes.push(opts.filters[0].value); return list(opts); };
+    }
+    if (table === 'posts') methods.list = async () => ({ records: [backend.posts[1], backend.posts[0]] });
+    return methods;
+  };
+  await performAction(backend.client, state, 'like', config, () => 0, () => {});
+  assert.deepEqual(probes, ['p2', 'p1']);
+  assert.equal(backend.likes.filter(l => l.post === 'p2').length, 1);
+});

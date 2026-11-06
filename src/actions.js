@@ -9,29 +9,37 @@ export function initialState(user, visible, config) {
   return { user: user.id, index: user.index, owned: user.posts.slice(-100), likes: user.likes.slice(-100), visible: visible.slice(-config.pageSize), sequence: config.dataset.postsPerUser, offset: config.pageSize };
 }
 
-export async function performAction(client, state, action, config, rng, prerequisite) {
-  const posts = client.records('posts'), likes = client.records('likes');
-  const page = async (own, offset = 0) => {
-    const result = await posts.list({ pagination: { limit: config.pageSize, offset }, order: ['-created_at', '-id'], ...(own ? { filters: [{ column: 'author', value: state.user }] } : {}) });
-    valid(Array.isArray(result.records) && result.records.length <= config.pageSize);
-    for (const post of result.records) valid(typeof post.id === 'string' && typeof post.body === 'string' && post.body.length === config.bodyBytes && (!own || post.author === state.user));
-    return result;
-  };
+// SDK record handles keep a live client reference, so authentication still rotates normally.
+const recordApis = new WeakMap();
+async function page(posts, state, config, own, offset = 0) {
+  const result = await posts.list({ pagination: { limit: config.pageSize, offset }, order: ['-created_at', '-id'], ...(own ? { filters: [{ column: 'author', value: state.user }] } : {}) });
+  valid(Array.isArray(result.records) && result.records.length <= config.pageSize);
+  for (const post of result.records) valid(typeof post.id === 'string' && typeof post.body === 'string' && post.body.length === config.bodyBytes && (!own || post.author === state.user));
+  return result;
+}
+
+export async function performAction(client, state, action, config, rng, prerequisite, payloadFields) {
+  let apis = recordApis.get(client);
+  if (!apis) {
+    apis = { posts: client.records('posts'), likes: client.records('likes') };
+    recordApis.set(client, apis);
+  }
+  const { posts, likes } = apis;
   if (action === 'listPublic' || action === 'listOwn') {
     const own = action === 'listOwn';
-    const result = await page(own);
+    const result = await page(posts, state, config, own);
     valid(result.records.length > 0 && !('total_count' in result));
     if (own) state.owned = result.records.map(p => p.id);
     else state.visible = result.records.map(p => p.id);
   } else if (action === 'read') {
-    if (!state.visible.length) { prerequisite(); state.visible = (await page(false)).records.map(p => p.id); }
+    if (!state.visible.length) { prerequisite(); state.visible = (await page(posts, state, config, false)).records.map(p => p.id); }
     if (!state.visible.length) unavailable();
     const id = pick(state.visible, rng), post = await posts.read(id);
     valid(post?.id === id && typeof post.author === 'string' && typeof post.title === 'string' && post.body?.length === config.bodyBytes);
   } else if (action === 'create' || action === 'edit') {
-    if (action === 'edit' && !state.owned.length) { prerequisite(); state.owned = (await page(true)).records.map(p => p.id); }
+    if (action === 'edit' && !state.owned.length) { prerequisite(); state.owned = (await page(posts, state, config, true)).records.map(p => p.id); }
     if (action === 'edit' && !state.owned.length) unavailable();
-    const fields = postFields(config, state.index, state.sequence + 1);
+    const fields = payloadFields ? payloadFields(state.index, state.sequence + 1) : postFields(config, state.index, state.sequence + 1);
     if (action === 'create') {
       const id = await posts.create({ author: state.user, ...fields });
       valid(typeof id === 'string' && id.length > 0);
@@ -54,7 +62,9 @@ export async function performAction(client, state, action, config, rng, prerequi
     // Bounded search: current visible pool plus at most four API feed pages (including an empty wrap).
     // TrailBase custom-order feeds support offsets, not cursors; keep progress independent of listPublic.
     for (let attempt = 0; attempt < 5; attempt++) {
-      const candidates = state.visible.filter(id => !state.likes.some(l => l.post === id));
+      // Rebuild after each page: a probe may discover likes and evict old entries.
+      const likedPosts = new Set(state.likes.map(l => l.post));
+      const candidates = state.visible.filter(id => !likedPosts.has(id));
       for (let probe = 0; probe < 5 && candidates.length; probe++) {
         const index = Math.floor(rng() * candidates.length), post = candidates.splice(index, 1)[0];
         prerequisite();
@@ -71,7 +81,7 @@ export async function performAction(client, state, action, config, rng, prerequi
       }
       if (attempt < 4) {
         prerequisite();
-        const result = await page(false, state.offset);
+        const result = await page(posts, state, config, false, state.offset);
         state.visible = result.records.map(p => p.id);
         // Prepared feed walks must also support the native page-based SDK; legacy offsets stay unchanged.
         state.offset = result.records.length ? state.offset + (config.version === 'social-prepared-v1' ? config.pageSize : result.records.length) : 0;
