@@ -38,6 +38,38 @@ export function parseRunnerCgroups(text, consumed, capturedMs, running) {
 }
 
 const inspection = '{"id":{{json .Id}},"pid":{{json .State.Pid}},"status":{{json .State.Status}},"running":{{json .State.Running}},"oomKilled":{{json .State.OOMKilled}},"exitCode":{{json .State.ExitCode}},"startedAt":{{json .State.StartedAt}},"finishedAt":{{json .State.FinishedAt}},"restarts":{{json .RestartCount}},"health":{{if index .State "Health"}}{{json .State.Health.Status}}{{else}}null{{end}},"run":{{json (index .Config.Labels "baas-bench-2.run")}},"nanoCpus":{{json .HostConfig.NanoCpus}},"cpuQuota":{{json .HostConfig.CpuQuota}},"cpuPeriod":{{json .HostConfig.CpuPeriod}},"cpuset":{{json .HostConfig.CpusetCpus}},"memoryLimit":{{json .HostConfig.Memory}},"memorySwap":{{json .HostConfig.MemorySwap}}}';
+
+// Retain command failures as well as malformed successful output. A single
+// timed-out runner inspection may recover within three seconds, below the
+// unchanged five-second observation-coverage limit. Missing IDs, other command
+// failures and invalid JSON remain immediate failures.
+export async function captureInspection(target, docker, retryTimeout = false) {
+  const began = performance.now(), attempts = [], argv = ['inspect', '--format', inspection, target];
+  for (let attempt = 0; attempt < (retryTimeout ? 2 : 1); attempt++) {
+    const timeoutMs = attempt === 0 ? 2000 : Math.max(1, Math.floor(3000 - (performance.now() - began)));
+    const started = performance.now(), startedAt = new Date().toISOString();
+    let result;
+    try { result = await docker(argv, timeoutMs); }
+    catch (error) {
+      attempts.push({ startedAt, durationMs: performance.now() - started, timeoutMs,
+        stdout: error.stdout ?? '', stderr: error.stderr ?? '', code: error.code ?? null,
+        exitCode: error.exitCode ?? (typeof error.code === 'number' ? error.code : null),
+        killed: error.killed ?? false, signal: error.signal ?? null });
+      error.inspectionCapture = { target, attempts };
+      if (attempt === 0 && retryTimeout && error.killed === true &&
+          performance.now() - started >= timeoutMs && performance.now() - began < 3000) continue;
+      throw error;
+    }
+    attempts.push({ startedAt, durationMs: performance.now() - started, timeoutMs,
+      stdout: result.stdout, stderr: result.stderr, code: 0, exitCode: 0, killed: false, signal: null });
+    try {
+      const state = JSON.parse(result.stdout);
+      assert.ok(state && typeof state === 'object' && !Array.isArray(state), 'Invalid inspector object');
+      return { state, capture: { target, attempts } };
+    }
+    catch (error) { error.inspectionCapture = { target, attempts }; throw error; }
+  }
+}
 // Avoid scheduling four extra cat processes inside the CPU-throttled backend.
 const cgroupCommand = 'for f in cpu.stat memory.current memory.peak memory.events; do printf "\\n[%s]\\n" "$f"; while IFS= read -r line; do printf "%s\\n" "$line"; done < "/sys/fs/cgroup/$f" 2>/dev/null || printf "unavailable\\n"; done';
 
@@ -116,7 +148,7 @@ async function collect(directory, backendId, runnerName, runnerCgroupFile, watch
     try { appendFileSync(`${directory}/resources.jsonl`, JSON.stringify(row) + '\n'); }
     catch { stopping = true; process.exitCode = 1; }
   };
-  const docker = args => execute('docker', args, { encoding: 'utf8', timeout: 2000, maxBuffer: 1024 * 1024 });
+  const docker = (args, timeout = 2000) => execute('docker', args, { encoding: 'utf8', timeout, maxBuffer: 1024 * 1024 });
   const stats = (role, id) => {
     if (streams.has(role)) return;
     const child = spawn('docker', ['stats', '--format', '{{json .}}', id], { stdio: ['ignore', 'pipe', errorFd] });
@@ -143,7 +175,7 @@ async function collect(directory, backendId, runnerName, runnerCgroupFile, watch
     });
     streams.set(role, { child, ended });
   };
-  let runnerId = null, consumed = 0, capturedMs = -1;
+  let runnerId = null, terminalRunner = null, consumed = 0, capturedMs = -1;
   const selfCgroups = state => {
     if (!existsSync(runnerCgroupFile)) {
       if (!state.running) record('error', 'runner', null, { operation: 'self_cgroup_missing' });
@@ -155,12 +187,19 @@ async function collect(directory, backendId, runnerName, runnerCgroupFile, watch
       consumed = next.consumed; capturedMs = next.capturedMs;
     } catch { record('error', 'runner', null, { operation: 'self_cgroup_invalid' }); }
   };
-  const sample = async (role, target) => {
-    let state;
-    try { state = JSON.parse((await docker(['inspect', '--format', inspection, role === 'runner' && runnerId ? runnerId : target])).stdout); }
+  const sample = async (role, target, final = false) => {
+    // Once the exact owned container is verified exited, its lifecycle is
+    // terminal. Keep consuming final self samples without repeatedly invoking
+    // the Docker CLI against a container already proven stopped.
+    if (role === 'runner' && terminalRunner && !final) {
+      if (runnerCgroupFile) selfCgroups(terminalRunner);
+      return;
+    }
+    let state, capture;
+    try { ({ state, capture } = await captureInspection(role === 'runner' && runnerId ? runnerId : target, docker, role === 'runner' && !!runnerId)); }
     catch (error) {
       appendFileSync(`${directory}/inspect-stderr.log`, error.stderr ?? 'Invalid inspector JSON\n');
-      if (role !== 'runner' || runnerId || !/No such (object|container)/i.test(error.stderr ?? '')) record('error', role, null, { operation: 'inspect' });
+      if (role !== 'runner' || runnerId || !/No such (object|container)/i.test(error.stderr ?? '')) record('error', role, null, { operation: 'inspect', capture: error.inspectionCapture });
       return;
     }
     if (role === 'runner') {
@@ -169,6 +208,8 @@ async function collect(directory, backendId, runnerName, runnerCgroupFile, watch
     }
     if (state.status === 'created') { record('discovery', role, state); return; }
     record('lifecycle', role, state);
+    if (capture.attempts.length > 1) record('inspection_recovered', role, null, { operation: 'inspect', capture });
+    if (role === 'runner' && state.status === 'exited' && state.running === false) terminalRunner = state;
     if (role === 'runner' && runnerCgroupFile) {
       if (state.running) stats(role, state.id);
       selfCgroups(state);
@@ -208,7 +249,7 @@ async function collect(directory, backendId, runnerName, runnerCgroupFile, watch
     }
   } finally {
     stopping = true;
-    try { await sampleHost(); await sample('backend', backendId); await sample('runner', runnerName); }
+    try { await sampleHost(); await sample('backend', backendId); await sample('runner', runnerName, true); }
     finally {
       for (const { child } of streams.values()) child.kill('SIGTERM');
       const timer = setTimeout(() => { for (const { child } of streams.values()) child.kill('SIGKILL'); }, 2000);

@@ -4,18 +4,17 @@ import { sleep } from 'k6';
 import exec from 'k6/execution';
 import { SharedArray } from 'k6/data';
 import { Counter, Rate, Trend } from 'k6/metrics';
-import URL from 'core-js-pure/actual/url/index.js';
 import URLSearchParams from 'core-js-pure/actual/url-search-params/index.js';
 import { initClient } from 'trailbase';
 import { pocketbaseClient } from '../pocketbase.js';
-import { createTransport } from './transport.js';
+import { createTransport, installURLPolyfill } from './transport.js';
 import { createAtob } from '../base64.js';
 import { actions, validateConfig, random, chooseAction, preparedSchedule, preparedTokenTiming, createPreparedClock } from '../workload.js';
 import { preparedActionPhase } from '../prepared-actions.js';
 import { initialState, performAction } from '../actions.js';
 import { loadPayloadCache } from './payload-cache.js';
 
-globalThis.URL = URL;
+installURLPolyfill(() => require('core-js-pure/actual/url/index.js'));
 globalThis.URLSearchParams = URLSearchParams;
 globalThis.atob = createAtob((value, format) => encoding.b64decode(value, format));
 const config = validateConfig(JSON.parse(open('/config/run.json')));
@@ -131,8 +130,11 @@ export default async function () {
   const request = async (method, url, body, params) => {
     const requestPhase = prepared ? phase() : currentPhase;
     const result = await http.asyncRequest(method, url, body, { ...params, jar, tags: { ...params.tags, phase: currentPhase, ...(prepared ? {traffic:'backend',request_phase:requestPhase} : {}) } });
-    if (url.includes('/api/auth/') || /\/api\/collections\/users\/auth-/.test(url)) {
-      const nativeOperation = new URL(url).pathname.split('/').at(-1);
+    // Transport has already validated and normalized this pathname. Reading
+    // it avoids loading the full URL parser just to label login/refresh calls.
+    const pathname = params.tags.name;
+    if (pathname.startsWith('/api/auth/') || /^\/api\/collections\/users\/auth-/.test(pathname)) {
+      const nativeOperation = pathname.split('/').at(-1);
       const operation = ({ 'auth-with-password': 'login', 'auth-refresh': 'refresh' })[nativeOperation] ?? nativeOperation;
       authHttp.add(result.timings.duration, { operation, phase: requestPhase });
       authHttpFailed.add(result.status < 200 || result.status >= 300, { operation, phase: requestPhase });
