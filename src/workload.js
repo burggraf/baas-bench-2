@@ -58,17 +58,25 @@ export function createPreparedClock(wallNow, monotonicNow) {
       const before = monotonicNow(), wall = wallNow(), after = monotonicNow();
       if (![before,wall,after].every(Number.isFinite) || before < 0 || before < previous || after < before) fail('invalid_clock',before,wall,after);
       previous = after;
-      // Discard a preempted read, not clock drift; persistent uncertainty fails closed.
-      if (after-before <= 1) return {wall,before,after,low:wall-after,high:wall-before};
+      const current = {wall,before,after,low:wall-after,high:wall-before};
+      // Anchor precisely once. Later reads may be wider if their entire offset
+      // interval still proves consistency with that original reference.
+      if (!reference) {
+        if (after-before <= 1) return current;
+      } else {
+        const drift = Math.max(Math.abs(current.low-reference.high),Math.abs(current.high-reference.low));
+        if (drift <= 100) return current;
+        if (after-before <= 1) fail('clock_drift',before,wall,after);
+      }
       if (attempt === 2) fail('sampling_uncertain',before,wall,after);
     }
   };
   reference = sample();
   return () => {
     const current = sample();
-    // Worst-case drift includes sampling uncertainty, never adds it to the 100ms policy.
-    if (Math.max(Math.abs(current.low-reference.high),Math.abs(current.high-reference.low)) > 100) fail('clock_drift',current.before,current.wall,current.after);
-    return current.wall;
+    // Use the newest elapsed read so a delayed sample cannot return stale wall
+    // time across a phase boundary. The initial reference is never moved.
+    return current.after + reference.low + (reference.high-reference.low)/2;
   };
 }
 
