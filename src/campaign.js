@@ -57,7 +57,7 @@ export function classifyCampaignTrial(report, summary, cpuPressure) {
 
 // Conservative safety limits, not a claim that crossing them proves backend/generator capacity.
 export function campaignResourceStop(row, runnerMemoryBytes=2147483648, backendMemoryStopFraction=0.85) {
-  assert.ok([2147483648,4294967296,17179869184].includes(runnerMemoryBytes));
+  assert.ok([2147483648,4294967296,17179869184,21474836480].includes(runnerMemoryBytes));
   assert.ok([0.85,0.95].includes(backendMemoryStopFraction));
   assert.ok(backendMemoryStopFraction===0.85||runnerMemoryBytes===17179869184, 'Backend95 requires the explicit16GiB profile');
   if(row.type==='error')return 'invalid_telemetry';
@@ -83,9 +83,9 @@ export function campaignResourceStop(row, runnerMemoryBytes=2147483648, backendM
 }
 
 export function prestartMemoryReserve(runnerMemoryBytes=4294967296) {
-  assert.ok([4294967296,17179869184].includes(runnerMemoryBytes));
+  assert.ok([4294967296,17179869184,21474836480].includes(runnerMemoryBytes));
   // The large profile reserves the full backend budget too, before its preparation allocations occur.
-  return runnerMemoryBytes*0.85+1073741824+(runnerMemoryBytes===17179869184?4294967296:0);
+  return runnerMemoryBytes*0.85+1073741824+(runnerMemoryBytes>=17179869184?4294967296:0);
 }
 
 export function vmMemoryStop(source, initial=false, runnerMemoryBytes=4294967296) {

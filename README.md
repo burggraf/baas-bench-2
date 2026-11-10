@@ -620,3 +620,13 @@ The optimized runner uses a bounded validated-URL cache, shared response methods
 ## Next milestone
 
 Repeated fresh-deployment preparation has been verified at both smoke and 1,000-account scale (see [PROGRESS.md](PROGRESS.md)). Separate long-lived native authentication is also verified. The read-only calibration, VU comparison and approved larger-budget comparison above are complete. More resources improved delivery, but full authenticated-workload generator sizing and near-boundary confirmation still precede capacity discovery, repeated performance certification and soak tests. A high anonymous read rate does not establish large authenticated VU pools' memory or seven-action costs; do not apply the calibration-only budget change to the real controller automatically. The approved bounded fresh-deployment sizing path and 50/100-user pilots above are verified. A subsequent approval covers the bounded 1,000-first `social-baseline` discovery/refinement campaign described above; its current gate/execution state is recorded in PROGRESS.md. Near-boundary generator confirmation must precede certification, not be inferred from short discovery. The ordinary workload controller remains restricted to its original pilot volume. Catchable interruption and SIGKILL recovery have dedicated tests; host/daemon power-loss and exhaustive failure injection are not claimed. Remote-host automation and other BaaS adapters remain deferred.
+
+### Larger prepared-session generator heap
+
+The explicit `--runner-memory=20g` option requires `--prepared-sessions`, `--runner-cpus=7` and `--runner-gc=150`. It uses a 20-GiB hard container limit and a 15-GiB Go soft memory limit. The existing profile remains 16 GiB/12 GiB by default. For example:
+
+```sh
+node scripts/baseline.js --prepared-sessions --vus=4500 --runner-cpus=7 --runner-gc=150 --runner-memory=20g --prepared-template=/absolute/path/to/private-template.json
+```
+
+The CPU gate remains 6.3 cores over the existing five-second windows. The 85% runner memory guard becomes 17 GiB, and prestart available memory must be at least 22 GiB (runner guard plus the full 4-GiB backend budget and 1-GiB host reserve). Host/swap/OOM/ownership safeguards still apply. Larger-memory results are a separate generator configuration; they do not change earlier verdicts.

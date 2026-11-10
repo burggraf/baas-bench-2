@@ -12,7 +12,12 @@ export async function startPreparedGate({runId, config, onEvent = () => {}, onFa
   const began = performance.now(), wall = Date.now(), entries = new Map(), queue = [];
   let active = null, lastAdmission = -Infinity, status = 'preparing', reason = null, releaseAt = null, finishedAt = null, pumpTimer, deadline, closing;
   const elapsed = () => performance.now() - began;
-  const emit = (event, fields = {}) => onEvent({event, at: wall + elapsed(), elapsedMs: elapsed(), ...fields});
+  const emit = (event, fields = {}) => {
+    // Derive both timestamps from one sample, even if execution pauses while
+    // constructing or persisting the event.
+    const elapsedMs = elapsed();
+    onEvent({event, at: wall + elapsedMs, elapsedMs, ...fields});
+  };
   const snapshot = () => ({status, reason, expectedUsers:config.vus, admittedUsers:[...entries.values()].filter(e => e.admitted).length, readyUsers:[...entries.values()].filter(e => e.ready).length, elapsedMs:finishedAt ?? elapsed(), releaseAt, loginsPerSecond:config.authPreparation.loginsPerSecond, concurrency:1, timeoutSeconds:config.authPreparation.timeoutSeconds});
   const respond = (res, code, value) => { if (!res.destroyed && !res.writableEnded) { res.writeHead(code, {'content-type':'application/json',connection:'close'}); res.end(JSON.stringify(value)); } };
   const stopTimers = () => { clearTimeout(pumpTimer); clearTimeout(deadline); };

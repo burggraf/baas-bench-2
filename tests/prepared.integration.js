@@ -7,6 +7,7 @@ import {hash,capture} from '../scripts/runtime.js';
 import {savePrivate} from '../src/fixtures.js';
 
 const read=p=>JSON.parse(readFileSync(p));
+const trailbaseRunnerMemory=process.env.PREPARED_TEST_RUNNER_MEMORY??'16g';assert.ok(['16g','20g'].includes(trailbaseRunnerMemory));
 const trailbaseRunnerGc=process.env.PREPARED_TEST_RUNNER_GC;assert.ok(trailbaseRunnerGc===undefined||trailbaseRunnerGc==='150');
 const trailbaseRunnerCpus=Number(process.env.PREPARED_TEST_RUNNER_CPUS??6);assert.ok([6,7].includes(trailbaseRunnerCpus));
 for(const backend of ['trailbase','pocketbase'])for(const mode of ['success','failed-login','cancel-preparation','cancel-measurement',...(backend==='trailbase'?['boundary-delay']:[])])test(`prepared ${backend} ${mode}`,{timeout:180000},async()=>{
@@ -22,7 +23,7 @@ for(const backend of ['trailbase','pocketbase'])for(const mode of ['success','fa
   execFileSync('npm',['run','build'],{stdio:'pipe'});
   const logs=mkdtempSync('results/prepared-native-');
   if(mode==='failed-login')writeFileSync(logs+'/fault.json',JSON.stringify({kind:'test-only wrong password for prepared VU2',sourceHash:hash('src/k6/social.js')}));
-  const child=spawn(process.execPath,[`scripts/${controller}.js`,'--prepared-sessions','--smoke',...(backend==='trailbase'?[`--runner-cpus=${trailbaseRunnerCpus}`,...(trailbaseRunnerGc?['--runner-gc=150']:[])]:[])],{stdio:['ignore','pipe','pipe']});
+  const child=spawn(process.execPath,[`scripts/${controller}.js`,'--prepared-sessions','--smoke',...(backend==='trailbase'?[`--runner-cpus=${trailbaseRunnerCpus}`,...(trailbaseRunnerMemory==='20g'?['--runner-memory=20g']:[]),...(trailbaseRunnerGc?['--runner-gc=150']:[])]:[])],{stdio:['ignore','pipe','pipe']});
   let stdout='',credentials=[],workload,signalled=false,signalTimer;
   const observe=()=>{
     try{
@@ -63,8 +64,8 @@ for(const backend of ['trailbase','pocketbase'])for(const mode of ['success','fa
     assert.equal(r.phaseTiming.endAt-r.phaseTiming.measurementAt,12000);assert.equal(r.authFailures,0);
     assert.equal(r.traffic.controlRequests,4);assert.equal(r.traffic.controlFailureRate,0);
     for(const a of Object.values(r.actions)){assert.ok(a.count>0);assert.equal(a.failures,0);}
-    assert.equal(r.resources.containers.backend.first.nanoCpus,1e9);for(const boundary of ['first','last'])assert.equal(r.resources.containers.runner[boundary].nanoCpus,backend==='trailbase'?trailbaseRunnerCpus*1e9:4e9);assert.equal(r.resources.containers.runner.first.memoryLimit,17179869184);
-    if(backend==='trailbase'&&trailbaseRunnerGc){const expected={GOGC:'150',GOMEMLIMIT:'12GiB'};assert.deepEqual(read(workload+'/runner-gc.json'),{profile:'7cpu-16g',gc:150,environment:expected,childInheritsEnvironment:true});assert.deepEqual(r.runnerGcEnvironment,expected);assert.equal(r.runnerGc,150);assert.deepEqual(read(workload+'/manifest.json').runnerGcEnvironment,expected);}
+    assert.equal(r.resources.containers.backend.first.nanoCpus,1e9);for(const boundary of ['first','last'])assert.equal(r.resources.containers.runner[boundary].nanoCpus,backend==='trailbase'?trailbaseRunnerCpus*1e9:4e9);assert.equal(r.resources.containers.runner.first.memoryLimit,backend==='trailbase'&&trailbaseRunnerMemory==='20g'?21474836480:17179869184);
+    if(backend==='trailbase'&&trailbaseRunnerGc){const expected={GOGC:'150',GOMEMLIMIT:trailbaseRunnerMemory==='20g'?'15GiB':'12GiB'};assert.deepEqual(read(workload+'/runner-gc.json'),{profile:`7cpu-${trailbaseRunnerMemory}`,gc:150,environment:expected,childInheritsEnvironment:true});assert.deepEqual(r.runnerGcEnvironment,expected);assert.equal(r.runnerGc,150);assert.deepEqual(read(workload+'/manifest.json').runnerGcEnvironment,expected);}
     if(mode==='boundary-delay'){const points=gunzipSync(readFileSync(workload+'/k6-metrics.json.gz')).toString().trim().split('\n').map(JSON.parse);const start=points.find(p=>p.type==='Point'&&p.metric==='prepared_action_start'&&p.data.metadata?.ordinal==='1'&&p.data.metadata?.sequence==='1');const rampEnd=r.phaseTiming.releaseAt+1000;assert.equal(start.data.tags.phase,'ramp');assert.ok(start.data.value<rampEnd);assert.ok(Date.parse(start.data.time)>=rampEnd+100);}
     assert.equal(existsSync(fixturePath),false,'Successful point cleans only its test-owned fixture');
   }else{

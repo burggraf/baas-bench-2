@@ -111,3 +111,22 @@ test('lost readiness waiter fails preparation and never advances the queue',asyn
   req.end(JSON.stringify({runId:'social-Abc123',ordinal:1,loginAtMs:Date.now(),expiresAtMs:Date.now()+3600000,ttlSeconds:3600}));
   await readyEvent;req.destroy();await failure;assert.equal(g.snapshot().reason,'participant_disconnect');
 });
+
+test('gate event timestamps stay coherent when execution advances between clock reads',async t=>{
+  const {performance}=await import('node:perf_hooks');
+  const {startPreparedGate}=await import('../src/prepared-gate.js');
+  const original=performance.now.bind(performance),rows=[];let reads=0;
+  // Model the recorded 12.19-ms interruption, without blocking the test host.
+  // Before the fix, it splits the started event's two clock samples.
+  t.mock.method(performance,'now',()=>original()+(++reads>=3?12.19:0));
+  const g=await startPreparedGate({runId:'social-Abc123',config:config(),onEvent:row=>rows.push(row)});
+  try{await g.close('cancelled');}
+  finally{await g.close();}
+  assert.deepEqual(rows.map(r=>r.event),['started','failed','closed']);
+  assert.ok(rows.some(r=>r.elapsedMs>=12.19),'The simulated interruption must have occurred');
+  const first=rows[0];
+  for(const row of rows){
+    const mismatch=(row.at-first.at)-(row.elapsedMs-first.elapsedMs);
+    assert.ok(Math.abs(mismatch)<0.001,`Event ${row.event} has a ${mismatch}-ms clock-pair mismatch`);
+  }
+});

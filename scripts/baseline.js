@@ -17,6 +17,12 @@ const project = 'baas-bench-2-pilot', fixturePath = '.fixtures/trailbase.json';
 export function baselinePlan(args) { return preparedProfilePlan(args); }
 
 function preparedProfilePlan(args, preparedCpus = 4) {
+  if(args.includes('--runner-memory=20g')){
+    assert.equal(args.filter(a=>a.startsWith('--runner-memory=')).length,1,'Use one explicit runner memory profile');
+    const plan=preparedProfilePlan(args.filter(a=>a!=='--runner-memory=20g'),preparedCpus);
+    assert.ok(plan.preparedSessions&&plan.runnerProfile==='7cpu-16g'&&plan.runnerGc===150,'20GiB requires prepared seven-CPU sessions and explicit GC150');
+    return {...plan,runnerBudget:{cpus:7,memoryBytes:21474836480},runnerProfile:'7cpu-20g'};
+  }
   const gcFlags=args.filter(a=>a.startsWith('--runner-gc='));
   if(gcFlags.length){
     assert.deepEqual(gcFlags,['--runner-gc=150'],'Use the supported explicit GC tuning');

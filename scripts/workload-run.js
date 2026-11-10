@@ -42,7 +42,7 @@ export async function runWorkload({directory,config,configPath,fixture,baseline,
   const prepared=config.version==='social-prepared-v1';
   const gcEnvironment=runnerGcEnvironment(runnerProfile,runnerGc);
   assert.ok(runnerGc===undefined||prepared&&service==='trailbase','GC tuning requires prepared TrailBase');
-  assert.ok(!prepared||authMode===null&&boundedRunner&&['4cpu-16g','6cpu-16g','7cpu-16g'].includes(runnerProfile)&&backendMemoryStopFraction===0.85,'Prepared sessions require the normal bounded single-point profile');
+  assert.ok(!prepared||authMode===null&&boundedRunner&&['4cpu-16g','6cpu-16g','7cpu-16g','7cpu-20g'].includes(runnerProfile)&&backendMemoryStopFraction===0.85,'Prepared sessions require the normal bounded single-point profile');
   const authCheck=authMode!==null,bundle=authCheck?'auth':service==='trailbase'?'social-trailbase':'social',path=fixturePath,id=directory.split('/').at(-1);
   assert.equal(fixture.status,'ready','Baseline is partial/used: reset/reseed before every trial');
   assert.deepEqual(fixture.config,config);
