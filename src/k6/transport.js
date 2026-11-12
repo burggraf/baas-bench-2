@@ -24,6 +24,14 @@ export function installURLPolyfill(load, target = globalThis) {
     },
   };
   Object.defineProperty(target, 'URL', deferred);
+  // Query-param initialization feature-detects URL. Hide this accessor while
+  // loading that dependency to avoid re-entering a partially initialized module.
+  return dependency => {
+    const hidden = Object.getOwnPropertyDescriptor(target, 'URL')?.get === deferred.get;
+    if (hidden) delete target.URL;
+    try { return dependency(); }
+    finally { if (hidden) Object.defineProperty(target, 'URL', deferred); }
+  };
 }
 
 // Keep only the response fields used by the SDK; share methods across requests.

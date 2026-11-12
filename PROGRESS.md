@@ -2,7 +2,21 @@
 
 Read this file first when resuming, then `README.md` for commands and `BENCHMARK_PLAN.md` for the full specification. Update this checkpoint at meaningful milestones/interruptions. Git history and original run artifacts are the evidence; this file is only their summary.
 
-## Latest checkpoint — 20-GiB generator validated; fresh 4,500-user confirmation PASS
+## Current checkpoint — M1 Max generator optimization and boundary repeats
+
+The local M1 Max search is complete. With a one-CPU / 4-GiB TrailBase backend and a nine-CPU / 48-GiB generator (36-GiB Go soft limit, GC150, GOMAXPROCS9, 480-MiB deterministic cache), 10,000 users passed twice. The same 15,000-account dataset recipe produced one pass and one latency failure at 10,300 users, and two latency failures at 10,625 users. Use 10,000 as the repeated short-run score; neither an exact maximum nor a soak result is established.
+
+All six boundary observations passed their measured generator CPU checks and raw-evidence audits. They completed 2,360,337 measured logical actions without a logical failure. At the higher points, p95 latency missed targets while the backend approached its one-core quota; no OOM or backend crash was observed. The varied 10,300-user outcome remains part of the result.
+
+Implemented source includes explicit eight-/nine-CPU and 48-GiB profiles, fixed-dataset active cohorts, expanded deterministic caches, query/execution-object and action-bookkeeping allocation reductions, optional two-worker execution and full-workload CPU/GC diagnostics. Diagnostic runs remain ineligible for a capacity pass. Regression tests cover request/state equivalence, clock and gate behavior, profile restrictions, merged raw metrics and resource limits. See README for supported selectors and reproducible commands.
+
+At this checkpoint, 313 unit tests, bundle builds and native prepared-session checks have passed on the final source. Public-tree publication validation is recorded in the commit workflow. Benchmark-owned containers and networks are stopped. Original local reports, profiles, failed private fixtures and retained data volumes remain preserved; successful fixtures were API-cleaned. No generated or private artifacts are intended for publication.
+
+Detailed local run history is retained in the ignored publication archive under `results/`. The historical checkpoints below describe earlier configurations and authorization scopes; their old scores and pending-work notes are not current status.
+
+## Historical checkpoints
+
+### Latest checkpoint — 20-GiB generator validated; fresh 4,500-user confirmation PASS
 
 User accepted retrying4500 with larger memory. Implemented explicit `--runner-memory=20g`, requiring prepared seven-CPU sessions and GC150: hard20GiB/Go soft15GiB, unchanged6.3-core CPU gate and85% memory fraction (17GiB), prestart available-memory reserve22GiB. Defaults16GiB/12GiB retained. New tests cover profile coupling, unchanged workload/defaults and host/swap/OOM/memory/CPU guards. All274 units/build/diff and nine native application cases passed. Native workspace `.fixtures/prepared-native-heap20-native-a74c90`; evidence `results/trailbase-4500-20g-a74c90/validation.json`; all118 runtime/test inputs match validated copies. Earlier logger fix and new profile remain uncommitted; no commit/push requested.
 

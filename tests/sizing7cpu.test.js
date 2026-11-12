@@ -28,7 +28,7 @@ test('seven-CPU pressure uses the same 90-percent window policy',()=>{
   assert.equal(campaignCpuPressure(samples(6.3),start,120,7),true);
   assert.equal(campaignCpuPressure(samples(5.4),start,120,6),true);
   assert.equal(campaignCpuPressure(samples(5.4),start,120,7),false);
-  assert.throws(()=>campaignCpuPressure(samples(1),start,120,8));
+  assert.throws(()=>campaignCpuPressure(samples(1),start,120,10));
 });
 
 

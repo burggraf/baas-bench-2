@@ -57,7 +57,7 @@ export function classifyCampaignTrial(report, summary, cpuPressure) {
 
 // Conservative safety limits, not a claim that crossing them proves backend/generator capacity.
 export function campaignResourceStop(row, runnerMemoryBytes=2147483648, backendMemoryStopFraction=0.85) {
-  assert.ok([2147483648,4294967296,17179869184,21474836480].includes(runnerMemoryBytes));
+  assert.ok([2147483648,4294967296,17179869184,21474836480,51539607552].includes(runnerMemoryBytes));
   assert.ok([0.85,0.95].includes(backendMemoryStopFraction));
   assert.ok(backendMemoryStopFraction===0.85||runnerMemoryBytes===17179869184, 'Backend95 requires the explicit16GiB profile');
   if(row.type==='error')return 'invalid_telemetry';
@@ -83,7 +83,7 @@ export function campaignResourceStop(row, runnerMemoryBytes=2147483648, backendM
 }
 
 export function prestartMemoryReserve(runnerMemoryBytes=4294967296) {
-  assert.ok([4294967296,17179869184,21474836480].includes(runnerMemoryBytes));
+  assert.ok([4294967296,17179869184,21474836480,51539607552].includes(runnerMemoryBytes));
   // The large profile reserves the full backend budget too, before its preparation allocations occur.
   return runnerMemoryBytes*0.85+1073741824+(runnerMemoryBytes>=17179869184?4294967296:0);
 }
@@ -126,7 +126,7 @@ export async function measurementStart(path) {
 }
 
 export function campaignCpuPressure(rows, measurementStart, seconds, runnerCpus=4) {
-  assert.ok([4,6,7].includes(runnerCpus),'Use a supported CPU budget');
+  assert.ok([4,6,7,8,9].includes(runnerCpus),'Use a supported CPU budget');
   const samples=rows.filter(r=>Date.parse(r.at)>=measurementStart&&Date.parse(r.at)<=measurementStart+seconds*1000);
   for(let i=0;i<samples.length;i++)for(let j=i+1;j<samples.length&&samples[j].elapsedMs-samples[i].elapsedMs<=6000;j++){
     const elapsed=samples[j].elapsedMs-samples[i].elapsedMs;

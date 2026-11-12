@@ -2,7 +2,9 @@
 
 API-only, SDK-based capacity benchmarks for self-hosted backend-as-a-service systems. Start with [the benchmark plan](BENCHMARK_PLAN.md). To resume development, read [PROGRESS.md](PROGRESS.md) for the current checkpoint, verified work, and next steps.
 
-**Latest result:** Clock fix committed as 740f0c1; fresh 3,500-user retry **generator_limited**. [Result and limits](results/clock-uncertainty-retry-5e8a2d/SUMMARY.md).
+**Latest M1 Max result:** TrailBase passed both comparable **10,000-user** runs. At 10,300 users, one run passed and one missed latency targets; both 10,625-user runs missed latency targets. The repeated short-run score is 10,000 users. An exact maximum and long-duration capacity remain unverified.
+
+The backend used **1 CPU / 4 GiB**; the generator used **9 CPUs / 48 GiB** on a 10-core, 64-GiB M1 Max. See [the current generator settings and result](#m1-max-generator-settings-and-result) below. Older milestones in this README describe their original configurations.
 
 **Foundation milestone: API-only fixtures, exploratory weighted workload, observability/recovery, fresh-deployment logical baseline proof, verified fresh-deployment 50- and 100-user sizing pilots and separate real-TTL SDK authentication verification—not capacity certification.** TrailBase conformance and the stateful workload use **17% likes / 5% unlikes**. Two-user natural refresh/continuity and a separate partial local SDK read calibration are verified; neither resource observations nor synthetic reads certify full generator headroom. The bounded local discovery controller is implemented/tested; its first 1,000-user campaign stopped on runner memory safety before measurement. Repeated performance certification and soak remain deferred.
 
@@ -630,3 +632,32 @@ node scripts/baseline.js --prepared-sessions --vus=4500 --runner-cpus=7 --runner
 ```
 
 The CPU gate remains 6.3 cores over the existing five-second windows. The 85% runner memory guard becomes 17 GiB, and prestart available memory must be at least 22 GiB (runner guard plus the full 4-GiB backend budget and 1-GiB host reserve). Host/swap/OOM/ownership safeguards still apply. Larger-memory results are a separate generator configuration; they do not change earlier verdicts.
+
+## M1 Max generator settings and result
+
+Prepared TrailBase runs support explicit eight- and nine-CPU generator profiles with a 48-GiB hard memory limit, `GOGC=150` and a 36-GiB Go soft limit. The final single-worker profile sets `GOMAXPROCS=9` and an exact nine-core cgroup quota. CPU quotas do not pin work to particular Apple cores. The backend remains limited to one CPU and 4 GiB.
+
+```sh
+# Build the bundles and native images before running a fresh point.
+npm ci
+npm run build
+docker compose build trailbase runner
+
+# One fresh 10,000-user point using the final fixed-dataset profile.
+node scripts/baseline.js --prepared-sessions --vus=10000 --runner-cpus=9 --runner-memory=48g --runner-gc=150 --payload-cache=480m
+```
+
+Run in a fresh isolated workspace with no active fixture or operation claim. Never reuse a failed fixture or retained database as a pristine baseline. The nine-CPU profile supports 10,000, 10,300, 10,625, 11,250 or 12,500 active users, or correctness smoke. All these points use the same 15,000-account / 150,000-post / 150,000-like dataset recipe. The explicit eight-CPU profile additionally supports the 15,000-user point. These are bounded single-point selectors; they do not start an automatic search.
+
+The 48-GiB profile retains the 85% memory guard, zero-used-VM-swap checks and macOS memory-pressure checks. Prestart available VM memory must cover the runner guard plus the full 4-GiB backend budget and 1-GiB host reserve (45.8 GiB total). Configure Docker's VM accordingly while leaving memory for macOS. The measured generator CPU guard remains 90% of its assigned budget over the existing five-second windows: 8.1 cores for the nine-CPU profile.
+
+Generator changes reduce per-VU allocation work: bounded action lists update in place, like searches reuse buffers, k6 execution objects retain their live getters, and ASCII query construction uses a narrow fast path with the original implementation as fallback. Differential tests compare request order, payloads, random draws, failures and state transitions with the frozen previous action implementation. Official SDKs, workload mix, validation and pacing remain in place. The deterministic shared payload cache defaults to 64 MiB; the explicit 320/480-MiB profiles expand cached writes without changing the payload recipe. The final 480-MiB profile provides 32 cached writes per user across the fixed-dataset boundary points.
+
+Each boundary observation uses five initial logins per second, a 30-second application ramp, 60-second warm-up and 120-second measurement with 1–5-second think times. The six final observations completed 2,360,337 measured logical actions with zero logical failures; all passed the measured generator CPU rule. At 10,625 users, p95 read/list and like/unlike latency missed their targets while the one-core backend approached its CPU quota. There was no observed out-of-memory event or backend crash. The 10,300-user outcome varied across repeats, so it does not replace the repeated 10,000-user score. This is short-run evidence, with formal generator headroom and soak certification still unverified.
+
+Optional investigation modes remain available:
+
+- `--runner-workers=2` partitions an eight-CPU, 48-GiB, GC150 prepared 10,000-user point (or smoke) across two k6 processes in one cgroup. Each gets four Go processors and an 18-GiB soft limit; login admission and aggregate resource checks remain shared. Raw samples are merged to recompute percentiles, with both native exits preserved. This experiment did not establish a higher passing score.
+- `--diagnostic-profile` captures phase-aligned native CPU, heap, allocation, runtime and GC evidence on a single-worker eight-CPU, 48-GiB, GC150 prepared 10,000-user point (or smoke), optionally with `--payload-cache=320m`. The diagnostic listener binds to loopback inside the runner and no collection is forced. Profiling overhead remains within the assigned budget. These runs always have `capacityEligible: false`; they cannot become a passing capacity score.
+
+Raw reports, profiles, generated bundles, caches, private fixtures and per-run launch scripts stay in ignored `results/`, `dist/` and `.fixtures/` directories. They are local evidence, absent from a fresh clone. Source, authored configurations and regression fixtures are published so new runs can regenerate their own artifacts.

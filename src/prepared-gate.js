@@ -38,8 +38,11 @@ export async function startPreparedGate({runId, config, onEvent = () => {}, onFa
     if (!clockValid()) return;
     const wait = 1000 / config.authPreparation.loginsPerSecond - (elapsed() - lastAdmission);
     if (wait > 0) { pumpTimer = setTimeout(pump, Math.ceil(wait)); return; }
-    const e = queue.shift(); active = e.ordinal; lastAdmission = elapsed(); e.admitted = true;
+    const e = queue.shift(); active = e.ordinal; e.admitted = true;
     emit('admitted', {ordinal:e.ordinal}); respond(e.response, 200, {admitted:true}); e.response = null;
+    // Pace from the completed permit send. A pause before recording/sending it
+    // must not shorten the next recorded interval or cause a catch-up permit.
+    lastAdmission = elapsed();
   };
   const release = () => {
     if (status !== 'preparing' || active !== null || [...entries.values()].filter(e => e.ready).length !== config.vus) return;

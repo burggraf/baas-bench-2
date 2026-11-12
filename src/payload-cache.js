@@ -1,18 +1,19 @@
 import { postFields } from './workload.js';
 
 // A cache miss changes cost, never the payload recipe or the user's sequence.
-export function payloadCachePlan(config) {
-  const slotsPerUser = Math.min(32, Math.floor(64 * 1024 * 1024 / (config.vus * config.bodyBytes)));
+export function payloadCachePlan(config, budgetBytes = 64 * 1024 * 1024) {
+  if (![64 * 1024 * 1024, 320 * 1024 * 1024, 480 * 1024 * 1024].includes(budgetBytes)) throw new Error('invalid_payload_cache_budget');
+  const slotsPerUser = Math.min(32, Math.floor(budgetBytes / (config.vus * config.bodyBytes)));
   return {
-    version: 'deterministic-post-cache-v1', seed: config.seed, bodyBytes: config.bodyBytes,
+    version: budgetBytes === 64 * 1024 * 1024 ? 'deterministic-post-cache-v1' : 'deterministic-post-cache-v2', ...(budgetBytes === 64 * 1024 * 1024 ? {} : { budgetBytes }), seed: config.seed, bodyBytes: config.bodyBytes,
     users: config.vus, firstSequence: config.dataset.postsPerUser + 1, slotsPerUser,
     records: config.vus * slotsPerUser,
   };
 }
 
 // Called once inside SharedArray's initializer, not once per VU.
-export function validatePayloadTable(table, config) {
-  const plan = payloadCachePlan(config), recipe = table?.recipe;
+export function validatePayloadTable(table, config, budgetBytes) {
+  const plan = payloadCachePlan(config, budgetBytes), recipe = table?.recipe;
   if (!recipe || Object.keys(recipe).length !== Object.keys(plan).length ||
       Object.entries(plan).some(([key, value]) => recipe[key] !== value) ||
       !Array.isArray(table.rows) || table.rows.length !== plan.records) throw new Error('invalid_payload_cache');
@@ -24,8 +25,8 @@ export function validatePayloadTable(table, config) {
   return table.rows;
 }
 
-export function createPayloadLookup(config, rows) {
-  const plan = payloadCachePlan(config);
+export function createPayloadLookup(config, rows, budgetBytes) {
+  const plan = payloadCachePlan(config, budgetBytes);
   if (rows.length !== plan.records) throw new Error('invalid_payload_cache');
   return (user, sequence) => {
     const slot = sequence - plan.firstSequence;

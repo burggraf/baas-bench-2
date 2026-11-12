@@ -4,7 +4,7 @@ import { sleep } from 'k6';
 import exec from 'k6/execution';
 import { SharedArray } from 'k6/data';
 import { Counter, Rate, Trend } from 'k6/metrics';
-import URLSearchParams from 'core-js-pure/actual/url-search-params/index.js';
+import { createSearchParamsConstructor } from './search-params.js';
 import { initClient } from 'trailbase';
 import { pocketbaseClient } from '../pocketbase.js';
 import { createTransport, installURLPolyfill } from './transport.js';
@@ -14,8 +14,11 @@ import { preparedActionPhase } from '../prepared-actions.js';
 import { initialState, performAction } from '../actions.js';
 import { loadPayloadCache } from './payload-cache.js';
 
-installURLPolyfill(() => require('core-js-pure/actual/url/index.js'));
-globalThis.URLSearchParams = URLSearchParams;
+const loadURLDependency = installURLPolyfill(() => require('core-js-pure/actual/url/index.js'));
+const loadSearchParams = () => loadURLDependency(() => require('core-js-pure/actual/url-search-params/index.js'));
+globalThis.URLSearchParams = __ENV.BENCH_BACKEND === 'trailbase'
+  ? createSearchParamsConstructor(loadSearchParams)
+  : loadSearchParams();
 globalThis.atob = createAtob((value, format) => encoding.b64decode(value, format));
 const config = validateConfig(JSON.parse(open('/config/run.json')));
 const prepared = config.version === 'social-prepared-v1';
@@ -25,7 +28,7 @@ const users = new SharedArray('identities', () => {
   return fixture.users;
 });
 const visible = new SharedArray('visible posts', () => JSON.parse(open('/private/fixture.json')).visible);
-const payloadFields = prepared ? loadPayloadCache(config, __ENV.PREPARED_PAYLOAD_SHA256) : undefined;
+const payloadFields = prepared ? loadPayloadCache(config, __ENV.PREPARED_PAYLOAD_SHA256, __ENV.PREPARED_PAYLOAD_CACHE_BYTES === undefined ? undefined : Number(__ENV.PREPARED_PAYLOAD_CACHE_BYTES)) : undefined;
 const requested = new Counter('action_requested'), completed = new Counter('action_completed');
 const failed = new Counter('action_failed'), duration = new Trend('action_duration', true);
 const failureRate = new Rate('logical_failed'), prerequisites = new Counter('prerequisite_calls');
@@ -42,8 +45,10 @@ const loginFailures = prepared ? new Counter('auth_login_failed') : null;
 const successDuration = prepared ? new Trend('auth_success_duration', true) : null;
 const probeFailed = prepared ? new Rate('prepared_probe_failed') : null;
 
+const workers = Number(__ENV.BENCH_WORKERS ?? '1');
+if (![1,2].includes(workers) || workers===2 && (!prepared || config.vus%2!==0 || __ENV.BENCH_BACKEND!=='trailbase')) throw new Error('invalid_worker_topology');
 const thresholds = {
-  users_finished: [`count==${config.vus}`], target_unavailable: ['count==0'], invalid_responses: ['count==0'],
+  users_finished: [`count==${config.vus/workers}`], target_unavailable: ['count==0'], invalid_responses: ['count==0'],
   'logical_failed{phase:measurement}': ['rate<0.01'], auth_failed: ['rate==0'], auth_http_failed: ['rate==0'],
   'auth_login_count{phase:measurement}': ['count>=0'],
   'auth_duration{operation:login,phase:measurement}': ['p(95)<=1000', 'p(99)<=3000'],
@@ -91,11 +96,12 @@ export const options = {
   systemTags: ['status', 'method', 'name', 'scenario', 'expected_response', 'error_code'],
 };
 let done = false, applicationStart = null;
-let preparedNow;
+let preparedNow, preparedInstance;
 const clockNow = () => {
   if (!prepared) return Date.now();
   try {
-    preparedNow ??= createPreparedClock(Date.now, () => exec.instance.currentTestRunDuration);
+    // k6 constructs a new info object on each access; reuse its live getters.
+    preparedNow ??= createPreparedClock(Date.now, () => (preparedInstance ??= exec.instance).currentTestRunDuration);
     return preparedNow();
   } catch (error) {
     if (error.message !== 'prepared_clock_inconsistent') throw error;
@@ -113,13 +119,15 @@ const phase = () => {
 
 export default async function () {
   if (done) { sleep(0.1); return; }
-  const user = users[exec.vu.idInTest - 1];
+  const vu = exec.vu, ordinal = vu.idInTest, ordinalText = String(ordinal);
+  const actionMetadata = prepared ? vu.metrics.metadata : null;
+  const user = users[ordinal - 1];
   if (!user) throw new Error('Identity pool exhausted');
   const state = initialState(user, Array.from(visible), config);
-  const actionRandom = random(config.seed + exec.vu.idInTest);
-  const pacingRandom = random(config.seed + exec.vu.idInTest + 100000);
-  const sessionRandom = random(config.seed + exec.vu.idInTest + 200000);
-  const targetRandom = random(config.seed + exec.vu.idInTest + 300000);
+  const actionRandom = random(config.seed + ordinal);
+  const pacingRandom = random(config.seed + ordinal + 100000);
+  const sessionRandom = random(config.seed + ordinal + 200000);
+  const targetRandom = random(config.seed + ordinal + 300000);
   const uniform = (range, rng) => range[0] + (range[1] - range[0]) * rng();
   // Initialization is outside the execution clock.
   if (prepared) clockNow();
@@ -183,7 +191,7 @@ export default async function () {
       const gateOrigin = __ENV.PREPARED_GATE_ORIGIN, runId = __ENV.PREPARED_RUN_ID;
       if (!/^http:\/\/127\.0\.0\.1:[1-9]\d{0,4}$/.test(gateOrigin ?? '') || Number(gateOrigin.split(':').at(-1)) > 65535 || !/^social-[A-Za-z0-9]{6}$/.test(runId ?? '')) exec.test.abort('missing_prepared_gate');
       const control = async (route, values = {}) => {
-        const result = await http.asyncRequest('POST', gateOrigin + route, JSON.stringify({runId,ordinal:exec.vu.idInTest,...values}), {
+        const result = await http.asyncRequest('POST', gateOrigin + route, JSON.stringify({runId,ordinal:ordinal,...values}), {
           headers:{'content-type':'application/json'},timeout:`${config.authPreparation.timeoutSeconds+5}s`,redirects:0,
           tags:{name:`/prepared${route}`,phase:'preparation',traffic:'control'},
         });
@@ -201,12 +209,12 @@ export default async function () {
         } finally {probeFailed.add(!probeValid);}
         const claims = JSON.parse(atob(client.tokens().auth_token.split('.')[1].replaceAll('-', '+').replaceAll('_', '/')));
         const tokenTiming = preparedTokenTiming(claims,lastLoginAt);
-        lifecycle.add(exec.vu.idInTest,{event:'ready'});
+        lifecycle.add(ordinal,{event:'ready'});
         const release = await control('/ready',tokenTiming);
         if (!Number.isFinite(release.releaseAt) || release.releaseAt < now()) throw new Error('prepared_late_release');
         applicationStart = release.releaseAt;
-        lifecycle.add(exec.vu.idInTest,{event:'released'});
-        const schedule = preparedSchedule(config,applicationStart,exec.vu.idInTest);
+        lifecycle.add(ordinal,{event:'released'});
+        const schedule = preparedSchedule(config,applicationStart,ordinal);
         end = schedule.endAt;
         sleep(Math.max(0,Math.ceil(schedule.activationAt-now()))/1000);
         sessionEnd = schedule.activationAt + uniform(config.sessionSeconds,sessionRandom)*1000;
@@ -231,11 +239,11 @@ export default async function () {
       const actionStart = prepared ? now() : null;
       if (prepared) { currentPhase = preparedActionPhase(config,applicationStart,actionStart); if (currentPhase === 'cleanup') break; }
       const tags = { action, phase: currentPhase };
-      if (prepared && currentPhase === 'measurement' && !entered) { lifecycle.add(exec.vu.idInTest,{event:'entered'}); entered = true; }
+      if (prepared && currentPhase === 'measurement' && !entered) { lifecycle.add(ordinal,{event:'entered'}); entered = true; }
       if (prepared) {
         // Unique action IDs are raw evidence, not dimensions for metric aggregation.
-        const metadata = exec.vu.metrics.metadata;
-        metadata.ordinal = String(exec.vu.idInTest);
+        const metadata = actionMetadata;
+        metadata.ordinal = ordinalText;
         metadata.sequence = String(++actionSequence);
         try {
           actionStarts.add(actionStart,tags);
@@ -263,7 +271,7 @@ export default async function () {
     }
     normalCompletion = true;
   } finally {
-    if (prepared && normalCompletion && entered) lifecycle.add(exec.vu.idInTest,{event:'completed'});
+    if (prepared && normalCompletion && entered) lifecycle.add(ordinal,{event:'completed'});
     currentPhase = 'cleanup';
     if (client.user()) { try { await auth('logout'); } catch { /* Recorded by auth_failed; no credential output. */ } }
     finished.add(1); done = true;

@@ -5,9 +5,9 @@ import { payloadCachePlan } from '../src/payload-cache.js';
 import { postFields } from '../src/workload.js';
 
 // Generate outside the measurement, with bounded batches and cancellation points.
-export async function writePayloadCache(path, config, signal) {
+export async function writePayloadCache(path, config, signal, budgetBytes) {
   signal?.throwIfAborted();
-  const recipe = payloadCachePlan(config), digest = createHash('sha256'), fd = openSync(path, 'wx', 0o644);
+  const recipe = payloadCachePlan(config, budgetBytes), digest = createHash('sha256'), fd = openSync(path, 'wx', 0o644);
   const write = text => {
     const bytes = Buffer.from(text);
     for (let offset = 0; offset < bytes.length;) offset += writeSync(fd, bytes, offset, bytes.length - offset);

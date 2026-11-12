@@ -29,5 +29,5 @@ test('CPU pressure follows the allocated budget, preserving the 90 percent guard
   assert.equal(campaignCpuPressure(samples(5.39),start,120,6),false);
   assert.equal(campaignCpuPressure(samples(5.4),start,120,6),true);
   assert.equal(campaignCpuPressure(samples(6),start+10000,120,6),false);
-  assert.throws(()=>campaignCpuPressure(samples(1),start,120,8));
+  assert.throws(()=>campaignCpuPressure(samples(1),start,120,10));
 });

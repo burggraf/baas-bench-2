@@ -130,3 +130,25 @@ test('gate event timestamps stay coherent when execution advances between clock 
     assert.ok(Math.abs(mismatch)<0.001,`Event ${row.event} has a ${mismatch}-ms clock-pair mismatch`);
   }
 });
+
+test('admission spacing remains bounded after a pause between the pacing decision and permit emission',async t=>{
+  const {performance}=await import('node:perf_hooks');
+  const {rows,post,ready}=await gate(t);
+  const original=performance.now.bind(performance);let pumpReads=0,paused=false;
+  const sleeper=new Int32Array(new SharedArrayBuffer(4));
+  t.mock.method(performance,'now',()=>{
+    const sampled=original();
+    // A scheduling pause after the pacing decision formerly separated its
+    // private admission timestamp from the recorded permit by 10 ms. Reproduce
+    // that interruption at the fourth gate-pump clock read, without changing
+    // either clock or weakening the recorded spacing requirement.
+    if(!paused&&new Error().stack.includes('at pump ')&&++pumpReads===4){paused=true;Atomics.wait(sleeper,0,0,25);}
+    return sampled;
+  });
+  await post('/admit',{ordinal:1});
+  const next=post('/admit',{ordinal:2}),held=ready(1);
+  assert.equal((await next).status,200);assert.equal((await ready(2)).status,200);assert.equal((await held).status,200);
+  assert.equal(paused,true,'The interruption must occur during the admission decision');
+  const permits=rows.filter(row=>row.event==='admitted');assert.equal(permits.length,2);
+  assert.ok(permits[1].elapsedMs-permits[0].elapsedMs>=49,'Permits must retain the original 20/s test rate even after the pause');
+});

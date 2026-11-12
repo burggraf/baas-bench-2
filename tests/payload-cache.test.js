@@ -68,3 +68,16 @@ test('cached mutations preserve sequence on failure and use exact fallback after
   for (let i = 0; i < 35; i++) await run('edit');
   for (let i = 1; i < bodies.length; i++) assert.deepEqual(bodies[i], { author: 'u1', ...originalFields(config, 0, 10 + i) });
 });
+
+test('explicit larger cache is bounded, opt-in and preserves every payload and fallback', async t => {
+  const budget=320*1024*1024, full=payloadCachePlan({...config,vus:10000},budget);
+  assert.equal(full.version,'deterministic-post-cache-v2');assert.equal(full.budgetBytes,budget);assert.equal(full.slotsPerUser,32);assert.equal(full.records,320000);
+  assert.equal(payloadCachePlan({...config,vus:10000}).slotsPerUser,6);
+  for(const vus of [2,10000,20000])for(const bodyBytes of [1,1024,16384]){const p=payloadCachePlan({...config,vus,bodyBytes},budget);assert.ok(p.records*bodyBytes<=budget);assert.ok(p.slotsPerUser<=32);}
+  for(const invalid of [0,1,NaN,Infinity,'335544320',321*1024*1024])assert.throws(()=>payloadCachePlan(config,invalid),/invalid_payload_cache_budget/);
+  const path=temp(t),result=await writePayloadCache(path,config,undefined,budget),table=JSON.parse(readFileSync(path));
+  const rows=validatePayloadTable(table,config,budget),lookup=createPayloadLookup(config,rows,budget);
+  assert.equal(result.recipe.budgetBytes,budget);assert.throws(()=>validatePayloadTable(table,config),/invalid_payload_cache/);
+  for(let user=0;user<config.vus;user++)for(let seq=1;seq<=50;seq++)assert.deepEqual(lookup(user,seq),originalFields(config,user,seq));
+  const bad=structuredClone(table);bad.recipe.budgetBytes--;assert.throws(()=>validatePayloadTable(bad,config,budget),/invalid_payload_cache/);
+});

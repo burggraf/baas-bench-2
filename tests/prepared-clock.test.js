@@ -67,3 +67,11 @@ test('phase classification uses one fresh sample and preserves every exact bound
   const preparation = new Function('prepared', 'config', 'applicationStart', 'clockNow', phaseSource + '\nreturn phase;')(true, config, null, () => assert.fail());
   assert.equal(preparation(), 'preparation');
 });
+
+test('the reused execution view keeps its elapsed getter live and rejects later clock drift',()=>{
+  let elapsed=0,wallOffset=0,views=0;const evidence=[];
+  const date={now:()=>1000000+elapsed+wallOffset};
+  const exec={get instance(){views++;return {get currentTestRunDuration(){return elapsed;}};},vu:{idInTest:1},test:{abort(reason){throw new Error(reason);}}};
+  const clock=new Function('Date','exec','prepared','createPreparedClock','console',block+'\nreturn {initialize(){'+initialization+'},read:clockNow};')(date,exec,true,workload.createPreparedClock,{error:message=>evidence.push(JSON.parse(message))});
+  clock.initialize();elapsed=250000;assert.equal(clock.read(),1250000);elapsed+=10000;assert.equal(clock.read(),1260000);assert.equal(views,1);wallOffset=101;assert.throws(()=>clock.read(),/prepared_clock_inconsistent/);assert.equal(views,1);assert.equal(evidence.length,1);
+});

@@ -4,3 +4,11 @@ results/
 .fixtures/
 .env
 .DS_Store
+.env.*
+!.env.example
+!.env.sample
+__pycache__/
+*.py[cod]
+*.pprof
+*.cpuprofile
+*.heapsnapshot
