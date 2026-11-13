@@ -1,0 +1,801 @@
+{
+  "backend": "PocketBase",
+  "version": "0.42.2",
+  "date": "2026-11-13",
+  "kind": "short-run-exploratory-capacity-search",
+  "stoppedAtUserRequest": true,
+  "endpointRepeats": false,
+  "soak": false,
+  "backendBudget": {
+    "cpus": 1,
+    "memoryGiB": 4
+  },
+  "generatorBudget": {
+    "cpus": 9,
+    "memoryGiB": 48,
+    "gc": 150,
+    "softMemoryGiB": 36,
+    "payloadCacheMiB": 480
+  },
+  "dataset": {
+    "accounts": 15000,
+    "posts": 150000,
+    "likes": 150000
+  },
+  "workload": {
+    "version": "social-prepared-v1",
+    "admissionsPerSecond": 5,
+    "rampSeconds": 30,
+    "warmupSeconds": 60,
+    "measurementSeconds": 120,
+    "thinkSeconds": [
+      1,
+      5
+    ]
+  },
+  "observedBracket": {
+    "highestPassingUsers": 3375,
+    "lowestFailingUsers": 3437
+  },
+  "points": [
+    {
+      "users": 1000,
+      "verdict": "pass",
+      "recovered": false,
+      "controllerExit": 0,
+      "measurementSeconds": 120,
+      "measuredUsers": 1000,
+      "completedUsers": 1000,
+      "actions": {
+        "listPublic": {
+          "requested": 13790,
+          "count": 13790,
+          "successes": 13790,
+          "failures": 0,
+          "observedPercent": 34.939697983176245,
+          "configuredPercent": 35,
+          "p95Ms": 5,
+          "p99Ms": 9,
+          "slo": "pass"
+        },
+        "listOwn": {
+          "requested": 5831,
+          "count": 5831,
+          "successes": 5831,
+          "failures": 0,
+          "observedPercent": 14.773994121820207,
+          "configuredPercent": 15,
+          "p95Ms": 5,
+          "p99Ms": 8,
+          "slo": "pass"
+        },
+        "read": {
+          "requested": 5984,
+          "count": 5984,
+          "successes": 5984,
+          "failures": 0,
+          "observedPercent": 15.16164994425864,
+          "configuredPercent": 15,
+          "p95Ms": 3,
+          "p99Ms": 6,
+          "slo": "pass"
+        },
+        "create": {
+          "requested": 2001,
+          "count": 2001,
+          "successes": 2001,
+          "failures": 0,
+          "observedPercent": 5.06993006993007,
+          "configuredPercent": 5,
+          "p95Ms": 5,
+          "p99Ms": 48,
+          "slo": "pass"
+        },
+        "like": {
+          "requested": 6818,
+          "count": 6818,
+          "successes": 6818,
+          "failures": 0,
+          "observedPercent": 17.27475423127597,
+          "configuredPercent": 17,
+          "p95Ms": 478,
+          "p99Ms": 500,
+          "slo": "pass"
+        },
+        "unlike": {
+          "requested": 1957,
+          "count": 1957,
+          "successes": 1957,
+          "failures": 0,
+          "observedPercent": 4.958447349751697,
+          "configuredPercent": 5,
+          "p95Ms": 4,
+          "p99Ms": 31,
+          "slo": "pass"
+        },
+        "edit": {
+          "requested": 3087,
+          "count": 3087,
+          "successes": 3087,
+          "failures": 0,
+          "observedPercent": 7.82152629978717,
+          "configuredPercent": 8,
+          "p95Ms": 5,
+          "p99Ms": 37,
+          "slo": "pass"
+        }
+      },
+      "logicalActions": 39468,
+      "logicalFailures": 0,
+      "cpuPressure": false,
+      "resourceEvidenceValid": true,
+      "timingEvidenceValid": true,
+      "baselineLogicalHash": "5364c9d290838e223081157d97084003240aa1e8b590a9e8f62953eb6c7a9548"
+    },
+    {
+      "users": 2000,
+      "verdict": "pass",
+      "recovered": false,
+      "controllerExit": 0,
+      "measurementSeconds": 120,
+      "measuredUsers": 2000,
+      "completedUsers": 2000,
+      "actions": {
+        "listPublic": {
+          "requested": 27589,
+          "count": 27589,
+          "successes": 27589,
+          "failures": 0,
+          "observedPercent": 35.06303695795842,
+          "configuredPercent": 35,
+          "p95Ms": 7,
+          "p99Ms": 12,
+          "slo": "pass"
+        },
+        "listOwn": {
+          "requested": 11690,
+          "count": 11690,
+          "successes": 11690,
+          "failures": 0,
+          "observedPercent": 14.856895938183111,
+          "configuredPercent": 15,
+          "p95Ms": 7,
+          "p99Ms": 12,
+          "slo": "pass"
+        },
+        "read": {
+          "requested": 11953,
+          "count": 11953,
+          "successes": 11953,
+          "failures": 0,
+          "observedPercent": 15.191144324131972,
+          "configuredPercent": 15,
+          "p95Ms": 5,
+          "p99Ms": 9,
+          "slo": "pass"
+        },
+        "create": {
+          "requested": 3912,
+          "count": 3912,
+          "successes": 3912,
+          "failures": 0,
+          "observedPercent": 4.971785877687966,
+          "configuredPercent": 5,
+          "p95Ms": 15,
+          "p99Ms": 54,
+          "slo": "pass"
+        },
+        "like": {
+          "requested": 13401,
+          "count": 13401,
+          "successes": 13401,
+          "failures": 0,
+          "observedPercent": 17.03141680646637,
+          "configuredPercent": 17,
+          "p95Ms": 483,
+          "p99Ms": 503,
+          "slo": "pass"
+        },
+        "unlike": {
+          "requested": 3845,
+          "count": 3845,
+          "successes": 3845,
+          "failures": 0,
+          "observedPercent": 4.886635148187687,
+          "configuredPercent": 5,
+          "p95Ms": 11,
+          "p99Ms": 52.55999999999997,
+          "slo": "pass"
+        },
+        "edit": {
+          "requested": 6294,
+          "count": 6294,
+          "successes": 6294,
+          "failures": 0,
+          "observedPercent": 7.999084947384475,
+          "configuredPercent": 8,
+          "p95Ms": 14,
+          "p99Ms": 58,
+          "slo": "pass"
+        }
+      },
+      "logicalActions": 78684,
+      "logicalFailures": 0,
+      "cpuPressure": false,
+      "resourceEvidenceValid": true,
+      "timingEvidenceValid": true,
+      "baselineLogicalHash": "5364c9d290838e223081157d97084003240aa1e8b590a9e8f62953eb6c7a9548"
+    },
+    {
+      "users": 3000,
+      "verdict": "pass",
+      "recovered": false,
+      "controllerExit": 0,
+      "measurementSeconds": 120,
+      "measuredUsers": 3000,
+      "completedUsers": 3000,
+      "actions": {
+        "listPublic": {
+          "requested": 41352,
+          "count": 41352,
+          "successes": 41352,
+          "failures": 0,
+          "observedPercent": 35.04703788456649,
+          "configuredPercent": 35,
+          "p95Ms": 11,
+          "p99Ms": 20,
+          "slo": "pass"
+        },
+        "listOwn": {
+          "requested": 17593,
+          "count": 17593,
+          "successes": 17593,
+          "failures": 0,
+          "observedPercent": 14.91058564285109,
+          "configuredPercent": 15,
+          "p95Ms": 12,
+          "p99Ms": 20,
+          "slo": "pass"
+        },
+        "read": {
+          "requested": 17895,
+          "count": 17895,
+          "successes": 17895,
+          "failures": 0,
+          "observedPercent": 15.16653953724892,
+          "configuredPercent": 15,
+          "p95Ms": 9,
+          "p99Ms": 16,
+          "slo": "pass"
+        },
+        "create": {
+          "requested": 5900,
+          "count": 5900,
+          "successes": 5900,
+          "failures": 0,
+          "observedPercent": 5.000423764725824,
+          "configuredPercent": 5,
+          "p95Ms": 28,
+          "p99Ms": 60.00999999999995,
+          "slo": "pass"
+        },
+        "like": {
+          "requested": 20061,
+          "count": 20061,
+          "successes": 20061,
+          "failures": 0,
+          "observedPercent": 17.002288329519452,
+          "configuredPercent": 17,
+          "p95Ms": 486,
+          "p99Ms": 507,
+          "slo": "pass"
+        },
+        "unlike": {
+          "requested": 5797,
+          "count": 5797,
+          "successes": 5797,
+          "failures": 0,
+          "observedPercent": 4.913128231206034,
+          "configuredPercent": 5,
+          "p95Ms": 27,
+          "p99Ms": 59.03999999999995,
+          "slo": "pass"
+        },
+        "edit": {
+          "requested": 9392,
+          "count": 9392,
+          "successes": 9392,
+          "failures": 0,
+          "observedPercent": 7.959996609882193,
+          "configuredPercent": 8,
+          "p95Ms": 31,
+          "p99Ms": 63,
+          "slo": "pass"
+        }
+      },
+      "logicalActions": 117990,
+      "logicalFailures": 0,
+      "cpuPressure": false,
+      "resourceEvidenceValid": true,
+      "timingEvidenceValid": true,
+      "baselineLogicalHash": "5364c9d290838e223081157d97084003240aa1e8b590a9e8f62953eb6c7a9548"
+    },
+    {
+      "users": 3250,
+      "verdict": "pass",
+      "recovered": false,
+      "controllerExit": 0,
+      "measurementSeconds": 120,
+      "measuredUsers": 3250,
+      "completedUsers": 3250,
+      "actions": {
+        "listPublic": {
+          "requested": 44737,
+          "count": 44737,
+          "successes": 44737,
+          "failures": 0,
+          "observedPercent": 35.01616299183632,
+          "configuredPercent": 35,
+          "p95Ms": 14,
+          "p99Ms": 28,
+          "slo": "pass"
+        },
+        "listOwn": {
+          "requested": 19063,
+          "count": 19063,
+          "successes": 19063,
+          "failures": 0,
+          "observedPercent": 14.920828734903452,
+          "configuredPercent": 15,
+          "p95Ms": 14,
+          "p99Ms": 30,
+          "slo": "pass"
+        },
+        "read": {
+          "requested": 19371,
+          "count": 19371,
+          "successes": 19371,
+          "failures": 0,
+          "observedPercent": 15.161903867377369,
+          "configuredPercent": 15,
+          "p95Ms": 11,
+          "p99Ms": 24,
+          "slo": "pass"
+        },
+        "create": {
+          "requested": 6372,
+          "count": 6372,
+          "successes": 6372,
+          "failures": 0,
+          "observedPercent": 4.9874374809214075,
+          "configuredPercent": 5,
+          "p95Ms": 35,
+          "p99Ms": 64.28999999999995,
+          "slo": "pass"
+        },
+        "like": {
+          "requested": 21759,
+          "count": 21759,
+          "successes": 21759,
+          "failures": 0,
+          "observedPercent": 17.03101885551929,
+          "configuredPercent": 17,
+          "p95Ms": 486,
+          "p99Ms": 509,
+          "slo": "pass"
+        },
+        "unlike": {
+          "requested": 6301,
+          "count": 6301,
+          "successes": 6301,
+          "failures": 0,
+          "observedPercent": 4.931864966617356,
+          "configuredPercent": 5,
+          "p95Ms": 34,
+          "p99Ms": 69,
+          "slo": "pass"
+        },
+        "edit": {
+          "requested": 10158,
+          "count": 10158,
+          "successes": 10158,
+          "failures": 0,
+          "observedPercent": 7.950783102824806,
+          "configuredPercent": 8,
+          "p95Ms": 34,
+          "p99Ms": 64,
+          "slo": "pass"
+        }
+      },
+      "logicalActions": 127761,
+      "logicalFailures": 0,
+      "cpuPressure": false,
+      "resourceEvidenceValid": true,
+      "timingEvidenceValid": true,
+      "baselineLogicalHash": "5364c9d290838e223081157d97084003240aa1e8b590a9e8f62953eb6c7a9548"
+    },
+    {
+      "users": 3375,
+      "verdict": "pass",
+      "recovered": false,
+      "controllerExit": 0,
+      "measurementSeconds": 120,
+      "measuredUsers": 3375,
+      "completedUsers": 3375,
+      "actions": {
+        "listPublic": {
+          "requested": 46430,
+          "count": 46430,
+          "successes": 46430,
+          "failures": 0,
+          "observedPercent": 35.03040545638363,
+          "configuredPercent": 35,
+          "p95Ms": 23,
+          "p99Ms": 59.70999999999959,
+          "slo": "pass"
+        },
+        "listOwn": {
+          "requested": 19746,
+          "count": 19746,
+          "successes": 19746,
+          "failures": 0,
+          "observedPercent": 14.897919150156177,
+          "configuredPercent": 15,
+          "p95Ms": 23,
+          "p99Ms": 62,
+          "slo": "pass"
+        },
+        "read": {
+          "requested": 20153,
+          "count": 20153,
+          "successes": 20153,
+          "failures": 0,
+          "observedPercent": 15.204991625296133,
+          "configuredPercent": 15,
+          "p95Ms": 18,
+          "p99Ms": 49,
+          "slo": "pass"
+        },
+        "create": {
+          "requested": 6612,
+          "count": 6612,
+          "successes": 6612,
+          "failures": 0,
+          "observedPercent": 4.98860738482896,
+          "configuredPercent": 5,
+          "p95Ms": 49,
+          "p99Ms": 100,
+          "slo": "pass"
+        },
+        "like": {
+          "requested": 22523,
+          "count": 22523,
+          "successes": 22523,
+          "failures": 0,
+          "observedPercent": 16.993104072671304,
+          "configuredPercent": 17,
+          "p95Ms": 491,
+          "p99Ms": 529,
+          "slo": "pass"
+        },
+        "unlike": {
+          "requested": 6535,
+          "count": 6535,
+          "successes": 6535,
+          "failures": 0,
+          "observedPercent": 4.930512592234914,
+          "configuredPercent": 5,
+          "p95Ms": 44,
+          "p99Ms": 93,
+          "slo": "pass"
+        },
+        "edit": {
+          "requested": 10543,
+          "count": 10543,
+          "successes": 10543,
+          "failures": 0,
+          "observedPercent": 7.954459718428876,
+          "configuredPercent": 8,
+          "p95Ms": 45,
+          "p99Ms": 99.57999999999991,
+          "slo": "pass"
+        }
+      },
+      "logicalActions": 132542,
+      "logicalFailures": 0,
+      "cpuPressure": false,
+      "resourceEvidenceValid": true,
+      "timingEvidenceValid": true,
+      "baselineLogicalHash": "5364c9d290838e223081157d97084003240aa1e8b590a9e8f62953eb6c7a9548"
+    },
+    {
+      "users": 3437,
+      "verdict": "slo_failure",
+      "recovered": false,
+      "controllerExit": 1,
+      "measurementSeconds": 120,
+      "measuredUsers": 3437,
+      "completedUsers": 3437,
+      "actions": {
+        "listPublic": {
+          "requested": 45853,
+          "count": 45853,
+          "successes": 45853,
+          "failures": 0,
+          "observedPercent": 35.03679195543704,
+          "configuredPercent": 35,
+          "p95Ms": 92,
+          "p99Ms": 1519.9599999999991,
+          "slo": "pass"
+        },
+        "listOwn": {
+          "requested": 19496,
+          "count": 19496,
+          "successes": 19496,
+          "failures": 0,
+          "observedPercent": 14.897112423684392,
+          "configuredPercent": 15,
+          "p95Ms": 100.24999999999913,
+          "p99Ms": 1548.0999999999997,
+          "slo": "pass"
+        },
+        "read": {
+          "requested": 19915,
+          "count": 19915,
+          "successes": 19915,
+          "failures": 0,
+          "observedPercent": 15.217275026552866,
+          "configuredPercent": 15,
+          "p95Ms": 81,
+          "p99Ms": 1537.5799999999995,
+          "slo": "pass"
+        },
+        "create": {
+          "requested": 6519,
+          "count": 6519,
+          "successes": 6519,
+          "failures": 0,
+          "observedPercent": 4.9812410694500695,
+          "configuredPercent": 5,
+          "p95Ms": 1328.1999999999937,
+          "p99Ms": 3445.6599999999994,
+          "slo": "fail"
+        },
+        "like": {
+          "requested": 22209,
+          "count": 22209,
+          "successes": 22209,
+          "failures": 0,
+          "observedPercent": 16.970146174477158,
+          "configuredPercent": 17,
+          "p95Ms": 1748.399999999996,
+          "p99Ms": 4835.679999999999,
+          "slo": "fail"
+        },
+        "unlike": {
+          "requested": 6466,
+          "count": 6466,
+          "successes": 6466,
+          "failures": 0,
+          "observedPercent": 4.940743174576491,
+          "configuredPercent": 5,
+          "p95Ms": 1051.249999999999,
+          "p99Ms": 3388.599999999998,
+          "slo": "fail"
+        },
+        "edit": {
+          "requested": 10413,
+          "count": 10413,
+          "successes": 10413,
+          "failures": 0,
+          "observedPercent": 7.956690175821993,
+          "configuredPercent": 8,
+          "p95Ms": 1193.199999999987,
+          "p99Ms": 3286.5199999999995,
+          "slo": "fail"
+        }
+      },
+      "logicalActions": 130871,
+      "logicalFailures": 0,
+      "cpuPressure": false,
+      "resourceEvidenceValid": true,
+      "timingEvidenceValid": true,
+      "baselineLogicalHash": "5364c9d290838e223081157d97084003240aa1e8b590a9e8f62953eb6c7a9548"
+    },
+    {
+      "users": 3500,
+      "verdict": "slo_failure",
+      "recovered": false,
+      "controllerExit": 1,
+      "measurementSeconds": 120,
+      "measuredUsers": 3500,
+      "completedUsers": 3500,
+      "actions": {
+        "listPublic": {
+          "requested": 47565,
+          "count": 47565,
+          "successes": 47565,
+          "failures": 0,
+          "observedPercent": 35.07019199575309,
+          "configuredPercent": 35,
+          "p95Ms": 87,
+          "p99Ms": 264,
+          "slo": "pass"
+        },
+        "listOwn": {
+          "requested": 20193,
+          "count": 20193,
+          "successes": 20193,
+          "failures": 0,
+          "observedPercent": 14.888518594980388,
+          "configuredPercent": 15,
+          "p95Ms": 91,
+          "p99Ms": 260.0799999999998,
+          "slo": "pass"
+        },
+        "read": {
+          "requested": 20605,
+          "count": 20605,
+          "successes": 20605,
+          "failures": 0,
+          "observedPercent": 15.192290677441237,
+          "configuredPercent": 15,
+          "p95Ms": 76.79999999999909,
+          "p99Ms": 257.9199999999996,
+          "slo": "pass"
+        },
+        "create": {
+          "requested": 6757,
+          "count": 6757,
+          "successes": 6757,
+          "failures": 0,
+          "observedPercent": 4.982009614533872,
+          "configuredPercent": 5,
+          "p95Ms": 164.1999999999997,
+          "p99Ms": 1742.519999999998,
+          "slo": "pass"
+        },
+        "like": {
+          "requested": 23026,
+          "count": 23026,
+          "successes": 23026,
+          "failures": 0,
+          "observedPercent": 16.977320317338602,
+          "configuredPercent": 17,
+          "p95Ms": 620,
+          "p99Ms": 2223,
+          "slo": "fail"
+        },
+        "unlike": {
+          "requested": 6690,
+          "count": 6690,
+          "successes": 6690,
+          "failures": 0,
+          "observedPercent": 4.932609785589996,
+          "configuredPercent": 5,
+          "p95Ms": 174,
+          "p99Ms": 1842.5199999999982,
+          "slo": "pass"
+        },
+        "edit": {
+          "requested": 10792,
+          "count": 10792,
+          "successes": 10792,
+          "failures": 0,
+          "observedPercent": 7.957059014362816,
+          "configuredPercent": 8,
+          "p95Ms": 188.44999999999953,
+          "p99Ms": 1619.0599999999968,
+          "slo": "pass"
+        }
+      },
+      "logicalActions": 135628,
+      "logicalFailures": 0,
+      "cpuPressure": false,
+      "resourceEvidenceValid": true,
+      "timingEvidenceValid": true,
+      "baselineLogicalHash": "5364c9d290838e223081157d97084003240aa1e8b590a9e8f62953eb6c7a9548"
+    },
+    {
+      "users": 4000,
+      "verdict": "slo_failure",
+      "recovered": true,
+      "controllerExit": null,
+      "measurementSeconds": 120,
+      "measuredUsers": 4000,
+      "completedUsers": 4000,
+      "actions": {
+        "listPublic": {
+          "requested": 47257,
+          "count": 47257,
+          "successes": 47257,
+          "failures": 0,
+          "observedPercent": 35.06440506930223,
+          "configuredPercent": 35,
+          "p95Ms": 565,
+          "p99Ms": 1406.4399999999996,
+          "slo": "fail"
+        },
+        "listOwn": {
+          "requested": 20154,
+          "count": 20154,
+          "successes": 20154,
+          "failures": 0,
+          "observedPercent": 14.95414477784703,
+          "configuredPercent": 15,
+          "p95Ms": 568,
+          "p99Ms": 1406.9399999999996,
+          "slo": "fail"
+        },
+        "read": {
+          "requested": 20456,
+          "count": 20456,
+          "successes": 20456,
+          "failures": 0,
+          "observedPercent": 15.178226931410085,
+          "configuredPercent": 15,
+          "p95Ms": 517,
+          "p99Ms": 1320.4499999999998,
+          "slo": "fail"
+        },
+        "create": {
+          "requested": 6692,
+          "count": 6692,
+          "successes": 6658,
+          "failures": 34,
+          "observedPercent": 4.96542308491378,
+          "configuredPercent": 5,
+          "p95Ms": 4972.799999999993,
+          "p99Ms": 8498.059999999998,
+          "slo": "fail"
+        },
+        "like": {
+          "requested": 22833,
+          "count": 22833,
+          "successes": 22738,
+          "failures": 95,
+          "observedPercent": 16.941946398361676,
+          "configuredPercent": 17,
+          "p95Ms": 5680,
+          "p99Ms": 8984.439999999999,
+          "slo": "fail"
+        },
+        "unlike": {
+          "requested": 6592,
+          "count": 6592,
+          "successes": 6556,
+          "failures": 36,
+          "observedPercent": 4.891223696316742,
+          "configuredPercent": 5,
+          "p95Ms": 4915.799999999993,
+          "p99Ms": 8511.069999999998,
+          "slo": "fail"
+        },
+        "edit": {
+          "requested": 10788,
+          "count": 10788,
+          "successes": 10743,
+          "failures": 45,
+          "observedPercent": 8.004630041848456,
+          "configuredPercent": 8,
+          "p95Ms": 5155.65,
+          "p99Ms": 8381.469999999998,
+          "slo": "fail"
+        }
+      },
+      "logicalActions": 134772,
+      "logicalFailures": 210,
+      "cpuPressure": false,
+      "resourceEvidenceValid": true,
+      "timingEvidenceValid": true,
+      "baselineLogicalHash": null
+    }
+  ],
+  "limitations": [
+    "Single short observations; no endpoint repetitions, exact maximum, soak or formal generator-headroom certification.",
+    "4000-user measurement recovered from original raw metrics after controller termination; not an original completed controller trial.",
+    "API-only core social workload; realtime, file storage and uploads were not tested."
+  ],
+  "sourceCommit": "4ac400d",
+  "finalOwnedShutdownVerified": true
+}

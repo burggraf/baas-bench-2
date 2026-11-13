@@ -10,6 +10,19 @@ The backend used **1 CPU / 4 GiB**; the generator used **9 CPUs / 48 GiB** on a 
 
 The shared deterministic payload, checked-clock and Set lookup optimizations have now been exercised in the stepped application tests above. 246 unit tests and build passed; the prior 29-case native runner correctness proof was reused. [Implementation and validation](results/runner-payload-impl-4bd903/SUMMARY.md).
 
+## PocketBase v0.42.2 findings
+
+PocketBase passed the single **3,375-active-user** observation and missed latency targets at **3,437 users**, on the same one-CPU/four-GiB backend and nine-CPU/48-GiB generator profile used for the final TrailBase comparison. At the user's request, discovery stopped after that point; endpoint repeats and soak were not run. This is an observed short-run interval, not a certified maximum. The separately marked 4,000-user failure was recovered from raw evidence after controller interruption.
+
+See [the published report](reports/pocketbase-v0.42.2/REPORT.md) and [sanitized aggregate evidence](reports/pocketbase-v0.42.2/evidence.json) for all points, action latencies, scope and limitations. The implementation pins PocketBase 0.42.2 to publisher checksums and preserves its official SDK, indexes and access rules.
+
+```sh
+# One explicit point in a fresh isolated source/private/results workspace.
+node scripts/pocketbase.js --prepared-sessions --vus=3375 --runner-cpus=9 --runner-memory=48g --runner-gc=150 --payload-cache=480m
+```
+
+This profile supports 100–15,000 active users or `--smoke`, with a fixed 15,000-account / 150,000-post / 150,000-like recipe. Backend and host safety guards remain enforced. Original metrics, private fixtures and generated bundles are retained locally and excluded from publication.
+
 ## Prepared sessions: opt-in application workload
 
 `social-prepared-v1` separates establishing real sessions from measuring an authenticated active population. **Legacy `social-mixed-v1` remains the default arrival/login/application scenario**, including its existing ramp and paced login retries; it is not an auth-only benchmark. Historical results are not relabelled or reused as prepared-mode search references.
