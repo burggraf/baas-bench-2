@@ -18,6 +18,16 @@ const json = (path, value) => writeFileSync(path, JSON.stringify(value, null, 2)
 const read = path => JSON.parse(readFileSync(path, 'utf8'));
 const lines = path => readFileSync(path, 'utf8').trim().split('\n').filter(Boolean).map(JSON.parse);
 export function pocketbasePlan(args) {
+  if(args.includes('--runner-cpus=9')) {
+    const flags=['--runner-cpus=9','--runner-memory=48g','--runner-gc=150','--payload-cache=480m'];
+    assert.ok(flags.every(flag=>args.includes(flag)) && new Set(args).size===args.length,'Nine-CPU PocketBase requires 48GiB/GC150/480MiB cache');
+    const {smoke,vus}=workload.preparedArguments(args.filter(arg=>!flags.includes(arg)));
+    assert.ok(smoke || vus>=100 && vus<=15000,'Use 100..15000 active users');
+    const configPath=smoke?'configs/prepared-smoke.json':'configs/prepared-social-12500.json';
+    const base=read(configPath);
+    const config=validateConfig({...base,...(smoke?{}:{vus,authPreparation:{...base.authPreparation,timeoutSeconds:Math.ceil(vus/5)+200}})});
+    return {preparedSessions:true,points:[config.vus],smoke,configPath,config,runnerProfile:'9cpu-48g',runnerBudget:{cpus:9,memoryBytes:51539607552},runnerGc:150,payloadCacheBytes:480*1024*1024};
+  }
   if (args.includes('--prepared-sessions')) {
     const {smoke,vus}=workload.preparedArguments(args),configPath=smoke?'configs/prepared-smoke.json':'configs/prepared-social-baseline.json';
     const config=validateConfig({...read(configPath),...(vus===undefined?{}:{vus})});
@@ -110,7 +120,7 @@ export async function runPocketbase(args = []) {
       const volume = `${project}_${run}-${number}`;
       assert.ok(!capture('docker', ['volume', 'ls', '--format', '{{.Name}}']).split('\n').includes(volume));
       capture('docker', ['volume', 'create', '--label', `baas-bench-2.pocketbase=${run}`, '--label', `baas-bench-2.point=${point}`, volume]);
-      const override = `${trial}/compose.json`; json(override, { volumes: { 'pocketbase-data': { name: volume, external: true } } });
+      const override = `${trial}/compose.json`; json(override, { volumes: { 'pocketbase-data': { name: volume, external: true } }, ...(plan.runnerProfile==='9cpu-48g'?{services:{runner:{cpus:0,cpu_period:100000,cpu_quota:900000,mem_limit:plan.runnerBudget.memoryBytes,memswap_limit:plan.runnerBudget.memoryBytes}}}:{}) });
       Object.assign(process.env, { COMPOSE_FILE: [resolve('compose.pocketbase.yaml'), resolve(override)].join(delimiter), COMPOSE_PROJECT_NAME: project, COMPOSE_PATH_SEPARATOR: delimiter });
       Object.assign(operation, { trialVolume: volume }); savePrivate('.fixtures/operation.lock', operation);
       let backendId, prep, prepTimer, trialError, archiveToRelease, stopped = null;
@@ -120,12 +130,12 @@ export async function runPocketbase(args = []) {
         await compose(['up', '-d', '--wait', 'pocketbase']);
         backendId = capture('docker', ['compose', 'ps', '-q', 'pocketbase']);
         assertDeployment(backendId, volume, run, point);
-        await verifySizingHost(`${trial}/host-before-seed`, backendId, 17179869184);
+        await verifySizingHost(`${trial}/host-before-seed`, backendId, plan.runnerBudget?.memoryBytes ?? 17179869184);
         const disk = capture('docker', ['exec', backendId, 'df', '-Pk', '/app/pb_data']);
         json(`${trial}/disk.json`, { source: disk });
         assert.ok(Number(disk.trim().split('\n').at(-1).trim().split(/\s+/)[3]) >= 5*1024*1024, 'Need 5GiB disk reserve');
         const prepDirectory = `${trial}/preparation`; mkdirSync(prepDirectory);
-        prep = await startMonitor(prepDirectory, backendId, `${run}-no-preparation-runner`, `${prepDirectory}/no-runner-cgroups.jsonl`, row => { const reason = campaignResourceStop(row, 17179869184); if (reason) stop(reason); }, true);
+        prep = await startMonitor(prepDirectory, backendId, `${run}-no-preparation-runner`, `${prepDirectory}/no-runner-cgroups.jsonl`, row => { const reason = campaignResourceStop(row, plan.runnerBudget?.memoryBytes ?? 17179869184); if (reason) stop(reason); }, true);
         const createClient = () => pocketbaseController(cancel.signal, `${trial}/controller-requests.jsonl`);
         json(`${trial}/conformance.json`, await pocketbaseConformance(createClient));
         const runtime = runtimeManifest(['package-lock.json', 'compose.pocketbase.yaml', override, 'backends/pocketbase/Dockerfile', 'backends/pocketbase/pb_migrations/1792454400_social.js', 'src/pocketbase.js', 'src/fixtures.js', 'src/workload.js', 'src/actions.js', 'src/payload-cache.js', 'src/k6/payload-cache.js', 'scripts/payload-cache.js', 'src/k6/social.js', 'src/k6/transport.js', 'src/k6/search-params.js', 'src/campaign.js', 'src/report.js', 'src/resources.js', 'src/calibration-runner.js', 'scripts/pocketbase.js', 'scripts/runtime.js', 'scripts/workload-run.js', 'scripts/monitor.js', 'scripts/recovery.js', 'scripts/build.js', 'tests/pocketbase-conformance.js', ...(plan.preparedSessions?['src/prepared-gate.js','src/prepared-evidence.js','src/prepared-actions.js','src/base64.js','src/auth.js','runner/Dockerfile',plan.configPath]:[]), configPath], { service: 'pocketbase', executable: '/app/pocketbase', sdk: 'pocketbase' });
@@ -142,22 +152,22 @@ export async function runPocketbase(args = []) {
         json(`${trial}/baseline.json`, { baseline, seedSeconds: fixture.seedSeconds, volume, runtime });
         const preparation = await prep.stop(); prep = null;
         const records = lines(`${prepDirectory}/resources.jsonl`);
-        assertHostMemoryCoverage(records, 17179869184);
+        assertHostMemoryCoverage(records, plan.runnerBudget?.memoryBytes ?? 17179869184);
         const samples = records.filter(row => row.type === 'cgroup' && row.role === 'backend');
         assert.ok(samples.length >= 2 && samples.every((row, i) => !i || row.elapsedMs-samples[i-1].elapsedMs <= 5000), 'Incomplete preparation evidence');
-        assert.ok(records.every(row => campaignResourceStop(row, 17179869184) === null), 'Unsafe preparation');
+        assert.ok(records.every(row => campaignResourceStop(row, plan.runnerBudget?.memoryBytes ?? 17179869184) === null), 'Unsafe preparation');
         assert.ok(preparation.containers.backend, 'Missing backend preparation evidence');
         clearTimeout(prepTimer); cancel.signal.throwIfAborted();
         console.log(`PocketBase ${point}: API baseline verified twice; timed workload starting.`);
         const workloadDirectory = mkdtempSync('results/social-');
         operation.workloadDirectory = workloadDirectory; savePrivate('.fixtures/operation.lock', operation);
         json(`${trial}/workload.json`, { directory: workloadDirectory });
-        const report = await runWorkload({ directory: workloadDirectory, config, configPath, fixture, baseline, runtime, operation, signal: cancel.signal, ...(plan.preparedSessions?{interruption:()=>interrupted}:{}), boundedRunner: true, campaign: true, runnerProfile: '4cpu-16g', service: 'pocketbase', dataPath: '/app/pb_data', fixturePath, createClient: signal => pocketbaseController(signal) });
+        const report = await runWorkload({ directory: workloadDirectory, config, configPath, fixture, baseline, runtime, operation, signal: cancel.signal, ...(plan.preparedSessions?{interruption:()=>interrupted}:{}), boundedRunner: true, campaign: true, runnerProfile: plan.runnerProfile ?? '4cpu-16g', runnerGc:plan.runnerGc, payloadCacheBytes:plan.payloadCacheBytes, service: 'pocketbase', dataPath: '/app/pb_data', fixturePath, createClient: signal => pocketbaseController(signal) });
         let measuredAt=null,cpuPressure=null,cpuEvidenceInvalid=false;
         try {
           if(!plan.preparedSessions||report.preparedEvidenceValid){
             measuredAt=plan.preparedSessions?report.phaseTiming.measurementAt:await measurementStart(`${workloadDirectory}/k6-metrics.json.gz`);
-            cpuPressure=campaignCpuPressure(lines(`${workloadDirectory}/runner-cgroups.jsonl`),measuredAt,config.measurementSeconds);
+            cpuPressure=campaignCpuPressure(lines(`${workloadDirectory}/runner-cgroups.jsonl`),measuredAt,config.measurementSeconds,plan.runnerBudget?.cpus ?? 4);
           }
         } catch(error){if(!plan.preparedSessions)throw error;cpuEvidenceInvalid=true;}
         const classification = cpuEvidenceInvalid?{verdict:'invalid',reasons:['measurement_cpu_window_evidence'],certified:false}:classifyCampaignTrial(report,plan.preparedSessions&&!report.preparedEvidenceValid?{metrics:{}}:existsSync(`${workloadDirectory}/k6-summary.json`)?read(`${workloadDirectory}/k6-summary.json`):{metrics:{}},cpuPressure);

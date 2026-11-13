@@ -40,12 +40,12 @@ async function endCounts(fixture,signal,createClient) {
 // Both callers verify their deployment/volume before entering this shared, single-use runner lifecycle.
 export async function runWorkload({directory,config,configPath,fixture,baseline,runtime,operation,signal,interruption=()=>null,authMode=null,boundedRunner=false,campaign=false,runnerProfile,runnerGc,runnerWorkers,payloadCacheBytes,diagnosticProfile=false,backendMemoryStopFraction=0.85,service='trailbase',dataPath='/app/traildepot',fixturePath='.fixtures/trailbase.json',createClient=controllerClient}) {
   const prepared=config.version==='social-prepared-v1';
-  if(runnerProfile==='9cpu-48g')assert.ok(prepared&&service==='trailbase'&&runnerGc===150&&payloadCacheBytes===480*1024*1024&&!runnerWorkers&&!diagnosticProfile,'Nine CPUs require the single-worker prepared confirmation');
+  if(runnerProfile==='9cpu-48g')assert.ok(prepared&&['trailbase','pocketbase'].includes(service)&&runnerGc===150&&payloadCacheBytes===480*1024*1024&&!runnerWorkers&&!diagnosticProfile,'Nine CPUs require the single-worker prepared confirmation');
   assert.ok(runnerWorkers===undefined||runnerWorkers===2&&prepared&&service==='trailbase'&&runnerProfile==='8cpu-48g'&&runnerGc===150);
-  assert.ok(payloadCacheBytes===undefined||[320*1024*1024,480*1024*1024].includes(payloadCacheBytes)&&prepared&&service==='trailbase'&&['8cpu-48g','9cpu-48g'].includes(runnerProfile)&&runnerGc===150&&!runnerWorkers);
+  assert.ok(payloadCacheBytes===undefined||[320*1024*1024,480*1024*1024].includes(payloadCacheBytes)&&prepared&&['trailbase','pocketbase'].includes(service)&&['8cpu-48g','9cpu-48g'].includes(runnerProfile)&&runnerGc===150&&!runnerWorkers);
   assert.ok(!diagnosticProfile||prepared&&service==='trailbase'&&runnerProfile==='8cpu-48g'&&runnerGc===150&&!runnerWorkers);
   const gcEnvironment=runnerGcEnvironment(runnerProfile,runnerGc);
-  assert.ok(runnerGc===undefined||prepared&&service==='trailbase','GC tuning requires prepared TrailBase');
+  assert.ok(runnerGc===undefined||prepared&&['trailbase','pocketbase'].includes(service),'GC tuning requires prepared sessions');
   assert.ok(!prepared||authMode===null&&boundedRunner&&['4cpu-16g','6cpu-16g','7cpu-16g','7cpu-20g','8cpu-48g','9cpu-48g'].includes(runnerProfile)&&backendMemoryStopFraction===0.85,'Prepared sessions require the normal bounded single-point profile');
   const authCheck=authMode!==null,bundle=authCheck?'auth':service==='trailbase'?'social-trailbase':'social',path=fixturePath,id=directory.split('/').at(-1);
   assert.equal(fixture.status,'ready','Baseline is partial/used: reset/reseed before every trial');
