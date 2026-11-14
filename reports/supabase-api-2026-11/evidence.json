@@ -65,7 +65,7 @@
   },
   "observedBracket": {
     "highestPassingUsers": 2000,
-    "lowestFailingUsers": 2500
+    "lowestFailingUsers": 2250
   },
   "sourceHashes": {
     "package-lock.json": "0440e7a12e919b37258216e9426e8b5f52108c674b4baa0d23f50a6a870fbbca",
@@ -1175,6 +1175,225 @@
           "oomKillDelta": 0,
           "oomDelta": 0,
           "throttledUsecDelta": 0
+        }
+      }
+    },
+    {
+      "users": 2250,
+      "verdict": "slo_failure",
+      "userStoppedDuringUntimedSessionCacheClose": true,
+      "controllerFinishedNormally": false,
+      "logicalActions": 84698,
+      "logicalFailures": 0,
+      "shutdownVerified": true,
+      "controllerExit": 1,
+      "workloadValid": true,
+      "resourcesValid": true,
+      "measuredGeneratorCpuPressure": false,
+      "generatorHeadroom": "unverified",
+      "participation": {
+        "configuredUsers": 2250,
+        "measuredUsers": 2250,
+        "completedUsers": 2250,
+        "missingMeasurementUsers": 0,
+        "missingCompletions": 0,
+        "drainMilliseconds": 24
+      },
+      "actions": {
+        "listPublic": {
+          "requested": 29629,
+          "count": 29629,
+          "successes": 29629,
+          "failures": 0,
+          "observedPercent": 34.981935819027605,
+          "configuredPercent": 35,
+          "p95Ms": 740,
+          "p99Ms": 1152,
+          "slo": "fail"
+        },
+        "listOwn": {
+          "requested": 12640,
+          "count": 12640,
+          "successes": 12640,
+          "failures": 0,
+          "observedPercent": 14.923610947129804,
+          "configuredPercent": 15,
+          "p95Ms": 735,
+          "p99Ms": 1148,
+          "slo": "fail"
+        },
+        "read": {
+          "requested": 12900,
+          "count": 12900,
+          "successes": 12900,
+          "failures": 0,
+          "observedPercent": 15.230583957118233,
+          "configuredPercent": 15,
+          "p95Ms": 681,
+          "p99Ms": 1055.01,
+          "slo": "fail"
+        },
+        "create": {
+          "requested": 4229,
+          "count": 4229,
+          "successes": 4229,
+          "failures": 0,
+          "observedPercent": 4.993034074004108,
+          "configuredPercent": 5,
+          "p95Ms": 824.7999999999994,
+          "p99Ms": 1270.4799999999996,
+          "slo": "fail"
+        },
+        "like": {
+          "requested": 14407,
+          "count": 14407,
+          "successes": 14407,
+          "failures": 0,
+          "observedPercent": 17.009846749628093,
+          "configuredPercent": 17,
+          "p95Ms": 1457.6999999999994,
+          "p99Ms": 2022.8199999999997,
+          "slo": "fail"
+        },
+        "unlike": {
+          "requested": 4159,
+          "count": 4159,
+          "successes": 4159,
+          "failures": 0,
+          "observedPercent": 4.9103874943918395,
+          "configuredPercent": 5,
+          "p95Ms": 687,
+          "p99Ms": 1069.5199999999998,
+          "slo": "pass"
+        },
+        "edit": {
+          "requested": 6734,
+          "count": 6734,
+          "successes": 6734,
+          "failures": 0,
+          "observedPercent": 7.950600958700324,
+          "configuredPercent": 8,
+          "p95Ms": 847.3499999999997,
+          "p99Ms": 1275.6699999999998,
+          "slo": "fail"
+        }
+      },
+      "authenticationEvidence": {
+        "login": {
+          "state": "not_exercised",
+          "attempts": 0,
+          "successes": 0,
+          "failures": 0
+        },
+        "refresh": {
+          "state": "not_exercised",
+          "requests": 0
+        },
+        "phases": {
+          "preparation": {
+            "login": {
+              "attempts": 2250,
+              "successes": 2250,
+              "failures": 0,
+              "p95Ms": 103,
+              "p99Ms": 120
+            },
+            "logout": {
+              "attempts": 0,
+              "failures": 0
+            },
+            "refresh": {
+              "requests": 0,
+              "failures": 0
+            }
+          },
+          "ramp": {
+            "login": {
+              "attempts": 0,
+              "successes": 0,
+              "failures": 0,
+              "p95Ms": null,
+              "p99Ms": null
+            },
+            "logout": {
+              "attempts": 0,
+              "failures": 0
+            },
+            "refresh": {
+              "requests": 0,
+              "failures": 0
+            }
+          },
+          "warmup": {
+            "login": {
+              "attempts": 0,
+              "successes": 0,
+              "failures": 0,
+              "p95Ms": null,
+              "p99Ms": null
+            },
+            "logout": {
+              "attempts": 0,
+              "failures": 0
+            },
+            "refresh": {
+              "requests": 0,
+              "failures": 0
+            }
+          },
+          "measurement": {
+            "login": {
+              "attempts": 0,
+              "successes": 0,
+              "failures": 0,
+              "p95Ms": null,
+              "p99Ms": null
+            },
+            "logout": {
+              "attempts": 0,
+              "failures": 0
+            },
+            "refresh": {
+              "requests": 0,
+              "failures": 0
+            }
+          },
+          "cleanup": {
+            "login": {
+              "attempts": 0,
+              "successes": 0,
+              "failures": 0,
+              "p95Ms": null,
+              "p99Ms": null
+            },
+            "logout": {
+              "attempts": 2250,
+              "failures": 0
+            },
+            "refresh": {
+              "requests": 0,
+              "failures": 0
+            }
+          }
+        }
+      },
+      "measurementSeconds": 120,
+      "measurementStartedAt": "2026-11-14T18:18:16.537Z",
+      "reportSha256": "01c90a2cfb827548a08adcdb0826c6b09b6d668d842d9b65dcd51c9d7bea0215",
+      "resourceSummary": {
+        "backend": {
+          "peakCpuCores": 1.0397638994757914,
+          "peakMemoryBytes": 871075840,
+          "oomKillDelta": 0,
+          "oomDelta": 0,
+          "throttledUsecDelta": 70125065
+        },
+        "runner": {
+          "peakCpuCores": 8.379299999999999,
+          "peakMemoryBytes": 23995240448,
+          "oomKillDelta": 0,
+          "oomDelta": 0,
+          "throttledUsecDelta": 1508
         }
       }
     }

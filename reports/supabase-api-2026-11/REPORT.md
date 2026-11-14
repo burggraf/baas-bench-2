@@ -6,6 +6,7 @@ The highest passing observation was **2,000 concurrently active authenticated us
 | ---: | --- | ---: | ---: |
 | 1,000 | Pass | 39,987 | 0 |
 | 2,000 | Pass | 79,049 | 0 |
+| 2,250 | Latency failure | 84,698 | 0 |
 | 2,500 | Latency failure | 85,519 | 40 |
 | 3,000 | Latency failure | 88,233 | 0 |
 | 4,000 | Latency failure | 86,676 | 2646 |
@@ -38,7 +39,9 @@ All 2,000 users measured and completed. Resource evidence was valid; no measured
 
 ## Evidence and limits
 
-The first completed failing point above the score was **2,500 users**. Latency failures establish an observed transition, not a repeat-certified limit. Original controller reports, compressed metrics, private source snapshots and retained data volumes remain local. Every published point completed checked owned shutdown. Sanitized per-action and resource evidence includes SHA-256 hashes of the original reports.
+The 2,250-user measurement completed all 2,250 users, 84,698 actions, zero action/auth failures and valid resource evidence; six of seven action latency targets failed. After its original workload report and SLO verdict were written, the user stopped discovery. The remaining untimed controller session-cache sign-outs were cancelled; this produced a controller cleanup error. All four owned services then completed checked shutdown and their parent cgroup was verified empty and removed. This point is explicitly marked as stopped during untimed cleanup in the evidence; it is not represented as a normally completed controller run. Original reports and failure remain unchanged.
+
+The first completed failing point above the score was **2,250 users**. Latency failures establish an observed transition, not a repeat-certified limit. Original controller reports, compressed metrics, private source snapshots and retained data volumes remain local. Every published point completed checked owned shutdown. Sanitized per-action and resource evidence includes SHA-256 hashes of the original reports.
 
 Earlier 100/1,000-user workflow checks used a smaller validation dataset and are excluded. An earlier 1,000-user attempt failed because simultaneous final sign-outs overloaded Auth; it is retained as a workflow failure and is not used as a backend application upper bound. The optimized full-dataset 1,000-user point above passed.
 
