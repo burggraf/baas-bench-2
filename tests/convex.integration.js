@@ -22,3 +22,14 @@ assert.equal(existsSync(`${work}/.fixtures/operation.lock`),false);
  }else{assert.notEqual(code,0);assert.equal(signalled,true);assert.ok(existsSync(`${work}/.fixtures/convex.json`),'Cancelled fixture retained');}
  writeFileSync(`${out}/verification.json`,JSON.stringify({mode,code,work,controllerSummary:`${work}/results/${name}/summary.json`,ownedShutdown:true},null,2));
 });
+
+test('Convex native refresh restores a genuinely expired access token',{timeout:240000},async()=>{
+ const work=resolve(mkdtempSync('.fixtures/native-convex-expiry-')),out=mkdtempSync('results/convex-expiry-proof-');
+ for(const p of inputs)cpSync(p,`${work}/${p}`,{recursive:true});symlinkSync(resolve('node_modules'),`${work}/node_modules`);mkdirSync(`${work}/.fixtures`,{mode:0o700});mkdirSync(`${work}/results`);
+ const auth=`${work}/backends/convex/convex/auth.ts`;writeFileSync(auth,readFileSync(auth,'utf8').replace('accessTokenTtlSeconds:3600','accessTokenTtlSeconds:3'));
+ const fd=openSync(`${out}/run.log`,'wx'),child=spawn(process.execPath,['tests/convex-expiry.js'],{cwd:work,stdio:['ignore',fd,fd]});closeSync(fd);
+ const code=await new Promise((ok,no)=>{child.once('error',no);child.once('close',ok)});
+ assert.equal(execFileSync('docker',['ps','-aq','--filter','label=com.docker.compose.project=baas-bench-2-pilot'],{encoding:'utf8'}).trim(),'');
+ writeFileSync(`${out}/result.json`,JSON.stringify({code,work,capacityEligible:false},null,2));assert.equal(code,0,`Inspect ${out}`);
+ const name=readdirSync(`${work}/results`).find(n=>n.startsWith('convex-expiry-'));assert.equal(read(`${work}/results/${name}/verification.json`).nativeRefreshAfterExpiry,true);
+});

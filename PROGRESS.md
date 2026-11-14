@@ -1,5 +1,12 @@
 # Progress and restart checkpoint
 
+## Convex setup expiry fix validated; restart full capacity discovery
+
+Campaign `convex-campaign-l4Qkwl` stopped BEFORE MEASUREMENT after creating the full15k/150k/150k dataset and completing its first baseline verification. Original backend logs prove native access-token expiry40s before the public refresh request; the adapter erroneously attached that expired bearer token to the native refresh mutation, causing401 before its handler ran. No backend capacity/upper-bound conclusion. Original failed snapshot, volume, summary and logs retained; owned backend shut down.
+
+Fix: clear official SDK access-token auth for native refresh/sign-out mutations, which authenticate by their native refresh-token argument. Install the rotated access token before protected identity/data queries. TTL, native auth validation, dataset and all measured policies unchanged. Regression went red on the original adapter with a genuine native3-second token (server first rejects it); green after fix, including protected reads/identity/logout revocation. Short TTL exists only in private correctness-test source; capacity remains3,600s. Fresh327units/build and all3native success/cancellation/expiry tests passed. Audit: `results/convex-implementation-20261114/expiry-fix-audit.json`,44source bindings, zero checked fixture leaks, checked owned shutdown. Fresh full campaign will use `results/convex-current.json`; original pointer/log retained under prior campaign/implementation artifacts. Do not modify frozen inputs once relaunched.
+
+
 ## Convex implementation validated; full capacity campaign authorized
 
 Supabase publication is pushed through `e58b766`: 2,000-user highest passing short observation; explicit final 2,250-user measurement/untimed-cleanup cancellation annotation. Supabase supervisor/child and all owned services have exited; parent cgroup removed, volumes/artifacts retained. No further Supabase discovery.

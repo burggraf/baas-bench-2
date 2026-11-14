@@ -5,9 +5,11 @@ export function convexClient(origin,fetch){
  let session=null,identity=null;
  const claims=token=>JSON.parse(atob(token.split('.')[1].replaceAll('-','+').replaceAll('_','/')));
  const install=async tokens=>{if(!tokens?.accessToken||!tokens.refreshToken)throw Error('Invalid native session');session=tokens;sdk.setAuth(tokens.accessToken);identity=await sdk.query('social:identity',{});if(identity.id!==tokens.userId)throw Error('Identity mismatch');};
- const refresh=async()=>{if(!session)throw Error('Missing session');const result=await sdk.mutation('auth:refreshSession',{refreshToken:session.refreshToken});if(result.kind!=='rotated')throw Error('Native refresh rejected');await install(result.tokens);return result;};
+ // Public native session functions authenticate with the refresh token. Sending
+ // an expired access JWT would make the gateway reject them before execution.
+ const refresh=async()=>{if(!session)throw Error('Missing session');sdk.clearAuth();const result=await sdk.mutation('auth:refreshSession',{refreshToken:session.refreshToken});if(result.kind!=='rotated')throw Error('Native refresh rejected');await install(result.tokens);return result;};
  const renew=async()=>{if(session&&claims(session.accessToken).exp*1000-Date.now()<=30000)await refresh();};
- const logout=async()=>{if(session)await sdk.mutation('auth:signOut',{refreshToken:session.refreshToken});sdk.clearAuth();session=null;identity=null;return true;};
+ const logout=async()=>{if(session){sdk.clearAuth();await sdk.mutation('auth:signOut',{refreshToken:session.refreshToken});}sdk.clearAuth();session=null;identity=null;return true;};
  const authenticate=async(fn,args)=>{if(session)await logout();const r=await sdk.mutation(fn,args);if(r.status!=='complete')throw Object.assign(Error('Native authentication rejected'),{code:r.userError?.error??'NATIVE_AUTH_REJECTED'});await install(r.tokens);return r;};
  return {
   user:()=>identity,tokens:()=>({auth_token:session?.accessToken,refresh_token:session?.refreshToken}),

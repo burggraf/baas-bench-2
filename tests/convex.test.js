@@ -17,3 +17,14 @@ test('Convex uses official SDK fetch and handles native auth error envelopes',as
 test('Convex final signout pacing leaves application deadlines unchanged',()=>{
  const c=convexPlan([...flags,'--vus=1000']).config;assert.equal(cleanupAllowance(c,'convex'),200);const end=1000+210000;assert.equal(cleanupDelay(c,1000,1,end,'convex'),0);assert.equal(cleanupDelay(c,1000,1000,end,'convex'),199.8);assert.equal(cleanupAllowance(c,'pocketbase'),0);
 });
+test('Convex refresh/signout omit expired bearer auth; protected calls use the renewed token',async()=>{
+ const token=exp=>'header.'+Buffer.from(JSON.stringify({iat:exp-3600,exp})).toString('base64url')+'.signature';
+ const expired=token(Math.floor(Date.now()/1000)-120),fresh=token(Math.floor(Date.now()/1000)+3600);let refreshes=0,protectedCalls=0,signouts=0;
+ const c=convexClient('http://127.0.0.1:4000',async(url,init)=>{const {path}=JSON.parse(init.body);let value;
+  if(path==='auth:refreshSession'){assert.equal(init.headers.Authorization,undefined);refreshes++;value={kind:'rotated',tokens:{accessToken:fresh,refreshToken:'rotated-refresh',refreshTokenExpiresAt:Date.now()+86400000,userId:'native-user'}};}
+  else if(path==='auth:signOut'){assert.equal(init.headers.Authorization,undefined);signouts++;value=null;}
+  else{assert.equal(init.headers.Authorization,'Bearer '+fresh);protectedCalls++;value=path==='social:identity'?{id:'native-user',username:'username'}:{records:[]};}
+  return new Response(JSON.stringify({status:'success',value}),{status:200});
+ });
+ await c.restoreSession({auth_token:expired,refresh_token:'native-refresh'});assert.equal(c.user().id,'native-user');await c.records('likes').list();await c.logout();assert.equal(c.user(),null);assert.equal(refreshes,1);assert.equal(protectedCalls,3);assert.equal(signouts,1);
+});
