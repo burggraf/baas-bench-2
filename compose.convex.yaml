@@ -1,0 +1,45 @@
+name: baas-bench-2-pilot
+services:
+  convex:
+    image: ghcr.io/convex/convex-backend@sha256:a821eed4a1bf12e70dcd1bc1a8d3037d77d0e39bb2e56d30596dfe8dd549aa0a
+    cpus: 1.0
+    mem_limit: 4g
+    memswap_limit: 4g
+    stop_signal: SIGINT
+    stop_grace_period: 20s
+    ulimits:
+      nofile: {soft: 16384, hard: 16384}
+    ports: ["127.0.0.1:4000:3210", "127.0.0.1:4001:3211"]
+    environment:
+      CONVEX_CLOUD_ORIGIN: http://127.0.0.1:3210
+      CONVEX_SITE_ORIGIN: http://127.0.0.1:3211
+      DISABLE_BEACON: "true"
+      DISABLE_METRICS_ENDPOINT: "true"
+      RUST_LOG: info
+      APPLICATION_MAX_CONCURRENT_MUTATIONS: "16"
+      APPLICATION_MAX_CONCURRENT_QUERIES: "16"
+      APPLICATION_MAX_CONCURRENT_V8_ACTIONS: "16"
+      APPLICATION_MAX_CONCURRENT_NODE_ACTIONS: "16"
+    volumes: ["convex-data:/convex/data"]
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "--silent", "http://127.0.0.1:3210/version"]
+      interval: 2s
+      timeout: 2s
+      retries: 60
+    logging:
+      driver: json-file
+      options: {max-size: "10m", max-file: "2"}
+  runner:
+    build: {context: ., dockerfile: runner/Dockerfile}
+    profiles: [test]
+    cpus: 4.0
+    mem_limit: 16g
+    memswap_limit: 16g
+    environment:
+      BASE_URL: http://convex:3210
+      BENCH_BACKEND: convex
+    volumes: ["./dist:/scripts:ro", "./results:/results"]
+    depends_on:
+      convex: {condition: service_healthy}
+volumes:
+  convex-data:

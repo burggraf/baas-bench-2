@@ -20,3 +20,5 @@ await build({
 });
 
 await build({entryPoints:{'social-supabase':'src/k6/social.js'},outdir:'dist',bundle:true,format:'esm',platform:'browser',target:'es2022',external:['k6','k6/*'],sourcemap:true,define:{'__ENV.BENCH_BACKEND':'"supabase"'}});
+
+await build({entryPoints:{'social-convex':'src/k6/social.js'},outdir:'dist',bundle:true,format:'esm',platform:'browser',target:'es2022',external:['k6','k6/*'],sourcemap:true,define:{'__ENV.BENCH_BACKEND':'"convex"'}});

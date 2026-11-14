@@ -31,10 +31,14 @@
     "pilot:conformance": "node scripts/run-k6.js",
     "pilot:down": "docker compose down",
     "test:supabase": "node --test --test-concurrency=1 tests/supabase.integration.js",
-    "supabase:campaign": "npm run build && docker compose build runner && node scripts/supabase-campaign.js"
+    "supabase:campaign": "npm run build && docker compose build runner && node scripts/supabase-campaign.js",
+    "test:convex": "node --test --test-concurrency=1 tests/convex.integration.js",
+    "convex:campaign": "npm run build && docker compose -f compose.convex.yaml build runner && node scripts/convex-campaign.js"
   },
   "dependencies": {
+    "@convex-dev/auth": "2.0.0",
     "@supabase/supabase-js": "2.119.0",
+    "convex": "1.50.0",
     "core-js-pure": "3.51.0",
     "pocketbase": "0.28.1",
     "trailbase": "0.14.3"

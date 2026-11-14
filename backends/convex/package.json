@@ -1,0 +1,1 @@
+{"name":"baas-bench-convex-app","private":true,"type":"module","dependencies":{"convex":"1.50.0","@convex-dev/auth":"2.0.0"}}

@@ -10,6 +10,7 @@ import { createSearchParamsConstructor } from './search-params.js';
 import { initClient } from 'trailbase';
 import { pocketbaseClient } from '../pocketbase.js';
 import { supabaseClient } from '../supabase.js';
+import {convexClient} from '../convex.js';
 import {FetchHeaders} from './headers.js';
 import { createTransport, installURLPolyfill } from './transport.js';
 import { createAtob } from '../base64.js';
@@ -146,11 +147,14 @@ export default async function () {
     // Transport has already validated and normalized this pathname. Reading
     // it avoids loading the full URL parser just to label login/refresh calls.
     const pathname = params.tags.name;
-    if (pathname.startsWith('/api/auth/') || /^\/api\/collections\/users\/auth-/.test(pathname) || pathname.startsWith('/auth/v1/')) {
+    const convexFunction=__ENV.BENCH_BACKEND==='convex'&&typeof body==='string'?JSON.parse(body).path:null;
+    const convexAuth=({'auth:signInWithUsernamePassword':'login','auth:refreshSession':'refresh','auth:signOut':'logout'})[convexFunction];
+    if (pathname.startsWith('/api/auth/') || /^\/api\/collections\/users\/auth-/.test(pathname) || pathname.startsWith('/auth/v1/') || convexAuth) {
       const nativeOperation = pathname.split('/').at(-1);
-      const operation = pathname.startsWith('/auth/v1/token') ? (String(body).includes('refresh_token')?'refresh':'login') : ({ 'auth-with-password': 'login', 'auth-refresh': 'refresh' })[nativeOperation] ?? nativeOperation;
+      const operation = convexAuth ?? (pathname.startsWith('/auth/v1/token') ? (String(body).includes('refresh_token')?'refresh':'login') : ({ 'auth-with-password': 'login', 'auth-refresh': 'refresh' })[nativeOperation] ?? nativeOperation);
       authHttp.add(result.timings.duration, { operation, phase: requestPhase });
-      authHttpFailed.add(result.status < 200 || result.status >= 300, { operation, phase: requestPhase });
+      const nativeRejected=convexAuth&&result.status===200&&(() => {const r=JSON.parse(result.body);return r.status==='error'||r.value?.status==='error'||r.value?.kind==='noSession';})();
+      authHttpFailed.add(result.status < 200 || result.status >= 300 || !!nativeRejected, { operation, phase: requestPhase });
       if (operation === 'refresh') refreshes.add(1, { phase: requestPhase });
       if (operation === 'logout' && (result.status < 200 || result.status >= 300)) logoutFailed = true;
     }
@@ -163,7 +167,7 @@ export default async function () {
     if (target.origin !== origin) throw new Error('Unexpected SDK origin');
     return transport.fetch(target.pathname + target.search, init);
   };
-  const client=__ENV.BENCH_BACKEND==='supabase'?supabaseClient(origin,sdkFetch,__ENV.SUPABASE_ANON_KEY):__ENV.BENCH_BACKEND==='pocketbase'?pocketbaseClient(origin,sdkFetch):initClient(undefined,{transport});
+  const client=__ENV.BENCH_BACKEND==='convex'?convexClient(origin,sdkFetch):__ENV.BENCH_BACKEND==='supabase'?supabaseClient(origin,sdkFetch,__ENV.SUPABASE_ANON_KEY):__ENV.BENCH_BACKEND==='pocketbase'?pocketbaseClient(origin,sdkFetch):initClient(undefined,{transport});
   const auth = async operation => {
     const started = Date.now(); let success = false;
     if (prepared && operation === 'login') loginAttempts.add(1, {phase:currentPhase});
@@ -279,7 +283,7 @@ export default async function () {
   } finally {
     if (prepared && normalCompletion && entered) lifecycle.add(ordinal,{event:'completed'});
     currentPhase = 'cleanup';
-    if(prepared&&normalCompletion&&applicationStart!==null&&__ENV.BENCH_BACKEND==='supabase')sleep(cleanupDelay(config,applicationStart,ordinal,clockNow(),__ENV.BENCH_BACKEND));
+    if(prepared&&normalCompletion&&applicationStart!==null&&['supabase','convex'].includes(__ENV.BENCH_BACKEND))sleep(cleanupDelay(config,applicationStart,ordinal,clockNow(),__ENV.BENCH_BACKEND));
     if (client.user()) { try { await auth('logout'); } catch { /* Recorded by auth_failed; no credential output. */ } }
     finished.add(1); done = true;
   }
