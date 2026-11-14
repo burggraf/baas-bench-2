@@ -8,13 +8,13 @@ import {hash} from './runtime.js';
 const inputs=['scripts','src','tests','configs','backends','runner','package.json','package-lock.json','compose.yaml','compose.pocketbase.yaml','compose.supabase.yaml','compose.convex.yaml'];
 const read=p=>JSON.parse(readFileSync(p));
 export async function runConvexCampaign(args=[]){
- assert.ok(args.length===0||args.length===1&&args[0]==='--smoke-only','Usage: node scripts/convex-campaign.js [--smoke-only]');
+ assert.ok(args.length===0||args.length===1&&['--smoke-only','--start-vus=100'].includes(args[0]),'Usage: node scripts/convex-campaign.js [--smoke-only|--start-vus=100]');
  mkdirSync('results',{recursive:true});mkdirSync('.fixtures',{recursive:true,mode:0o700});
  const root=process.cwd(),directory=resolve(mkdtempSync('results/convex-campaign-')),run=directory.split('/').at(-1),history=[];
  const walk=base=>readdirSync(base,{withFileTypes:true}).flatMap(entry=>{const p=`${base}/${entry.name}`;return ['node_modules','_generated'].includes(entry.name)||entry.name.startsWith('.env')?[]:entry.isDirectory()?walk(p):/\.(js|ts|json|yaml)$/.test(p)||entry.name==='Dockerfile'?[p]:[];});
  const frozen=[...['scripts','src','tests','configs','backends','runner'].flatMap(walk),'package.json','package-lock.json','compose.yaml','compose.pocketbase.yaml','compose.supabase.yaml','compose.convex.yaml'];
  const sourceHashes=Object.fromEntries(frozen.map(p=>[p,hash(p)]));
- const limits={startVus:1000,minVus:100,maxVus:15000,maxTrials:10,precision:.05};
+ const limits={startVus:args.includes('--start-vus=100')?100:1000,minVus:100,maxVus:15000,maxTrials:10,precision:.05};
  let active=null,activePoint=null,status='starting',failure=null,interrupted=false,search=null;
  const save=()=>{
   writeFileSync(`${directory}/status.json`,JSON.stringify({backend:'convex',kind:'native-auth-api-capacity-campaign',status,activePoint,history,search,limits,failure,sourceHashes,updatedAt:new Date().toISOString(),pid:process.pid,certified:false},null,2));

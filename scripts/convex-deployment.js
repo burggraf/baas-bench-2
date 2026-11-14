@@ -7,7 +7,7 @@ const read=p=>JSON.parse(readFileSync(p));
 export function verifyConvex(id,volume,run,point){
  const [s]=JSON.parse(capture('docker',['inspect',id]));
  assert.equal(s.Config.Labels['com.docker.compose.project'],'baas-bench-2-pilot');assert.equal(s.Config.Labels['com.docker.compose.service'],'convex');
- assert.equal(s.Config.Image,read('backends/convex/versions.json').image);assert.equal(s.State.Health.Status,'healthy');assert.equal(s.State.OOMKilled,false);assert.equal(s.RestartCount,0);
+ const pins=read('backends/convex/versions.json');assert.equal(s.Config.Image,pins.image);for(const [key,value]of Object.entries(pins.runtimeKnobs??{}))assert.ok(s.Config.Env.includes(`${key}=${value}`),`Unmatched native tuning knob: ${key}`);assert.equal(s.State.Health.Status,'healthy');assert.equal(s.State.OOMKilled,false);assert.equal(s.RestartCount,0);
  assert.equal(s.HostConfig.NanoCpus,1000000000);assert.equal(s.HostConfig.Memory,4294967296);assert.equal(s.HostConfig.MemorySwap,4294967296);
  assert.ok(s.Mounts.some(m=>m.Name===volume&&m.Destination==='/convex/data'));
  const [v]=JSON.parse(capture('docker',['volume','inspect',volume]));assert.equal(v.Labels['baas-bench-2.convex'],run);assert.equal(v.Labels['baas-bench-2.point'],String(point));

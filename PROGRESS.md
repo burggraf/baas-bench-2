@@ -1,5 +1,14 @@
 # Progress and restart checkpoint
 
+## Convex bounded-worker profile validated; restart discovery at100
+
+Campaign `convex-campaign-L00v7V` completed full dataset setup and all1,000 native VU password/protected probes, then safety-stopped during measurement at the unchanged85% backend memory guard. All1,000 entered measurement but none completed it; no valid capacity score/upper endpoint. Original report `social-xJchjS` in `.fixtures/prepared-point-convex-campaign-L00v7V-discovery-1000-1` remains invalid. Native logs show worker creation through ID59 and module-load/concurrency timeouts. Sampled backend memory reached3.50GiB; no valid completed measurement. Checked owned shutdown succeeded; retained volume/originals unchanged. Review `results/convex-memory-review/review.json`.
+
+Tuned native profile `1cpu4g-bounded-v8-v1`: MAX_ISOLATE_WORKERS16, concurrent queries4/mutations4/V8actions2/Nodeactions1. Supported knobs verified from pinned upstream source, pinned in versions/Compose and asserted in live container by `verifyConvex`. CPU1/memory4GiB/no-swap,85%guard, native auth, request deadlines and workload unchanged. Prior16/16/default-worker observation is not merged into this profile's boundary search. Fresh328units/build and3native correctness/cancellation/actual-expired-token tests passed; audit `results/convex-memory-review/audit.json` binds44inputs and checks57public artifacts for fixture leaks. Native fixtures/API cleanup/shutdown verified.
+
+User's authorized capacity search continues from100users via explicit `--start-vus=100`, with the same full15k/150k/150k fixture. It doubles passing populations, refines only valid SLO failures and repeats endpoints, ceiling15,000. No automatic relaxation/retry of invalid points. Fresh launch helper `results/convex-memory-review/launch-tuned.mjs` writes the new `results/convex-current.json`; original campaign/failed volume remain retained. Do not modify frozen source/config while running.
+
+
 ## Convex setup expiry fix validated; restart full capacity discovery
 
 Campaign `convex-campaign-l4Qkwl` stopped BEFORE MEASUREMENT after creating the full15k/150k/150k dataset and completing its first baseline verification. Original backend logs prove native access-token expiry40s before the public refresh request; the adapter erroneously attached that expired bearer token to the native refresh mutation, causing401 before its handler ran. No backend capacity/upper-bound conclusion. Original failed snapshot, volume, summary and logs retained; owned backend shut down.

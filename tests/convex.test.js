@@ -28,3 +28,6 @@ test('Convex refresh/signout omit expired bearer auth; protected calls use the r
  });
  await c.restoreSession({auth_token:expired,refresh_token:'native-refresh'});assert.equal(c.user().id,'native-user');await c.records('likes').list();await c.logout();assert.equal(c.user(),null);assert.equal(refreshes,1);assert.equal(protectedCalls,3);assert.equal(signouts,1);
 });
+test('Convex bounded native worker/concurrency settings match the pinned profile',async()=>{
+ const {readFileSync}=await import('node:fs');const pins=JSON.parse(readFileSync('backends/convex/versions.json'));const yaml=readFileSync('compose.convex.yaml','utf8');assert.equal(pins.tuningProfile,'1cpu4g-bounded-v8-v1');assert.equal(pins.runtimeKnobs.MAX_ISOLATE_WORKERS,'16');for(const [k,v]of Object.entries(pins.runtimeKnobs))assert.ok(yaml.includes(`${k}: "${v}"`));
+});
