@@ -18,3 +18,5 @@ await build({
   external: ['k6', 'k6/*'], sourcemap: true,
   define: { '__ENV.BENCH_BACKEND': '"trailbase"' },
 });
+
+await build({entryPoints:{'social-supabase':'src/k6/social.js'},outdir:'dist',bundle:true,format:'esm',platform:'browser',target:'es2022',external:['k6','k6/*'],sourcemap:true,define:{'__ENV.BENCH_BACKEND':'"supabase"'}});

@@ -19,7 +19,9 @@ export function summarizeResources(records) {
     const stats = rows.filter(r => r.type === 'stats');
     const groups = rows.filter(r => r.type === 'cgroup').map(r => parseCgroup(r.source));
     const first = life[0]?.source, last = life.at(-1)?.source;
-    const cpus = stats.map(r => /^\d+(\.\d+)?%$/.test(r.source.CPUPerc) ? parseFloat(r.source.CPUPerc) / 100 : null);
+    const aggregate=first?.aggregateScope==='supabase-api-stack';
+    let cpus = stats.map(r => /^\d+(\.\d+)?%$/.test(r.source.CPUPerc) ? parseFloat(r.source.CPUPerc) / 100 : null);
+    if(aggregate){const samples=rows.filter(r=>r.type==='cgroup');cpus=samples.slice(1).map((row,i)=>(parseCgroup(row.source).cpuStat.usage_usec-parseCgroup(samples[i].source).cpuStat.usage_usec)/((row.elapsedMs-samples[i].elapsedMs)*1000));}
     const complete = life.length >= 2 && stats.length >= 2 && groups.length >= 2 &&
       cpus.every(n => n !== null && Number.isFinite(n)) &&
       rows.every(r => Number.isFinite(r.elapsedMs) && r.elapsedMs >= 0) &&
@@ -29,7 +31,7 @@ export function summarizeResources(records) {
     const covered = times.every((t, i) => Number.isFinite(t) && (!i || (t >= times[i - 1] && t - times[i - 1] <= 5000)));
     if (!complete || !covered) issues.push(`${role}:incomplete_samples`);
     const changed = life.some(r => ['id', 'startedAt', 'restarts', 'nanoCpus', 'cpuQuota', 'cpuPeriod', 'cpuset', 'memoryLimit', 'memorySwap'].some(key => r.source[key] !== first[key]));
-    const unstable = life.some(r => r.source.oomKilled || (role === 'backend' && (!r.source.running || r.source.health !== 'healthy'))) || changed;
+    const unstable = life.some(r => r.source.oomKilled || (role === 'backend' && (!r.source.running || r.source.health !== 'healthy'))) || changed || (aggregate&&life.some(r=>JSON.stringify(r.source.children)!==JSON.stringify(first.children)||r.source.children?.length!==4||r.source.children.some(c=>!c.running||c.oomKilled||c.restarts!==0||c.health!=='healthy')));
     const delta = (key, field) => {
       const values = groups.map(g => g[key]?.[field]);
       if (values.length < 2 || values.some(v => !Number.isSafeInteger(v))) return null;

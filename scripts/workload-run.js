@@ -1,3 +1,5 @@
+import {cleanupAllowance} from '../src/prepared-cleanup.js';
+import {authorizeFixture,releaseFixture} from '../src/fixture-auth.js';
 import assert from 'node:assert/strict';
 import {readFileSync,writeFileSync} from 'node:fs';
 import {resolve} from 'node:path';
@@ -23,31 +25,31 @@ export async function verifySizingHost(prefix,backendId,runnerMemoryBytes=429496
   else assert.equal(host.stdout.trim(),'1','macOS memory pressure is not normal');
 }
 
-async function endCounts(fixture,signal,createClient) {
+async function endCounts(fixture,signal,createClient,fixtureAuth) {
   let posts=0,likes=0;
   for(const user of fixture.users) {
     const client=createClient(signal);
     try {
-      await client.login(user.username,user.password);
+      await authorizeFixture(fixtureAuth,client,user);
       assert.equal(client.user()?.id,user.id,'End verification identity mismatch');
       posts+=(await client.records('posts').list({pagination:{limit:1},filters:[{column:'author',value:user.id}],count:true})).total_count;
       likes+=(await client.records('likes').list({pagination:{limit:1},count:true})).total_count;
-    } finally {if(client.user())await client.logout();}
+    } finally {if(client.user())await releaseFixture(fixtureAuth,client,user);}
   }
   return {users:fixture.users.length,posts,likes};
 }
 
 // Both callers verify their deployment/volume before entering this shared, single-use runner lifecycle.
-export async function runWorkload({directory,config,configPath,fixture,baseline,runtime,operation,signal,interruption=()=>null,authMode=null,boundedRunner=false,campaign=false,runnerProfile,runnerGc,runnerWorkers,payloadCacheBytes,diagnosticProfile=false,backendMemoryStopFraction=0.85,service='trailbase',dataPath='/app/traildepot',fixturePath='.fixtures/trailbase.json',createClient=controllerClient}) {
+export async function runWorkload({directory,config,configPath,fixture,baseline,runtime,operation,signal,interruption=()=>null,authMode=null,boundedRunner=false,campaign=false,runnerProfile,runnerGc,runnerWorkers,payloadCacheBytes,diagnosticProfile=false,backendMemoryStopFraction=0.85,fixtureAuth,service='trailbase',dataPath='/app/traildepot',fixturePath='.fixtures/trailbase.json',createClient=controllerClient}) {
   const prepared=config.version==='social-prepared-v1';
-  if(runnerProfile==='9cpu-48g')assert.ok(prepared&&['trailbase','pocketbase'].includes(service)&&runnerGc===150&&payloadCacheBytes===480*1024*1024&&!runnerWorkers&&!diagnosticProfile,'Nine CPUs require the single-worker prepared confirmation');
+  if(runnerProfile==='9cpu-48g')assert.ok(prepared&&['trailbase','pocketbase','supabase'].includes(service)&&runnerGc===150&&payloadCacheBytes===480*1024*1024&&!runnerWorkers&&!diagnosticProfile,'Nine CPUs require the single-worker prepared confirmation');
   assert.ok(runnerWorkers===undefined||runnerWorkers===2&&prepared&&service==='trailbase'&&runnerProfile==='8cpu-48g'&&runnerGc===150);
-  assert.ok(payloadCacheBytes===undefined||[320*1024*1024,480*1024*1024].includes(payloadCacheBytes)&&prepared&&['trailbase','pocketbase'].includes(service)&&['8cpu-48g','9cpu-48g'].includes(runnerProfile)&&runnerGc===150&&!runnerWorkers);
+  assert.ok(payloadCacheBytes===undefined||[320*1024*1024,480*1024*1024].includes(payloadCacheBytes)&&prepared&&['trailbase','pocketbase','supabase'].includes(service)&&['8cpu-48g','9cpu-48g'].includes(runnerProfile)&&runnerGc===150&&!runnerWorkers);
   assert.ok(!diagnosticProfile||prepared&&service==='trailbase'&&runnerProfile==='8cpu-48g'&&runnerGc===150&&!runnerWorkers);
   const gcEnvironment=runnerGcEnvironment(runnerProfile,runnerGc);
-  assert.ok(runnerGc===undefined||prepared&&['trailbase','pocketbase'].includes(service),'GC tuning requires prepared sessions');
+  assert.ok(runnerGc===undefined||prepared&&['trailbase','pocketbase','supabase'].includes(service),'GC tuning requires prepared sessions');
   assert.ok(!prepared||authMode===null&&boundedRunner&&['4cpu-16g','6cpu-16g','7cpu-16g','7cpu-20g','8cpu-48g','9cpu-48g'].includes(runnerProfile)&&backendMemoryStopFraction===0.85,'Prepared sessions require the normal bounded single-point profile');
-  const authCheck=authMode!==null,bundle=authCheck?'auth':service==='trailbase'?'social-trailbase':'social',path=fixturePath,id=directory.split('/').at(-1);
+  const authCheck=authMode!==null,bundle=authCheck?'auth':service==='trailbase'?'social-trailbase':service==='supabase'?'social-supabase':'social',path=fixturePath,id=directory.split('/').at(-1);
   assert.equal(fixture.status,'ready','Baseline is partial/used: reset/reseed before every trial');
   assert.deepEqual(fixture.config,config);
   capture('npm',['run','build']);
@@ -60,7 +62,7 @@ export async function runWorkload({directory,config,configPath,fixture,baseline,
   const payloadPath=`${directory}/payload-cache.json`;
   const payloadCache=prepared?{file:'payload-cache.json',...await writePayloadCache(payloadPath,config,signal,payloadCacheBytes)}:null;
   if(prepared)assert.equal(hash(payloadPath),payloadCache.sha256,'Payload preparation hash mismatch');
-  json(`${directory}/manifest.json`,{backendMemoryStopFraction,...(prepared?{payloadCache}:{}),...(runnerGc?{runnerGc,runnerGcEnvironment:gcEnvironment}:{}),...(runnerWorkers?{runnerWorkers,workerMemorySoftGiB:18,workerGoProcessors:4}:{}),...(diagnosticProfile?{diagnosticProfile:true,capacityEligible:false,profilingOverhead:true,profilingEnvironment:{GODEBUG:'gctrace=1'}}:{}),kind:authCheck?'native-sdk-auth-correctness':prepared?'prepared-session-fixed-vu-exploratory':'fixed-vu-exploratory',...(prepared?{workloadVersion:config.version,gateProtocol:'loopback-prepared-v1',actionClock:'explicit-action-start-v2',authPreparation:{...config.authPreparation,concurrency:1,retries:0},applicationClock:'common-release',nativeTokenClock:'original-preparation-login'}:{}),...(authCheck?{mode:authMode}:{}),...(budget?{runnerBudget:budget,measurementPurpose:prepared?'prepared-session-application-point':'full-workload-generator-sizing',...(runnerProfile?{runnerProfile,hostSafety:true}:{})}:{}),...runtime,config,hashes:{...runtime.hashes,[`dist/${bundle}.js`]:hash(`dist/${bundle}.js`),...(prepared?{[payloadPath]:payloadCache.sha256}:{})},fixtureHash:hash(path),preparationMethod:fixture.preparationMethod,seedSeconds:fixture.seedSeconds,preparation:fixture.preparation,baseline});
+  json(`${directory}/manifest.json`,{backendMemoryStopFraction,...(prepared&&service==='supabase'?{finalSignoutPolicy:{phase:'cleanup',ratePerSecond:config.authPreparation.loginsPerSecond,allowanceSeconds:cleanupAllowance(config,'supabase'),applicationWindowUnchanged:true}}:{}),...(prepared?{payloadCache}:{}),...(runnerGc?{runnerGc,runnerGcEnvironment:gcEnvironment}:{}),...(runnerWorkers?{runnerWorkers,workerMemorySoftGiB:18,workerGoProcessors:4}:{}),...(diagnosticProfile?{diagnosticProfile:true,capacityEligible:false,profilingOverhead:true,profilingEnvironment:{GODEBUG:'gctrace=1'}}:{}),kind:authCheck?'native-sdk-auth-correctness':prepared?'prepared-session-fixed-vu-exploratory':'fixed-vu-exploratory',...(prepared?{workloadVersion:config.version,gateProtocol:'loopback-prepared-v1',actionClock:'explicit-action-start-v2',authPreparation:{...config.authPreparation,concurrency:1,retries:0},applicationClock:'common-release',nativeTokenClock:'original-preparation-login'}:{}),...(authCheck?{mode:authMode}:{}),...(budget?{runnerBudget:budget,measurementPurpose:prepared?'prepared-session-application-point':'full-workload-generator-sizing',...(runnerProfile?{runnerProfile,hostSafety:true}:{})}:{}),...runtime,config,hashes:{...runtime.hashes,[`dist/${bundle}.js`]:hash(`dist/${bundle}.js`),...(prepared?{[payloadPath]:payloadCache.sha256}:{})},fixtureHash:hash(path),preparationMethod:fixture.preparationMethod,seedSeconds:fixture.seedSeconds,preparation:fixture.preparation,baseline});
   json(`${directory}/fixtures.json`,{recipe:config.dataset,seed:config.seed,baseline,fixtureHash:hash(path)});
   json(`${directory}/config.json`,config);
   // Consume before launching: crashes/failed runs must never silently reuse a mutated baseline.
@@ -124,7 +126,7 @@ export async function runWorkload({directory,config,configPath,fixture,baseline,
   const workload=authCheck?summarizeAuth(summary,config.vus,authMode):summarize(summary,config,evidence);
   let interrupted=interruption(),end=null;
   const skipEnd=interrupted||prepared&&(!workload.valid||!evidence.valid||executionFailed||!cleanupVerified||safetyStop||!resources.valid||![0,99].includes(status));
-  if(!skipEnd)try{end={...await endCounts(fixture,signal,createClient),storageBytes:storageBytes(service,dataPath)};}
+  if(!skipEnd)try{end={...await endCounts(fixture,signal,createClient,fixtureAuth),storageBytes:storageBytes(service,dataPath)};}
   catch(error){if(!prepared)throw error;executionFailed=true;interrupted=interruption();}
   const unchanged=!authCheck||(end?.posts===start.posts&&end?.likes===start.likes);
   let profiling=null;

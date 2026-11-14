@@ -1,0 +1,113 @@
+name: baas-bench-2-pilot
+x-backend: &backend
+  cgroup_parent: ${SUPABASE_CGROUP:?owned aggregate cgroup required}
+  restart: 'no'
+  cpus: 1
+  mem_limit: 4g
+  memswap_limit: 4g
+  ulimits:
+    nofile: {soft: 16384, hard: 16384}
+  logging:
+    driver: json-file
+    options: {max-size: 10m, max-file: '2'}
+services:
+  db:
+    <<: *backend
+    image: supabase/postgres:17.6.1.136@sha256:f371b5f3f2ac0a05703f33d6e6134515fb2498cab708fb948a0aeb7481467c00
+    environment:
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?private deployment password required}
+      POSTGRES_DB: postgres
+      JWT_EXP: '3600'
+    volumes:
+      - supabase-data:/var/lib/postgresql/data
+      - ./backends/supabase/99-roles.sql:/docker-entrypoint-initdb.d/init-scripts/99-roles.sql:ro
+    command: [postgres, -c, config_file=/etc/postgresql/postgresql.conf, -c, log_min_messages=warning]
+    healthcheck:
+      test: [CMD, pg_isready, -U, postgres, -h, localhost]
+      interval: 2s
+      timeout: 2s
+      retries: 60
+  auth:
+    <<: *backend
+    image: supabase/gotrue:v2.197.0@sha256:1736a63078f5922b198c4cbe50f80ab9a2d3b54fe8b7b6cfb2e9dc5dbbc12c6b
+    depends_on:
+      db: {condition: service_healthy}
+    environment:
+      GOTRUE_API_HOST: 0.0.0.0
+      GOTRUE_API_PORT: '9999'
+      API_EXTERNAL_URL: http://127.0.0.1:4000/auth/v1
+      GOTRUE_DB_DRIVER: postgres
+      GOTRUE_DB_DATABASE_URL: postgres://supabase_auth_admin:${POSTGRES_PASSWORD}@db:5432/postgres
+      GOTRUE_SITE_URL: http://127.0.0.1:4000
+      GOTRUE_DISABLE_SIGNUP: 'false'
+      GOTRUE_JWT_ADMIN_ROLES: service_role
+      GOTRUE_JWT_AUD: authenticated
+      GOTRUE_JWT_DEFAULT_GROUP_NAME: authenticated
+      GOTRUE_JWT_EXP: '3600'
+      GOTRUE_JWT_SECRET: ${JWT_SECRET:?private signing key required}
+      GOTRUE_EXTERNAL_EMAIL_ENABLED: 'true'
+      GOTRUE_MAILER_AUTOCONFIRM: 'true'
+      GOTRUE_RATE_LIMIT_EMAIL_SENT: '1000000'
+      GOTRUE_RATE_LIMIT_VERIFY: '1000000'
+      GOTRUE_RATE_LIMIT_TOKEN_REFRESH: '1000000'
+      GOTRUE_RATE_LIMIT_SIGN_IN_SIGN_UP: '1000000'
+      GOTRUE_MAILER_ADMIN_EMAIL: bench@example.com
+    healthcheck:
+      test: [CMD, wget, --no-verbose, --tries=1, --spider, 'http://localhost:9999/health']
+      interval: 2s
+      timeout: 2s
+      retries: 60
+  rest:
+    <<: *backend
+    image: postgrest/postgrest:v14.18@sha256:c7cd7e265a85b05248abf53f4473fcec7e327c282d0bd0cf60f1551996d09fcf
+    depends_on:
+      db: {condition: service_healthy}
+    environment:
+      PGRST_DB_URI: postgres://authenticator:${POSTGRES_PASSWORD}@db:5432/postgres
+      PGRST_DB_SCHEMAS: public
+      PGRST_DB_ANON_ROLE: anon
+      PGRST_JWT_SECRET: ${JWT_SECRET}
+      PGRST_ADMIN_SERVER_PORT: '3001'
+      PGRST_SERVER_HOST: 0.0.0.0
+    healthcheck:
+      test: [CMD, postgrest, --ready]
+      interval: 2s
+      timeout: 2s
+      retries: 60
+  supabase:
+    <<: *backend
+    image: envoyproxy/envoy:v1.39.6@sha256:1fde8efee875e4e4f6a39a90fe49d9338e1caacce5762034ef9fb4bbb9ad6aed
+    depends_on:
+      auth: {condition: service_healthy}
+      rest: {condition: service_healthy}
+    command: [envoy, -c, /etc/envoy/envoy.yaml, --concurrency, '1', --log-level, warning]
+    ports: ['127.0.0.1:4000:4000']
+    volumes:
+      - ./backends/supabase/envoy.yaml:/etc/envoy/envoy.yaml:ro
+      # Expose the parent counters to the existing backend monitor: all four services count.
+      - /sys/fs/cgroup/${SUPABASE_CGROUP}:/sys/fs/cgroup:ro
+      - supabase-data:/data:ro
+    healthcheck:
+      test: [CMD-SHELL, "timeout 1 bash -c '</dev/tcp/127.0.0.1/4000' && timeout 1 bash -c '</dev/tcp/auth/9999' && timeout 1 bash -c '</dev/tcp/rest/3000' && timeout 1 bash -c '</dev/tcp/db/5432'"]
+      interval: 2s
+      timeout: 5s
+      retries: 60
+  runner:
+    build: {context: ., dockerfile: runner/Dockerfile}
+    profiles: [test]
+    cpus: 0
+    cpu_period: 100000
+    cpu_quota: 900000
+    mem_limit: 48g
+    memswap_limit: 48g
+    environment:
+      BASE_URL: http://supabase:4000
+      BENCH_BACKEND: supabase
+      SUPABASE_ANON_KEY: ${ANON_KEY:?public API key required}
+    volumes:
+      - ./dist:/scripts:ro
+      - ./results:/results
+    depends_on:
+      supabase: {condition: service_healthy}
+volumes:
+  supabase-data:

@@ -207,6 +207,17 @@ async function collect(directory, backendId, runnerName, runnerCgroupFile, watch
       runnerId = state.id;
     }
     if (state.status === 'created') { record('discovery', role, state); return; }
+    if(role==='backend'&&process.env.SUPABASE_BACKEND_IDS){
+      const childIds=JSON.parse(process.env.SUPABASE_BACKEND_IDS);
+      try {
+        const {stdout}=await docker(['inspect',...childIds]);
+        state.aggregateScope='supabase-api-stack';
+        state.children=JSON.parse(stdout).map(s=>({id:s.Id,startedAt:s.State.StartedAt,restarts:s.RestartCount,running:s.State.Running,oomKilled:s.State.OOMKilled,health:s.State.Health?.Status,cgroupParent:s.HostConfig.CgroupParent}));
+      } catch(error) {
+        record('error',role,null,{operation:'aggregate_children',exitCode:error.code??null});
+        return;
+      }
+    }
     record('lifecycle', role, state);
     if (capture.attempts.length > 1) record('inspection_recovered', role, null, { operation: 'inspect', capture });
     if (role === 'runner' && state.status === 'exited' && state.running === false) terminalRunner = state;

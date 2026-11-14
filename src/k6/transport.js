@@ -1,3 +1,4 @@
+import {FetchHeaders} from './headers.js';
 // esbuild keeps the supplied CommonJS loader lazy. Most TrailBase VUs never
 // need the full parser. On first access install the actual constructor, so
 // unusual URLs, static methods and SDK callers keep core-js's exact behavior.
@@ -41,6 +42,7 @@ class TransportResponse {
     this.ok = response.status >= 200 && response.status < 300;
     this.statusText = response.status_text;
     this.body = response.body ?? '';
+    this.headers = new FetchHeaders(response.headers ?? {});
   }
   async text() { return this.body; }
   async json() { return JSON.parse(this.body); }
@@ -78,7 +80,7 @@ export function createTransport(baseUrl, request) {
           normalizedPath = pathname;
         } else {
           const url = new URL(path, origin);
-          if (!path.startsWith('/api/') || url.origin !== origin || !url.pathname.startsWith('/api/')) {
+          if (!['/api/','/auth/v1/','/rest/v1/'].some(prefix=>path.startsWith(prefix)&&url.pathname.startsWith(prefix)) || url.origin !== origin) {
             throw new Error('Expected a same-origin API path');
           }
           href = url.href;
@@ -92,7 +94,7 @@ export function createTransport(baseUrl, request) {
         }
       }
       const response = await request(init.method ?? 'GET', target.href, init.body ?? null, {
-        headers: init.headers ?? {}, timeout: '10s', redirects: 0, responseType: 'text', tags: { name: target.name },
+        headers: init.headers?.forEach ? Object.fromEntries(init.headers) : init.headers ?? {}, timeout: '10s', redirects: 0, responseType: 'text', tags: { name: target.name },
       });
       if (response.status === 0) {
         throw new TypeError(`HTTP transport failed (k6 error ${response.error_code})`);

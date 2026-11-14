@@ -62,6 +62,7 @@ export function campaignResourceStop(row, runnerMemoryBytes=2147483648, backendM
   assert.ok(backendMemoryStopFraction===0.85||runnerMemoryBytes===17179869184, 'Backend95 requires the explicit16GiB profile');
   if(row.type==='error')return 'invalid_telemetry';
   if(row.type==='lifecycle'){
+    if(row.source.aggregateScope==='supabase-api-stack'&&(!Array.isArray(row.source.children)||row.source.children.length!==4||row.source.children.some(c=>!c.running||c.oomKilled||c.restarts!==0||c.health!=='healthy')))return 'backend_stack_instability';
     if(row.source.oomKilled)return `${row.role}_oom`;
     if(row.role==='backend'&&(!row.source.running||row.source.health!=='healthy'))return 'backend_health';
     if(row.role==='runner'&&row.source.status==='exited'&&![0,99].includes(row.source.exitCode))return 'runner_abnormal_exit';

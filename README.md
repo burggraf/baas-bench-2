@@ -4,6 +4,9 @@ API-only, SDK-based capacity benchmarks for self-hosted backend-as-a-service sys
 
 **Latest M1 Max result:** TrailBase passed both comparable **10,000-user** runs. At 10,300 users, one run passed and one missed latency targets; both 10,625-user runs missed latency targets. The repeated short-run score is 10,000 users. An exact maximum and long-duration capacity remain unverified.
 
+**Supabase required API stack: 2,000 users** is the highest passing short observation (79,049 actions, zero failures); the user stopped discovery without endpoint repeats or soak. [Published results and exact stack scope](reports/supabase-api-2026-11/REPORT.md). This uses the same one-CPU/four-GiB budget and full 15,000-account recipe as the other M1 Max results. Convex is the next backend under implementation.
+
+
 The backend used **1 CPU / 4 GiB**; the generator used **9 CPUs / 48 GiB** on a 10-core, 64-GiB M1 Max. See [the current generator settings and result](#m1-max-generator-settings-and-result) below. Older milestones in this README describe their original configurations.
 
 **Foundation milestone: API-only fixtures, exploratory weighted workload, observability/recovery, fresh-deployment logical baseline proof, verified fresh-deployment 50- and 100-user sizing pilots and separate real-TTL SDK authentication verification—not capacity certification.** TrailBase conformance and the stateful workload use **17% likes / 5% unlikes**. Two-user natural refresh/continuity and a separate partial local SDK read calibration are verified; neither resource observations nor synthetic reads certify full generator headroom. The bounded local discovery controller is implemented/tested; its first 1,000-user campaign stopped on runner memory safety before measurement. Repeated performance certification and soak remain deferred.
@@ -674,3 +677,19 @@ Optional investigation modes remain available:
 - `--diagnostic-profile` captures phase-aligned native CPU, heap, allocation, runtime and GC evidence on a single-worker eight-CPU, 48-GiB, GC150 prepared 10,000-user point (or smoke), optionally with `--payload-cache=320m`. The diagnostic listener binds to loopback inside the runner and no collection is forced. Profiling overhead remains within the assigned budget. These runs always have `capacityEligible: false`; they cannot become a passing capacity score.
 
 Raw reports, profiles, generated bundles, caches, private fixtures and per-run launch scripts stay in ignored `results/`, `dist/` and `.fixtures/` directories. They are local evidence, absent from a fresh clone. Source, authored configurations and regression fixtures are published so new runs can regenerate their own artifacts.
+
+## Supabase required-API-stack benchmark
+
+The Supabase app now implements the same seven-action workload using native Auth, PostgREST, PostgreSQL RLS and the official JavaScript SDK. The pinned native ARM64 API stack consists of Postgres/Auth/PostgREST/Envoy; optional Studio, Realtime, Storage, Functions, Analytics and Pooler are excluded. All four tested services share **one CPU / four GiB / no swap** in an enforced parent cgroup, with aggregate telemetry and per-service health/restart checks. This is a constrained API-stack comparison, below Supabase's documented two-core full-stack minimum, not a full-product sizing recommendation.
+
+Native SDK/Auth/ACL/fixture/prepared-workload smoke and cancellation/shutdown tests pass, along with 319 unit tests and a real two-container aggregate-limit proof. No Supabase capacity score is established merely by those checks. The full campaign uses fresh API-seeded 15,000-account datasets, the same nine-CPU/48-GiB generator and 30/60/120-second phases, doubling through 1,000/2,000/4,000/8,000/15,000 until failure or a guard stop, then refining and repeating the endpoints. A pass at 15,000 is a dataset ceiling, not a proven maximum.
+
+```sh
+npm ci
+npm run build
+docker compose build runner
+npm run test:supabase
+node scripts/supabase-campaign.js
+```
+
+The campaign creates a new ignored `results/supabase-campaign-*/` directory with a live `status.json`, a readable `REPORT.md` and individual original point reports; isolated private workspaces and volumes are retained. Native application schema provisioning is the only administrative SQL path; fixtures, workload, checks and cleanup use native SDK/API calls without a VU service-role key. Read the [deployment scope, credentials, resource enforcement and reproduction notes](backends/supabase/README.md) before starting another campaign. Do not overlap it with an active benchmark.

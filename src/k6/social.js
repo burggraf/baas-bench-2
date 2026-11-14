@@ -1,4 +1,6 @@
+import {cleanupAllowance,cleanupDelay} from '../prepared-cleanup.js';
 import http from 'k6/http';
+import {WebSocket} from 'k6/websockets';
 import encoding from 'k6/encoding';
 import { sleep } from 'k6';
 import exec from 'k6/execution';
@@ -7,6 +9,8 @@ import { Counter, Rate, Trend } from 'k6/metrics';
 import { createSearchParamsConstructor } from './search-params.js';
 import { initClient } from 'trailbase';
 import { pocketbaseClient } from '../pocketbase.js';
+import { supabaseClient } from '../supabase.js';
+import {FetchHeaders} from './headers.js';
 import { createTransport, installURLPolyfill } from './transport.js';
 import { createAtob } from '../base64.js';
 import { actions, validateConfig, random, chooseAction, preparedSchedule, preparedTokenTiming, createPreparedClock } from '../workload.js';
@@ -19,6 +23,7 @@ const loadSearchParams = () => loadURLDependency(() => require('core-js-pure/act
 globalThis.URLSearchParams = __ENV.BENCH_BACKEND === 'trailbase'
   ? createSearchParamsConstructor(loadSearchParams)
   : loadSearchParams();
+if(__ENV.BENCH_BACKEND==='supabase'){globalThis.Headers=FetchHeaders;globalThis.WebSocket=WebSocket;}
 globalThis.atob = createAtob((value, format) => encoding.b64decode(value, format));
 const config = validateConfig(JSON.parse(open('/config/run.json')));
 const prepared = config.version === 'social-prepared-v1';
@@ -83,7 +88,7 @@ if (prepared) {
 export const options = {
   scenarios: { social: prepared ? {
     executor: 'per-vu-iterations', vus: config.vus, iterations: 1,
-    maxDuration: `${config.authPreparation.timeoutSeconds + config.rampSeconds + config.warmupSeconds + config.measurementSeconds + 32}s`, gracefulStop: '0s',
+    maxDuration: `${config.authPreparation.timeoutSeconds + config.rampSeconds + config.warmupSeconds + config.measurementSeconds + 32 + cleanupAllowance(config,__ENV.BENCH_BACKEND)}s`, gracefulStop: '0s',
   } : {
     executor: 'ramping-vus', startVUs: 0,
     stages: [
@@ -141,9 +146,9 @@ export default async function () {
     // Transport has already validated and normalized this pathname. Reading
     // it avoids loading the full URL parser just to label login/refresh calls.
     const pathname = params.tags.name;
-    if (pathname.startsWith('/api/auth/') || /^\/api\/collections\/users\/auth-/.test(pathname)) {
+    if (pathname.startsWith('/api/auth/') || /^\/api\/collections\/users\/auth-/.test(pathname) || pathname.startsWith('/auth/v1/')) {
       const nativeOperation = pathname.split('/').at(-1);
-      const operation = ({ 'auth-with-password': 'login', 'auth-refresh': 'refresh' })[nativeOperation] ?? nativeOperation;
+      const operation = pathname.startsWith('/auth/v1/token') ? (String(body).includes('refresh_token')?'refresh':'login') : ({ 'auth-with-password': 'login', 'auth-refresh': 'refresh' })[nativeOperation] ?? nativeOperation;
       authHttp.add(result.timings.duration, { operation, phase: requestPhase });
       authHttpFailed.add(result.status < 200 || result.status >= 300, { operation, phase: requestPhase });
       if (operation === 'refresh') refreshes.add(1, { phase: requestPhase });
@@ -153,11 +158,12 @@ export default async function () {
   };
   const origin = __ENV.BASE_URL ?? 'http://trailbase:4000';
   const transport = createTransport(origin, request);
-  const client = __ENV.BENCH_BACKEND === 'pocketbase' ? pocketbaseClient(origin, (url, init) => {
+  const sdkFetch = (url, init) => {
     const target = new URL(url);
     if (target.origin !== origin) throw new Error('Unexpected SDK origin');
     return transport.fetch(target.pathname + target.search, init);
-  }) : initClient(undefined, { transport });
+  };
+  const client=__ENV.BENCH_BACKEND==='supabase'?supabaseClient(origin,sdkFetch,__ENV.SUPABASE_ANON_KEY):__ENV.BENCH_BACKEND==='pocketbase'?pocketbaseClient(origin,sdkFetch):initClient(undefined,{transport});
   const auth = async operation => {
     const started = Date.now(); let success = false;
     if (prepared && operation === 'login') loginAttempts.add(1, {phase:currentPhase});
@@ -273,6 +279,7 @@ export default async function () {
   } finally {
     if (prepared && normalCompletion && entered) lifecycle.add(ordinal,{event:'completed'});
     currentPhase = 'cleanup';
+    if(prepared&&normalCompletion&&applicationStart!==null&&__ENV.BENCH_BACKEND==='supabase')sleep(cleanupDelay(config,applicationStart,ordinal,clockNow(),__ENV.BENCH_BACKEND));
     if (client.user()) { try { await auth('logout'); } catch { /* Recorded by auth_failed; no credential output. */ } }
     finished.add(1); done = true;
   }

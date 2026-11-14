@@ -29,9 +29,12 @@
     "pilot:up": "docker compose build trailbase runner && docker compose up -d --wait trailbase",
     "pilot:node": "docker compose run --rm runner node scripts/conformance.js",
     "pilot:conformance": "node scripts/run-k6.js",
-    "pilot:down": "docker compose down"
+    "pilot:down": "docker compose down",
+    "test:supabase": "node --test --test-concurrency=1 tests/supabase.integration.js",
+    "supabase:campaign": "npm run build && docker compose build runner && node scripts/supabase-campaign.js"
   },
   "dependencies": {
+    "@supabase/supabase-js": "2.119.0",
     "core-js-pure": "3.51.0",
     "pocketbase": "0.28.1",
     "trailbase": "0.14.3"

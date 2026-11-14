@@ -28,7 +28,7 @@ export const capture = (command, args) => execFileSync(command, args, { encoding
 export const hash = path => createHash('sha256').update(readFileSync(path)).digest('hex');
 
 export function runtimeManifest(paths, { service = 'trailbase', executable = '/app/trail', sdk = 'trailbase' } = {}) {
-  assert.ok(['trailbase', 'pocketbase'].includes(service));
+  assert.ok(['trailbase', 'pocketbase', 'supabase'].includes(service));
   const backendId = capture('docker', ['compose', 'ps', '-q', service]);
   assert.ok(backendId, 'Start the pilot first: npm run pilot:up');
   const [inspection] = JSON.parse(capture('docker', ['inspect', backendId]));

@@ -1,0 +1,1182 @@
+{
+  "backend": "Supabase required API stack",
+  "date": "2026-11-14",
+  "kind": "short-run-exploratory-capacity-search",
+  "stoppedAtUserRequest": true,
+  "reportedScoreUsers": 2000,
+  "scoreMeaning": "Highest passing short observation; no endpoint repeats or soak",
+  "endpointRepeats": false,
+  "soak": false,
+  "versions": {
+    "upstreamCommit": "b046f1257110f6ac9c7fefe820bfac3ff88a3f38",
+    "officialSdk": "2.119.0",
+    "images": {
+      "supabase/postgres:17.6.1.136": {
+        "digest": "supabase/postgres@sha256:f371b5f3f2ac0a05703f33d6e6134515fb2498cab708fb948a0aeb7481467c00",
+        "architecture": "arm64",
+        "imageId": "sha256:f371b5f3f2ac0a05703f33d6e6134515fb2498cab708fb948a0aeb7481467c00"
+      },
+      "supabase/gotrue:v2.197.0": {
+        "digest": "supabase/gotrue@sha256:1736a63078f5922b198c4cbe50f80ab9a2d3b54fe8b7b6cfb2e9dc5dbbc12c6b",
+        "architecture": "arm64",
+        "imageId": "sha256:1736a63078f5922b198c4cbe50f80ab9a2d3b54fe8b7b6cfb2e9dc5dbbc12c6b"
+      },
+      "postgrest/postgrest:v14.18": {
+        "digest": "postgrest/postgrest@sha256:c7cd7e265a85b05248abf53f4473fcec7e327c282d0bd0cf60f1551996d09fcf",
+        "architecture": "arm64",
+        "imageId": "sha256:c7cd7e265a85b05248abf53f4473fcec7e327c282d0bd0cf60f1551996d09fcf"
+      },
+      "envoyproxy/envoy:v1.39.6": {
+        "digest": "envoyproxy/envoy@sha256:1fde8efee875e4e4f6a39a90fe49d9338e1caacce5762034ef9fb4bbb9ad6aed",
+        "architecture": "arm64",
+        "imageId": "sha256:1fde8efee875e4e4f6a39a90fe49d9338e1caacce5762034ef9fb4bbb9ad6aed"
+      }
+    },
+    "profile": "Required API stack only; optional services excluded"
+  },
+  "backendBudget": {
+    "cpus": 1,
+    "memoryGiB": 4,
+    "swapBytes": 0,
+    "scope": "Postgres/Auth/PostgREST/Envoy in a shared parent cgroup"
+  },
+  "generatorBudget": {
+    "cpus": 9,
+    "memoryGiB": 48,
+    "gc": 150,
+    "softMemoryGiB": 36,
+    "payloadCacheMiB": 480
+  },
+  "dataset": {
+    "accounts": 15000,
+    "posts": 150000,
+    "likes": 150000
+  },
+  "workload": {
+    "version": "social-prepared-v1",
+    "admissionsPerSecond": 5,
+    "rampSeconds": 30,
+    "warmupSeconds": 60,
+    "measurementSeconds": 120,
+    "thinkSeconds": [
+      1,
+      5
+    ]
+  },
+  "observedBracket": {
+    "highestPassingUsers": 2000,
+    "lowestFailingUsers": 2500
+  },
+  "sourceHashes": {
+    "package-lock.json": "0440e7a12e919b37258216e9426e8b5f52108c674b4baa0d23f50a6a870fbbca",
+    "compose.supabase.yaml": "5845765f9407ae2efabed1a068411505aa3ec39ef813468a84a3096902a3c1e5",
+    "backends/supabase/versions.json": "ce073a6bea83329918342766c1f4086425dcee5ae869ca291fc926edb35fdd1b",
+    "backends/supabase/100-social.sql": "7f838fe907059bcb18f216ec79237a73cd02a637d1f5b50a51e0803eb1dc9688",
+    "backends/supabase/envoy.yaml": "1d2ee5e0431d9d81d5412553a74538e3b2ec63e7d9e52125a043b71dbc4857c5",
+    "backends/supabase/99-roles.sql": "2fe18ef2443bee1896d5207ef625d4e4e728a82adc92ee8632f75f66468d0c4c",
+    "src/supabase.js": "5f517ff5ab41eb28e0199a506ae9649c53338ad9a0ef2fe2d2b49feb271a427a",
+    "src/supabase-fixture-sessions.js": "6dff9a5d017cb980909fcfc84243c8f4430047b8a20eb9753569cdba4c4d8e76",
+    "src/fixtures.js": "15851f8ecf43e18fadd1df0827d91ff396b77f4706a235609baa9900a8ffd2eb",
+    "src/fixture-auth.js": "15ab9aadc50920e11a04dfad04b587051d5e7464567e46a7d08f41ffa013efd3",
+    "src/prepared-cleanup.js": "43205f03f74338d575b616f789af788d695b7861a9a0c777aa571f7d39b73ed9",
+    "src/k6/social.js": "d243c4d1150894f51079640ec51403f75f4c209ca6b64767acaff4203fa2cf76",
+    "src/k6/transport.js": "5762e0645444ac48e806393a21696882b6178f6cb58ad07797cf21a00c167824",
+    "src/k6/headers.js": "778c2e84d8e234cf7330525eee2ac6aa4a332367644abe7633f4f2e077d791ef",
+    "src/resources.js": "4ae942d765a73f6a688cb9c57994a8c73aec7406f49fab6c06512f95938d0bee",
+    "src/campaign.js": "4d31cbd190888525bb7a27308d44c0ef88657d74ec3eed538d26b4cd9f60a04f",
+    "scripts/supabase.js": "dd50f7e33d776d450d0fda74b57ed46fe5e17652c4fad4fa98c28679b533a044",
+    "scripts/supabase-deployment.js": "4160f083cfb2ef253e94bd7add2aa9b405c0441d30e67d450a0ccf152f4d84e2",
+    "scripts/supabase-campaign.js": "9704a701d9cf92121a746865e66b65c30e1fe3170bfbe6da15d6622f731c1503",
+    "scripts/monitor.js": "70d5f601798244a47323274238b1d86eb15b154afd3b4ef7cd9e14b625caea26",
+    "scripts/runtime.js": "4cf258540d6edbe013e2c8564bd3249bedec435215aa0ffdae1890f43d36c394",
+    "scripts/workload-run.js": "e188ef024908d5dd432bf794b6846637b967b089d15289257b5a813b7c371acd",
+    "scripts/build.js": "a59529d676473aa2ab13ea348d7fd8662399c49f92e58fb2ae40deb9f3928e19"
+  },
+  "points": [
+    {
+      "users": 1000,
+      "verdict": "pass",
+      "logicalActions": 39987,
+      "logicalFailures": 0,
+      "shutdownVerified": true,
+      "controllerExit": 0,
+      "workloadValid": true,
+      "resourcesValid": true,
+      "measuredGeneratorCpuPressure": false,
+      "generatorHeadroom": "unverified",
+      "participation": {
+        "configuredUsers": 1000,
+        "measuredUsers": 1000,
+        "completedUsers": 1000,
+        "missingMeasurementUsers": 0,
+        "missingCompletions": 0,
+        "drainMilliseconds": 9
+      },
+      "actions": {
+        "listPublic": {
+          "requested": 13959,
+          "count": 13959,
+          "successes": 13959,
+          "failures": 0,
+          "observedPercent": 34.9088453747468,
+          "configuredPercent": 35,
+          "p95Ms": 7,
+          "p99Ms": 11,
+          "slo": "pass"
+        },
+        "listOwn": {
+          "requested": 5919,
+          "count": 5919,
+          "successes": 5919,
+          "failures": 0,
+          "observedPercent": 14.802310750994074,
+          "configuredPercent": 15,
+          "p95Ms": 7,
+          "p99Ms": 11,
+          "slo": "pass"
+        },
+        "read": {
+          "requested": 6052,
+          "count": 6052,
+          "successes": 6052,
+          "failures": 0,
+          "observedPercent": 15.134918848625803,
+          "configuredPercent": 15,
+          "p95Ms": 8,
+          "p99Ms": 12,
+          "slo": "pass"
+        },
+        "create": {
+          "requested": 2028,
+          "count": 2028,
+          "successes": 2028,
+          "failures": 0,
+          "observedPercent": 5.07164828569285,
+          "configuredPercent": 5,
+          "p95Ms": 9,
+          "p99Ms": 19,
+          "slo": "pass"
+        },
+        "like": {
+          "requested": 6929,
+          "count": 6929,
+          "successes": 6929,
+          "failures": 0,
+          "observedPercent": 17.328131642783905,
+          "configuredPercent": 17,
+          "p95Ms": 16,
+          "p99Ms": 31,
+          "slo": "pass"
+        },
+        "unlike": {
+          "requested": 1976,
+          "count": 1976,
+          "successes": 1976,
+          "failures": 0,
+          "observedPercent": 4.941606021957136,
+          "configuredPercent": 5,
+          "p95Ms": 10,
+          "p99Ms": 20,
+          "slo": "pass"
+        },
+        "edit": {
+          "requested": 3124,
+          "count": 3124,
+          "successes": 3124,
+          "failures": 0,
+          "observedPercent": 7.81253907519944,
+          "configuredPercent": 8,
+          "p95Ms": 10,
+          "p99Ms": 24.76999999999997,
+          "slo": "pass"
+        }
+      },
+      "authenticationEvidence": {
+        "login": {
+          "state": "not_exercised",
+          "attempts": 0,
+          "successes": 0,
+          "failures": 0
+        },
+        "refresh": {
+          "state": "not_exercised",
+          "requests": 0
+        },
+        "phases": {
+          "preparation": {
+            "login": {
+              "attempts": 1000,
+              "successes": 1000,
+              "failures": 0,
+              "p95Ms": 103,
+              "p99Ms": 119.00999999999999
+            },
+            "logout": {
+              "attempts": 0,
+              "failures": 0
+            },
+            "refresh": {
+              "requests": 0,
+              "failures": 0
+            }
+          },
+          "ramp": {
+            "login": {
+              "attempts": 0,
+              "successes": 0,
+              "failures": 0,
+              "p95Ms": null,
+              "p99Ms": null
+            },
+            "logout": {
+              "attempts": 0,
+              "failures": 0
+            },
+            "refresh": {
+              "requests": 0,
+              "failures": 0
+            }
+          },
+          "warmup": {
+            "login": {
+              "attempts": 0,
+              "successes": 0,
+              "failures": 0,
+              "p95Ms": null,
+              "p99Ms": null
+            },
+            "logout": {
+              "attempts": 0,
+              "failures": 0
+            },
+            "refresh": {
+              "requests": 0,
+              "failures": 0
+            }
+          },
+          "measurement": {
+            "login": {
+              "attempts": 0,
+              "successes": 0,
+              "failures": 0,
+              "p95Ms": null,
+              "p99Ms": null
+            },
+            "logout": {
+              "attempts": 0,
+              "failures": 0
+            },
+            "refresh": {
+              "requests": 0,
+              "failures": 0
+            }
+          },
+          "cleanup": {
+            "login": {
+              "attempts": 0,
+              "successes": 0,
+              "failures": 0,
+              "p95Ms": null,
+              "p99Ms": null
+            },
+            "logout": {
+              "attempts": 1000,
+              "failures": 0
+            },
+            "refresh": {
+              "requests": 0,
+              "failures": 0
+            }
+          }
+        }
+      },
+      "measurementSeconds": 120,
+      "measurementStartedAt": "2026-11-14T05:38:08.029Z",
+      "reportSha256": "b697017d97fb59da4ac3248617f34b3c2a4f983efabca7ccbb8c0509f9445b8c",
+      "resourceSummary": {
+        "backend": {
+          "peakCpuCores": 0.5704093968934284,
+          "peakMemoryBytes": 826458112,
+          "oomKillDelta": 0,
+          "oomDelta": 0,
+          "throttledUsecDelta": 939680
+        },
+        "runner": {
+          "peakCpuCores": 7.3141,
+          "peakMemoryBytes": 9088442368,
+          "oomKillDelta": 0,
+          "oomDelta": 0,
+          "throttledUsecDelta": 0
+        }
+      }
+    },
+    {
+      "users": 2000,
+      "verdict": "pass",
+      "logicalActions": 79049,
+      "logicalFailures": 0,
+      "shutdownVerified": true,
+      "controllerExit": 0,
+      "workloadValid": true,
+      "resourcesValid": true,
+      "measuredGeneratorCpuPressure": false,
+      "generatorHeadroom": "unverified",
+      "participation": {
+        "configuredUsers": 2000,
+        "measuredUsers": 2000,
+        "completedUsers": 2000,
+        "missingMeasurementUsers": 0,
+        "missingCompletions": 0,
+        "drainMilliseconds": 13
+      },
+      "actions": {
+        "listPublic": {
+          "requested": 27676,
+          "count": 27676,
+          "successes": 27676,
+          "failures": 0,
+          "observedPercent": 35.011195587546965,
+          "configuredPercent": 35,
+          "p95Ms": 185,
+          "p99Ms": 411,
+          "slo": "pass"
+        },
+        "listOwn": {
+          "requested": 11779,
+          "count": 11779,
+          "successes": 11779,
+          "failures": 0,
+          "observedPercent": 14.900884261660488,
+          "configuredPercent": 15,
+          "p95Ms": 176,
+          "p99Ms": 397,
+          "slo": "pass"
+        },
+        "read": {
+          "requested": 12014,
+          "count": 12014,
+          "successes": 12014,
+          "failures": 0,
+          "observedPercent": 15.198168224771976,
+          "configuredPercent": 15,
+          "p95Ms": 174.34999999999945,
+          "p99Ms": 382.7399999999998,
+          "slo": "pass"
+        },
+        "create": {
+          "requested": 3947,
+          "count": 3947,
+          "successes": 3947,
+          "failures": 0,
+          "observedPercent": 4.993105542132096,
+          "configuredPercent": 5,
+          "p95Ms": 207.69999999999982,
+          "p99Ms": 443.53999999999996,
+          "slo": "pass"
+        },
+        "like": {
+          "requested": 13461,
+          "count": 13461,
+          "successes": 13461,
+          "failures": 0,
+          "observedPercent": 17.028678414654202,
+          "configuredPercent": 17,
+          "p95Ms": 361,
+          "p99Ms": 796,
+          "slo": "pass"
+        },
+        "unlike": {
+          "requested": 3862,
+          "count": 3862,
+          "successes": 3862,
+          "failures": 0,
+          "observedPercent": 4.8855773001555995,
+          "configuredPercent": 5,
+          "p95Ms": 170.89999999999966,
+          "p99Ms": 389.39,
+          "slo": "pass"
+        },
+        "edit": {
+          "requested": 6310,
+          "count": 6310,
+          "successes": 6310,
+          "failures": 0,
+          "observedPercent": 7.982390669078673,
+          "configuredPercent": 8,
+          "p95Ms": 190,
+          "p99Ms": 443,
+          "slo": "pass"
+        }
+      },
+      "authenticationEvidence": {
+        "login": {
+          "state": "not_exercised",
+          "attempts": 0,
+          "successes": 0,
+          "failures": 0
+        },
+        "refresh": {
+          "state": "not_exercised",
+          "requests": 0
+        },
+        "phases": {
+          "preparation": {
+            "login": {
+              "attempts": 2000,
+              "successes": 2000,
+              "failures": 0,
+              "p95Ms": 103,
+              "p99Ms": 118
+            },
+            "logout": {
+              "attempts": 0,
+              "failures": 0
+            },
+            "refresh": {
+              "requests": 0,
+              "failures": 0
+            }
+          },
+          "ramp": {
+            "login": {
+              "attempts": 0,
+              "successes": 0,
+              "failures": 0,
+              "p95Ms": null,
+              "p99Ms": null
+            },
+            "logout": {
+              "attempts": 0,
+              "failures": 0
+            },
+            "refresh": {
+              "requests": 0,
+              "failures": 0
+            }
+          },
+          "warmup": {
+            "login": {
+              "attempts": 0,
+              "successes": 0,
+              "failures": 0,
+              "p95Ms": null,
+              "p99Ms": null
+            },
+            "logout": {
+              "attempts": 0,
+              "failures": 0
+            },
+            "refresh": {
+              "requests": 0,
+              "failures": 0
+            }
+          },
+          "measurement": {
+            "login": {
+              "attempts": 0,
+              "successes": 0,
+              "failures": 0,
+              "p95Ms": null,
+              "p99Ms": null
+            },
+            "logout": {
+              "attempts": 0,
+              "failures": 0
+            },
+            "refresh": {
+              "requests": 0,
+              "failures": 0
+            }
+          },
+          "cleanup": {
+            "login": {
+              "attempts": 0,
+              "successes": 0,
+              "failures": 0,
+              "p95Ms": null,
+              "p99Ms": null
+            },
+            "logout": {
+              "attempts": 2000,
+              "failures": 0
+            },
+            "refresh": {
+              "requests": 0,
+              "failures": 0
+            }
+          }
+        }
+      },
+      "measurementSeconds": 120,
+      "measurementStartedAt": "2026-11-14T08:06:41.066Z",
+      "reportSha256": "5199f3a638e0175a0ac72b9b26d4f414f976d3ed68970678990831bd0e558130",
+      "resourceSummary": {
+        "backend": {
+          "peakCpuCores": 1.022622929331032,
+          "peakMemoryBytes": 843325440,
+          "oomKillDelta": 0,
+          "oomDelta": 0,
+          "throttledUsecDelta": 18415657
+        },
+        "runner": {
+          "peakCpuCores": 8.7337,
+          "peakMemoryBytes": 21824606208,
+          "oomKillDelta": 0,
+          "oomDelta": 0,
+          "throttledUsecDelta": 440
+        }
+      }
+    },
+    {
+      "users": 4000,
+      "verdict": "slo_failure",
+      "logicalActions": 86676,
+      "logicalFailures": 2646,
+      "shutdownVerified": true,
+      "controllerExit": 1,
+      "workloadValid": true,
+      "resourcesValid": true,
+      "measuredGeneratorCpuPressure": false,
+      "generatorHeadroom": "unverified",
+      "participation": {
+        "configuredUsers": 4000,
+        "measuredUsers": 4000,
+        "completedUsers": 4000,
+        "missingMeasurementUsers": 0,
+        "missingCompletions": 0,
+        "drainMilliseconds": 2953
+      },
+      "actions": {
+        "listPublic": {
+          "requested": 30333,
+          "count": 30333,
+          "successes": 29458,
+          "failures": 875,
+          "observedPercent": 34.99584660113526,
+          "configuredPercent": 35,
+          "p95Ms": 3304,
+          "p99Ms": 3717,
+          "slo": "fail"
+        },
+        "listOwn": {
+          "requested": 12890,
+          "count": 12890,
+          "successes": 12504,
+          "failures": 386,
+          "observedPercent": 14.871475379574509,
+          "configuredPercent": 15,
+          "p95Ms": 3286.7499999999973,
+          "p99Ms": 3714.22,
+          "slo": "fail"
+        },
+        "read": {
+          "requested": 13041,
+          "count": 13041,
+          "successes": 12659,
+          "failures": 382,
+          "observedPercent": 15.045687387512114,
+          "configuredPercent": 15,
+          "p95Ms": 3125,
+          "p99Ms": 3590.2,
+          "slo": "fail"
+        },
+        "create": {
+          "requested": 4323,
+          "count": 4323,
+          "successes": 4211,
+          "failures": 112,
+          "observedPercent": 4.987539803405787,
+          "configuredPercent": 5,
+          "p95Ms": 3403.8999999999996,
+          "p99Ms": 3861.24,
+          "slo": "fail"
+        },
+        "like": {
+          "requested": 14757,
+          "count": 14757,
+          "successes": 14201,
+          "failures": 556,
+          "observedPercent": 17.02547417970372,
+          "configuredPercent": 17,
+          "p95Ms": 6004,
+          "p99Ms": 6574,
+          "slo": "fail"
+        },
+        "unlike": {
+          "requested": 4390,
+          "count": 4390,
+          "successes": 4256,
+          "failures": 134,
+          "observedPercent": 5.064839171166182,
+          "configuredPercent": 5,
+          "p95Ms": 3122.5499999999997,
+          "p99Ms": 3572.22,
+          "slo": "fail"
+        },
+        "edit": {
+          "requested": 6942,
+          "count": 6942,
+          "successes": 6741,
+          "failures": 201,
+          "observedPercent": 8.009137477502422,
+          "configuredPercent": 8,
+          "p95Ms": 3447.95,
+          "p99Ms": 3888.77,
+          "slo": "fail"
+        }
+      },
+      "authenticationEvidence": {
+        "login": {
+          "state": "not_exercised",
+          "attempts": 0,
+          "successes": 0,
+          "failures": 0
+        },
+        "refresh": {
+          "state": "not_exercised",
+          "requests": 0
+        },
+        "phases": {
+          "preparation": {
+            "login": {
+              "attempts": 4000,
+              "successes": 4000,
+              "failures": 0,
+              "p95Ms": 103,
+              "p99Ms": 117
+            },
+            "logout": {
+              "attempts": 0,
+              "failures": 0
+            },
+            "refresh": {
+              "requests": 0,
+              "failures": 0
+            }
+          },
+          "ramp": {
+            "login": {
+              "attempts": 0,
+              "successes": 0,
+              "failures": 0,
+              "p95Ms": null,
+              "p99Ms": null
+            },
+            "logout": {
+              "attempts": 0,
+              "failures": 0
+            },
+            "refresh": {
+              "requests": 0,
+              "failures": 0
+            }
+          },
+          "warmup": {
+            "login": {
+              "attempts": 0,
+              "successes": 0,
+              "failures": 0,
+              "p95Ms": null,
+              "p99Ms": null
+            },
+            "logout": {
+              "attempts": 0,
+              "failures": 0
+            },
+            "refresh": {
+              "requests": 0,
+              "failures": 0
+            }
+          },
+          "measurement": {
+            "login": {
+              "attempts": 0,
+              "successes": 0,
+              "failures": 0,
+              "p95Ms": null,
+              "p99Ms": null
+            },
+            "logout": {
+              "attempts": 0,
+              "failures": 0
+            },
+            "refresh": {
+              "requests": 0,
+              "failures": 0
+            }
+          },
+          "cleanup": {
+            "login": {
+              "attempts": 0,
+              "successes": 0,
+              "failures": 0,
+              "p95Ms": null,
+              "p99Ms": null
+            },
+            "logout": {
+              "attempts": 4000,
+              "failures": 0
+            },
+            "refresh": {
+              "requests": 0,
+              "failures": 0
+            }
+          }
+        }
+      },
+      "measurementSeconds": 120,
+      "measurementStartedAt": "2026-11-14T10:45:19.766Z",
+      "reportSha256": "c41184494aabe58f2d3f39d7a2148457cee9ee2fd09aae6893fcd7a4ded9c588",
+      "resourceSummary": {
+        "backend": {
+          "peakCpuCores": 1.0534815853812431,
+          "peakMemoryBytes": 1067847680,
+          "oomKillDelta": 0,
+          "oomDelta": 0,
+          "throttledUsecDelta": 127343763
+        },
+        "runner": {
+          "peakCpuCores": 8.7404,
+          "peakMemoryBytes": 34139021312,
+          "oomKillDelta": 0,
+          "oomDelta": 0,
+          "throttledUsecDelta": 0
+        }
+      }
+    },
+    {
+      "users": 3000,
+      "verdict": "slo_failure",
+      "logicalActions": 88233,
+      "logicalFailures": 0,
+      "shutdownVerified": true,
+      "controllerExit": 1,
+      "workloadValid": true,
+      "resourcesValid": true,
+      "measuredGeneratorCpuPressure": false,
+      "generatorHeadroom": "unverified",
+      "participation": {
+        "configuredUsers": 3000,
+        "measuredUsers": 3000,
+        "completedUsers": 3000,
+        "missingMeasurementUsers": 0,
+        "missingCompletions": 0,
+        "drainMilliseconds": 777
+      },
+      "actions": {
+        "listPublic": {
+          "requested": 30902,
+          "count": 30902,
+          "successes": 30902,
+          "failures": 0,
+          "observedPercent": 35.02317726927567,
+          "configuredPercent": 35,
+          "p95Ms": 1710,
+          "p99Ms": 1872,
+          "slo": "fail"
+        },
+        "listOwn": {
+          "requested": 13200,
+          "count": 13200,
+          "successes": 13200,
+          "failures": 0,
+          "observedPercent": 14.960388970113222,
+          "configuredPercent": 15,
+          "p95Ms": 1714,
+          "p99Ms": 1864,
+          "slo": "fail"
+        },
+        "read": {
+          "requested": 13378,
+          "count": 13378,
+          "successes": 13378,
+          "failures": 0,
+          "observedPercent": 15.162127548649599,
+          "configuredPercent": 15,
+          "p95Ms": 1594,
+          "p99Ms": 1751.2299999999998,
+          "slo": "fail"
+        },
+        "create": {
+          "requested": 4423,
+          "count": 4423,
+          "successes": 4423,
+          "failures": 0,
+          "observedPercent": 5.012863667788696,
+          "configuredPercent": 5,
+          "p95Ms": 1823,
+          "p99Ms": 1993.12,
+          "slo": "fail"
+        },
+        "like": {
+          "requested": 14983,
+          "count": 14983,
+          "successes": 14983,
+          "failures": 0,
+          "observedPercent": 16.981174843879273,
+          "configuredPercent": 17,
+          "p95Ms": 3139.899999999999,
+          "p99Ms": 3398,
+          "slo": "fail"
+        },
+        "unlike": {
+          "requested": 4363,
+          "count": 4363,
+          "successes": 4363,
+          "failures": 0,
+          "observedPercent": 4.944861899742727,
+          "configuredPercent": 5,
+          "p95Ms": 1593,
+          "p99Ms": 1758.76,
+          "slo": "fail"
+        },
+        "edit": {
+          "requested": 6984,
+          "count": 6984,
+          "successes": 6984,
+          "failures": 0,
+          "observedPercent": 7.915405800550815,
+          "configuredPercent": 8,
+          "p95Ms": 1830.8499999999997,
+          "p99Ms": 2003.1699999999998,
+          "slo": "fail"
+        }
+      },
+      "authenticationEvidence": {
+        "login": {
+          "state": "not_exercised",
+          "attempts": 0,
+          "successes": 0,
+          "failures": 0
+        },
+        "refresh": {
+          "state": "not_exercised",
+          "requests": 0
+        },
+        "phases": {
+          "preparation": {
+            "login": {
+              "attempts": 3000,
+              "successes": 3000,
+              "failures": 0,
+              "p95Ms": 103,
+              "p99Ms": 115.00999999999998
+            },
+            "logout": {
+              "attempts": 0,
+              "failures": 0
+            },
+            "refresh": {
+              "requests": 0,
+              "failures": 0
+            }
+          },
+          "ramp": {
+            "login": {
+              "attempts": 0,
+              "successes": 0,
+              "failures": 0,
+              "p95Ms": null,
+              "p99Ms": null
+            },
+            "logout": {
+              "attempts": 0,
+              "failures": 0
+            },
+            "refresh": {
+              "requests": 0,
+              "failures": 0
+            }
+          },
+          "warmup": {
+            "login": {
+              "attempts": 0,
+              "successes": 0,
+              "failures": 0,
+              "p95Ms": null,
+              "p99Ms": null
+            },
+            "logout": {
+              "attempts": 0,
+              "failures": 0
+            },
+            "refresh": {
+              "requests": 0,
+              "failures": 0
+            }
+          },
+          "measurement": {
+            "login": {
+              "attempts": 0,
+              "successes": 0,
+              "failures": 0,
+              "p95Ms": null,
+              "p99Ms": null
+            },
+            "logout": {
+              "attempts": 0,
+              "failures": 0
+            },
+            "refresh": {
+              "requests": 0,
+              "failures": 0
+            }
+          },
+          "cleanup": {
+            "login": {
+              "attempts": 0,
+              "successes": 0,
+              "failures": 0,
+              "p95Ms": null,
+              "p99Ms": null
+            },
+            "logout": {
+              "attempts": 3000,
+              "failures": 0
+            },
+            "refresh": {
+              "requests": 0,
+              "failures": 0
+            }
+          }
+        }
+      },
+      "measurementSeconds": 120,
+      "measurementStartedAt": "2026-11-14T13:20:01.583Z",
+      "reportSha256": "cd55dcd91e3e3d384a67cf24bf18251268c9c89bbcb3849131d5e17a7b0a6206",
+      "resourceSummary": {
+        "backend": {
+          "peakCpuCores": 1.031177848771006,
+          "peakMemoryBytes": 1091895296,
+          "oomKillDelta": 0,
+          "oomDelta": 0,
+          "throttledUsecDelta": 123698028
+        },
+        "runner": {
+          "peakCpuCores": 8.9449,
+          "peakMemoryBytes": 29203742720,
+          "oomKillDelta": 0,
+          "oomDelta": 0,
+          "throttledUsecDelta": 3857
+        }
+      }
+    },
+    {
+      "users": 2500,
+      "verdict": "slo_failure",
+      "logicalActions": 85519,
+      "logicalFailures": 40,
+      "shutdownVerified": true,
+      "controllerExit": 1,
+      "workloadValid": true,
+      "resourcesValid": true,
+      "measuredGeneratorCpuPressure": false,
+      "generatorHeadroom": "unverified",
+      "participation": {
+        "configuredUsers": 2500,
+        "measuredUsers": 2500,
+        "completedUsers": 2500,
+        "missingMeasurementUsers": 0,
+        "missingCompletions": 0,
+        "drainMilliseconds": 1547
+      },
+      "actions": {
+        "listPublic": {
+          "requested": 29898,
+          "count": 29898,
+          "successes": 29886,
+          "failures": 12,
+          "observedPercent": 34.960652018849615,
+          "configuredPercent": 35,
+          "p95Ms": 1288,
+          "p99Ms": 1589,
+          "slo": "fail"
+        },
+        "listOwn": {
+          "requested": 12747,
+          "count": 12747,
+          "successes": 12738,
+          "failures": 9,
+          "observedPercent": 14.905459605467792,
+          "configuredPercent": 15,
+          "p95Ms": 1302,
+          "p99Ms": 1599,
+          "slo": "fail"
+        },
+        "read": {
+          "requested": 13021,
+          "count": 13021,
+          "successes": 13018,
+          "failures": 3,
+          "observedPercent": 15.225856242472432,
+          "configuredPercent": 15,
+          "p95Ms": 1166,
+          "p99Ms": 1447,
+          "slo": "fail"
+        },
+        "create": {
+          "requested": 4311,
+          "count": 4311,
+          "successes": 4308,
+          "failures": 3,
+          "observedPercent": 5.040985044259171,
+          "configuredPercent": 5,
+          "p95Ms": 1392,
+          "p99Ms": 1728.3999999999999,
+          "slo": "fail"
+        },
+        "like": {
+          "requested": 14546,
+          "count": 14546,
+          "successes": 14536,
+          "failures": 10,
+          "observedPercent": 17.009085700253745,
+          "configuredPercent": 17,
+          "p95Ms": 2235,
+          "p99Ms": 2703,
+          "slo": "fail"
+        },
+        "unlike": {
+          "requested": 4170,
+          "count": 4170,
+          "successes": 4168,
+          "failures": 2,
+          "observedPercent": 4.876109402588899,
+          "configuredPercent": 5,
+          "p95Ms": 1205,
+          "p99Ms": 1462.2399999999998,
+          "slo": "fail"
+        },
+        "edit": {
+          "requested": 6826,
+          "count": 6826,
+          "successes": 6825,
+          "failures": 1,
+          "observedPercent": 7.98185198610835,
+          "configuredPercent": 8,
+          "p95Ms": 1389,
+          "p99Ms": 1714,
+          "slo": "fail"
+        }
+      },
+      "authenticationEvidence": {
+        "login": {
+          "state": "not_exercised",
+          "attempts": 0,
+          "successes": 0,
+          "failures": 0
+        },
+        "refresh": {
+          "state": "not_exercised",
+          "requests": 0
+        },
+        "phases": {
+          "preparation": {
+            "login": {
+              "attempts": 2500,
+              "successes": 2500,
+              "failures": 0,
+              "p95Ms": 103,
+              "p99Ms": 115.00999999999998
+            },
+            "logout": {
+              "attempts": 0,
+              "failures": 0
+            },
+            "refresh": {
+              "requests": 0,
+              "failures": 0
+            }
+          },
+          "ramp": {
+            "login": {
+              "attempts": 0,
+              "successes": 0,
+              "failures": 0,
+              "p95Ms": null,
+              "p99Ms": null
+            },
+            "logout": {
+              "attempts": 0,
+              "failures": 0
+            },
+            "refresh": {
+              "requests": 0,
+              "failures": 0
+            }
+          },
+          "warmup": {
+            "login": {
+              "attempts": 0,
+              "successes": 0,
+              "failures": 0,
+              "p95Ms": null,
+              "p99Ms": null
+            },
+            "logout": {
+              "attempts": 0,
+              "failures": 0
+            },
+            "refresh": {
+              "requests": 0,
+              "failures": 0
+            }
+          },
+          "measurement": {
+            "login": {
+              "attempts": 0,
+              "successes": 0,
+              "failures": 0,
+              "p95Ms": null,
+              "p99Ms": null
+            },
+            "logout": {
+              "attempts": 0,
+              "failures": 0
+            },
+            "refresh": {
+              "requests": 0,
+              "failures": 0
+            }
+          },
+          "cleanup": {
+            "login": {
+              "attempts": 0,
+              "successes": 0,
+              "failures": 0,
+              "p95Ms": null,
+              "p99Ms": null
+            },
+            "logout": {
+              "attempts": 2500,
+              "failures": 0
+            },
+            "refresh": {
+              "requests": 0,
+              "failures": 0
+            }
+          }
+        }
+      },
+      "measurementSeconds": 120,
+      "measurementStartedAt": "2026-11-14T15:50:22.615Z",
+      "reportSha256": "0dccb1113f7329e7094b93e068f3849af2fe70ca868411e3054ce03b67eac0d2",
+      "resourceSummary": {
+        "backend": {
+          "peakCpuCores": 1.0581035207336837,
+          "peakMemoryBytes": 1032630272,
+          "oomKillDelta": 0,
+          "oomDelta": 0,
+          "throttledUsecDelta": 157627684
+        },
+        "runner": {
+          "peakCpuCores": 8.367799999999999,
+          "peakMemoryBytes": 25825611776,
+          "oomKillDelta": 0,
+          "oomDelta": 0,
+          "throttledUsecDelta": 0
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,27 @@
+{
+  "upstreamCommit": "b046f1257110f6ac9c7fefe820bfac3ff88a3f38",
+  "officialSdk": "2.119.0",
+  "images": {
+    "supabase/postgres:17.6.1.136": {
+      "digest": "supabase/postgres@sha256:f371b5f3f2ac0a05703f33d6e6134515fb2498cab708fb948a0aeb7481467c00",
+      "architecture": "arm64",
+      "imageId": "sha256:f371b5f3f2ac0a05703f33d6e6134515fb2498cab708fb948a0aeb7481467c00"
+    },
+    "supabase/gotrue:v2.197.0": {
+      "digest": "supabase/gotrue@sha256:1736a63078f5922b198c4cbe50f80ab9a2d3b54fe8b7b6cfb2e9dc5dbbc12c6b",
+      "architecture": "arm64",
+      "imageId": "sha256:1736a63078f5922b198c4cbe50f80ab9a2d3b54fe8b7b6cfb2e9dc5dbbc12c6b"
+    },
+    "postgrest/postgrest:v14.18": {
+      "digest": "postgrest/postgrest@sha256:c7cd7e265a85b05248abf53f4473fcec7e327c282d0bd0cf60f1551996d09fcf",
+      "architecture": "arm64",
+      "imageId": "sha256:c7cd7e265a85b05248abf53f4473fcec7e327c282d0bd0cf60f1551996d09fcf"
+    },
+    "envoyproxy/envoy:v1.39.6": {
+      "digest": "envoyproxy/envoy@sha256:1fde8efee875e4e4f6a39a90fe49d9338e1caacce5762034ef9fb4bbb9ad6aed",
+      "architecture": "arm64",
+      "imageId": "sha256:1fde8efee875e4e4f6a39a90fe49d9338e1caacce5762034ef9fb4bbb9ad6aed"
+    }
+  },
+  "profile": "Required API stack only; optional services excluded"
+}

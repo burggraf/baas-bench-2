@@ -1,3 +1,4 @@
+import {authorizeFixture,releaseFixture} from './fixture-auth.js';
 import assert from 'node:assert/strict';
 import { createHash, randomBytes } from 'node:crypto';
 import { dirname, resolve } from 'node:path';
@@ -28,7 +29,7 @@ async function createFixtureRecords(client, table, records) {
   return ids;
 }
 
-export async function seedFixture(config, createClient, persist) {
+export async function seedFixture(config, createClient, persist, authContext) {
   validateConfig(config);
   const started = Date.now();
   const namespace = `bench${randomBytes(8).toString('hex')}`;
@@ -47,24 +48,24 @@ export async function seedFixture(config, createClient, persist) {
       const client = createClient();
       try {
         await client.register({ username: user.username, password: user.password });
-        await client.login(user.username, user.password);
+        await authorizeFixture(authContext,client,user);
         assert.equal(client.user()?.username, user.username, 'Registered identity mismatch');
         user.id = client.user().id;
         user.posts = await createFixtureRecords(client, 'posts', Array.from({ length: config.dataset.postsPerUser }, (_, j) => ({ author: user.id, ...postFields(config, i, j) })));
-      } finally { if (client.user()) assert.ok(await client.logout(), 'Preparation logout failed'); }
+      } finally { if (client.user()) assert.ok(await releaseFixture(authContext,client,user), 'Preparation logout failed'); }
     }
     const posts = fixture.users.flatMap(u => u.posts);
     for (const [i, user] of fixture.users.entries()) {
       const client = createClient();
       try {
-        await client.login(user.username, user.password);
+        await authorizeFixture(authContext,client,user);
         const records = Array.from({ length: config.dataset.likesPerUser }, (_, j) => ({ user: user.id, post: posts[((i + 1) * config.dataset.postsPerUser + j) % posts.length] }));
         const ids = await createFixtureRecords(client, 'likes', records);
         user.likes = ids.map((id, j) => ({ id, post: records[j].post }));
-      } finally { if (client.user()) assert.ok(await client.logout(), 'Preparation logout failed'); }
+      } finally { if (client.user()) assert.ok(await releaseFixture(authContext,client,user), 'Preparation logout failed'); }
     }
     fixture.status = 'ready';
-    fixture.baseline = await verifyFixture(config, fixture, createClient);
+    fixture.baseline = await verifyFixture(config, fixture, createClient, authContext);
     fixture.seedSeconds = (Date.now() - started) / 1000;
     fixture.visible = (await createClient().records('posts').list({ pagination: { limit: config.pageSize }, order: ['-created_at', '-id'] })).records.map(p => p.id);
     persist(fixture);
@@ -76,7 +77,7 @@ export async function seedFixture(config, createClient, persist) {
   }
 }
 
-export async function verifyFixture(config, fixture, createClient) {
+export async function verifyFixture(config, fixture, createClient, authContext) {
   assert.equal(fixture.status, 'ready', 'Fixture must be ready, not partial or previously used');
   assert.deepEqual(fixture.config, config, 'Fixture configuration mismatch; reset/reseed');
   assert.equal(fixture.users.length, config.dataset.users);
@@ -88,7 +89,7 @@ export async function verifyFixture(config, fixture, createClient) {
   for (const [i, user] of fixture.users.entries()) {
     const client = createClient();
     try {
-      await client.login(user.username, user.password);
+      await authorizeFixture(authContext,client,user);
       assert.equal(user.index, i, 'Fixture logical index mismatch');
       assert.equal(client.user()?.id, user.id, 'Fixture identity mismatch');
       assert.equal(client.user()?.username, user.username, 'Fixture username mismatch');
@@ -119,14 +120,14 @@ export async function verifyFixture(config, fixture, createClient) {
         logical.update(JSON.stringify(['like', i, target]) + '\n');
       }
       posts += own.records.length; likes += ownLikes.records.length;
-    } finally { if (client.user()) assert.ok(await client.logout(), 'Verification logout failed'); }
+    } finally { if (client.user()) assert.ok(await releaseFixture(authContext,client,user), 'Verification logout failed'); }
   }
   const global = await createClient().records('posts').list({ pagination: { limit: 1 }, count: true });
   assert.equal(global.total_count, posts, 'Unexpected public data in benchmark deployment');
   return { users: ids.size, posts, likes, minCreatedAt, maxCreatedAt, timestampUnit: 'seconds', retries: 0, logicalHash: logical.digest('hex') };
 }
 
-export async function deleteFixture(fixture, createClient, persist = () => {}) {
+export async function deleteFixture(fixture, createClient, persist = () => {}, authContext) {
   assert.ok(['ready', 'used', 'deleting'].includes(fixture.status), 'Partial seed: reset the isolated deployment before reseeding');
   assert.match(fixture.namespace, /^bench[0-9a-f]{16}$/);
   // Preflight all identities before deleting any; resume skips already-deleted accounts.
@@ -135,20 +136,20 @@ export async function deleteFixture(fixture, createClient, persist = () => {}) {
     if (user.deleted) continue;
     const client = createClient();
     try {
-      await client.login(user.username, user.password);
+      await authorizeFixture(authContext,client,user);
       assert.equal(client.user()?.id, user.id, 'Refuse deletion: fixture identity mismatch');
-    } finally { if (client.user()) assert.ok(await client.logout()); }
+    } finally { if (client.user()) assert.ok(await releaseFixture(authContext,client,user)); }
   }
   fixture.status = 'deleting'; persist(fixture);
   for (const user of fixture.users) {
     if (user.deleted) continue;
     const client = createClient();
     try {
-      await client.login(user.username, user.password);
+      await authorizeFixture(authContext,client,user);
       assert.equal(client.user()?.id, user.id, 'Refuse deletion: fixture identity mismatch');
       await client.deleteUser();
-      user.deleted = true; persist(fixture);
-    } finally { if (client.user()) await client.logout(); }
+      user.deleted = true; authContext?.forget?.(user); persist(fixture);
+    } finally { if (client.user()) await releaseFixture(authContext,client,user); }
   }
   fixture.status = 'deleted'; persist(fixture);
 }
