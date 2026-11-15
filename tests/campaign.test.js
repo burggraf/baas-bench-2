@@ -83,3 +83,6 @@ test('measured sustained CPU pressure is generator-limited; initialization is ex
   assert.equal(campaign.campaignCpuPressure(rows,start+60000,10),false);
   assert.equal(campaign.campaignCpuPressure(rows.map((r,i)=>({...r,source:`[cpu.stat]\nusage_usec ${i*1000000}\n`})),start,10),false);
 });
+test('a failed starting point at the search minimum never schedules itself again',()=>{
+ const atFloor={...limits,startVus:100,minVus:100};const next=campaign.nextCampaignTrial([{vus:100,verdict:'slo_failure',phase:'discovery'}],atFloor);assert.equal(next.stop,'no_passing_candidate');assert.equal(next.vus,undefined);
+});

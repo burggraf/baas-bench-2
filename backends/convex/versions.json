@@ -7,12 +7,19 @@
   "auth": "2.0.0",
   "architecture": "arm64",
   "selection": "Official latest self-hosted image at campaign implementation start; immutable native digest",
-  "tuningProfile": "1cpu4g-bounded-v8-v1",
+  "tuningProfile": "1cpu4g-shared-postgres-arena2-v1",
   "runtimeKnobs": {
     "MAX_ISOLATE_WORKERS": "16",
     "APPLICATION_MAX_CONCURRENT_MUTATIONS": "4",
     "APPLICATION_MAX_CONCURRENT_QUERIES": "4",
     "APPLICATION_MAX_CONCURRENT_V8_ACTIONS": "2",
-    "APPLICATION_MAX_CONCURRENT_NODE_ACTIONS": "1"
+    "APPLICATION_MAX_CONCURRENT_NODE_ACTIONS": "1",
+    "MALLOC_ARENA_MAX": "2"
+  },
+  "storage": "PostgreSQL",
+  "postgres": {
+    "version": "17.12",
+    "image": "postgres@sha256:87201f8f52bd05781bb86075ebb45674e96b1d08104d56402458c31289d0718d",
+    "architecture": "arm64"
   }
 }

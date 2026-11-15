@@ -26,7 +26,7 @@ export function convexPlan(args) {
  const optimizedSetup=args.includes('--optimized-setup'),validationDataset=args.includes('--validation-dataset=1000');
  assert.ok(!validationDataset||optimizedSetup,'Validation dataset requires optimized setup');
  const {smoke,vus}=workload.preparedArguments(args.filter(a=>!flags.includes(a)&&a!=='--optimized-setup'&&a!=='--validation-dataset=1000'));
- assert.ok(smoke||vus>=100&&vus<=15000,'Use 100..15000 distinct active users');
+ assert.ok(smoke||vus>=10&&vus<=15000,'Use 10..15000 distinct active users');
  const configPath=smoke?'configs/prepared-smoke.json':'configs/prepared-social-12500.json',base=read(configPath);
  if(validationDataset){assert.ok(vus<=1000&&!smoke);base.dataset={profile:'pilot-small',users:1000,postsPerUser:10,likesPerUser:10};}
  const config=validateConfig({...base,...(smoke?{}:{vus,authPreparation:{...base.authPreparation,timeoutSeconds:Math.ceil(vus/5)+200}})});
@@ -114,7 +114,7 @@ export async function runConvex(args = []) {
         prep = await startMonitor(prepDirectory, backendId, `${run}-no-preparation-runner`, `${prepDirectory}/no-runner-cgroups.jsonl`, row => { const reason = campaignResourceStop(row, plan.runnerBudget?.memoryBytes ?? 17179869184); if (reason) stop(reason); }, true);
         const createClient = () => convexController(cancel.signal, `${trial}/controller-requests.jsonl`);
         json(`${trial}/conformance.json`, await convexConformance(createClient));
-        const runtime = runtimeManifest(['package-lock.json', 'compose.convex.yaml', override, 'backends/convex/convex/schema.ts', 'backends/convex/convex/social.ts', 'backends/convex/convex/auth.ts', 'backends/convex/convex/auth.config.ts', 'backends/convex/convex/convex.config.ts', 'backends/convex/convex/users.ts', 'backends/convex/convex.json', 'scripts/convex-deployment.js', 'src/convex.js', 'src/convex-fixture-sessions.js', 'src/fixture-auth.js', 'src/prepared-cleanup.js', 'src/fixtures.js', 'src/workload.js', 'src/actions.js', 'src/payload-cache.js', 'src/k6/payload-cache.js', 'scripts/payload-cache.js', 'src/k6/social.js', 'src/k6/transport.js', 'src/k6/search-params.js', 'src/campaign.js', 'src/report.js', 'src/resources.js', 'src/calibration-runner.js', 'scripts/convex.js', 'scripts/runtime.js', 'scripts/workload-run.js', 'scripts/monitor.js', 'scripts/recovery.js', 'scripts/build.js', 'tests/pocketbase-conformance.js', 'tests/convex-conformance.js', 'src/k6/headers.js', 'backends/convex/versions.json', ...(plan.preparedSessions?['src/prepared-gate.js','src/prepared-evidence.js','src/prepared-actions.js','src/base64.js','src/auth.js','runner/Dockerfile',plan.configPath]:[]), configPath], { service: 'convex', executable: '/convex/convex-local-backend', sdk: 'convex' });
+        const runtime = runtimeManifest(['package-lock.json', 'compose.convex.yaml', override, 'backends/convex/convex/schema.ts', 'backends/convex/convex/social.ts', 'backends/convex/convex/auth.ts', 'backends/convex/convex/auth.config.ts', 'backends/convex/convex/convex.config.ts', 'backends/convex/convex/users.ts', 'backends/convex/convex.json', 'scripts/convex-deployment.js','scripts/convex-postgres-group.js', 'src/convex.js', 'src/convex-fixture-sessions.js', 'src/fixture-auth.js', 'src/prepared-cleanup.js', 'src/fixtures.js', 'src/workload.js', 'src/actions.js', 'src/payload-cache.js', 'src/k6/payload-cache.js', 'scripts/payload-cache.js', 'src/k6/social.js', 'src/k6/transport.js', 'src/k6/search-params.js', 'src/campaign.js', 'src/report.js', 'src/resources.js', 'src/calibration-runner.js', 'scripts/convex.js', 'scripts/runtime.js', 'scripts/workload-run.js', 'scripts/monitor.js', 'scripts/recovery.js', 'scripts/build.js', 'tests/pocketbase-conformance.js', 'tests/convex-conformance.js', 'src/k6/headers.js', 'backends/convex/versions.json', ...(plan.preparedSessions?['src/prepared-gate.js','src/prepared-evidence.js','src/prepared-actions.js','src/base64.js','src/auth.js','runner/Dockerfile',plan.configPath]:[]), configPath], { service: 'convex', executable: '/convex/convex-local-backend', sdk: 'convex' });
         let initial = true;
         const persist = value => { savePrivate(fixturePath, { ...value, volume, preparation: runtime }, initial); initial = false; };
         console.log(`Convex ${point}: API preparation started (${config.dataset.users} accounts; no elapsed-time setup limit).`);
@@ -166,12 +166,12 @@ export async function runConvex(args = []) {
           let observerError;
           if(fixtureAuth)try{await fixtureAuth.close();}catch(error){observerError=error;uncertain=true;}
           if (prep) try { await prep.stop(); } catch (error) { observerError = error; uncertain = true; }
-          const remaining = ids(); assert.ok(remaining.length <= 1, 'Unexpected project containers; refuse shutdown');
+          const remaining = ids(); assert.ok(remaining.length <= 2, 'Unexpected project containers; refuse shutdown');
           if (remaining.length) {
             backendId ||= capture('docker',['compose','ps','-q','convex']);
             try { if(backendId)await capturePreparationEvidence(`${trial}/final`, backendId, `.fixtures/backend-logs/${run}-${point}`); }
             finally { await stopConvex({volume,run,point,trial}); }
-          }
+          }else if(existsSync('.fixtures/convex-postgres-deployment.json'))await stopConvex({volume,run,point,trial});
           assert.equal(ids().length, 0);
           if (observerError) throw observerError;
         } catch (error) { uncertain = true; json(`${trial}/cleanup-failure.json`, { type: error.name,locations:error.stack?.split('\n').filter(l=>/^\s+at /.test(l)) }); if (!trialError) throw error; }

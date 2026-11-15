@@ -18,7 +18,7 @@ export function nextCampaignTrial(history, limits) {
   if(history.length>=maxTrials)return stop('trial_limit_reached');
   if(!history.length)return {vus:startVus,phase:'discovery'};
   if(upperVus!==null){
-    if(!lowerVus)return history.length===1?{vus:minVus,phase:'fallback'}:stop('no_passing_candidate');
+    if(!lowerVus)return history.length===1&&upperVus>minVus?{vus:minVus,phase:'fallback'}:stop('no_passing_candidate');
     assert.ok(lowerVus<upperVus,'Non-monotonic evidence is not a capacity bracket');
     if((upperVus-lowerVus)/lowerVus<=precision)return stop('precision_reached');
     if(history[0].verdict==='slo_failure'&&history.at(-1).phase==='fallback'&&history.at(-1).verdict==='pass'&&lowerVus*2<upperVus)return {vus:lowerVus*2,phase:'fallback'};
@@ -62,7 +62,7 @@ export function campaignResourceStop(row, runnerMemoryBytes=2147483648, backendM
   assert.ok(backendMemoryStopFraction===0.85||runnerMemoryBytes===17179869184, 'Backend95 requires the explicit16GiB profile');
   if(row.type==='error')return 'invalid_telemetry';
   if(row.type==='lifecycle'){
-    if(row.source.aggregateScope==='supabase-api-stack'&&(!Array.isArray(row.source.children)||row.source.children.length!==4||row.source.children.some(c=>!c.running||c.oomKilled||c.restarts!==0||c.health!=='healthy')))return 'backend_stack_instability';
+    if(['supabase-api-stack','convex-postgres-stack'].includes(row.source.aggregateScope)&&(!Array.isArray(row.source.children)||row.source.children.length!==(row.source.aggregateScope==='convex-postgres-stack'?2:4)||row.source.children.some(c=>!c.running||c.oomKilled||c.restarts!==0||c.health!=='healthy')))return 'backend_stack_instability';
     if(row.source.oomKilled)return `${row.role}_oom`;
     if(row.role==='backend'&&(!row.source.running||row.source.health!=='healthy'))return 'backend_health';
     if(row.role==='runner'&&row.source.status==='exited'&&![0,99].includes(row.source.exitCode))return 'runner_abnormal_exit';

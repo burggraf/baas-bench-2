@@ -1,7 +1,7 @@
 import test from 'node:test';import assert from 'node:assert/strict';
 import {cpSync,mkdirSync,mkdtempSync,symlinkSync,readFileSync,writeFileSync,openSync,closeSync,readdirSync,existsSync} from 'node:fs';import {resolve} from 'node:path';import {spawn,execFileSync} from 'node:child_process';
 const read=p=>JSON.parse(readFileSync(p)),inputs=['scripts','src','tests','configs','backends','runner','package.json','package-lock.json','compose.yaml','compose.pocketbase.yaml','compose.supabase.yaml','compose.convex.yaml'];
-for(const mode of ['success','cancel-preparation'])test(`Convex native API/SDK/ACL/single-backend prepared smoke: ${mode}`,{timeout:600000},async()=>{
+for(const mode of ['success','cancel-preparation'])test(`Convex native API/SDK/ACL/shared-PostgreSQL-stack prepared smoke: ${mode}`,{timeout:600000},async()=>{
  const work=resolve(mkdtempSync('.fixtures/prepared-native-convex-')),out=mkdtempSync('results/convex-native-');
  for(const p of inputs)cpSync(p,`${work}/${p}`,{recursive:true});symlinkSync(resolve('node_modules'),`${work}/node_modules`);mkdirSync(`${work}/.fixtures`,{mode:0o700});mkdirSync(`${work}/results`);
  execFileSync('npm',['run','build'],{cwd:work,stdio:'pipe'});
@@ -17,7 +17,7 @@ assert.equal(existsSync(`${work}/.fixtures/operation.lock`),false);
  if(mode==='success'){
   assert.equal(code,0,`Inspect ${out}`);assert.equal(summary.history[0].verdict,'pass');const r=read(`${work}/${summary.history[0].workloadDirectory}/report.json`);
   const auth=read(trial+'/setup-auth.json');assert.equal(auth.passwordLogins,4);assert.ok(auth.restores>=12);assert.equal(auth.nativeSessionSignouts,4);assert.equal(auth.tokensPersisted,false);
-  assert.equal(r.valid,true);assert.equal(r.participation.measuredUsers,2);assert.equal(r.participation.completedUsers,2);assert.equal(r.resources.containers.backend.first.nanoCpus,1000000000);assert.equal(r.runnerBudget.cpus,9);
+  assert.equal(r.valid,true);assert.equal(r.participation.measuredUsers,2);assert.equal(r.participation.completedUsers,2);assert.equal(r.resources.containers.backend.first.nanoCpus,1000000000);assert.equal(r.resources.containers.backend.first.aggregateScope,'convex-postgres-stack');assert.equal(r.resources.containers.backend.first.children.length,2);assert.equal(r.runnerBudget.cpus,9);
   for(const a of Object.values(r.actions)){assert.ok(a.count>0);assert.equal(a.failures,0);}
  }else{assert.notEqual(code,0);assert.equal(signalled,true);assert.ok(existsSync(`${work}/.fixtures/convex.json`),'Cancelled fixture retained');}
  writeFileSync(`${out}/verification.json`,JSON.stringify({mode,code,work,controllerSummary:`${work}/results/${name}/summary.json`,ownedShutdown:true},null,2));

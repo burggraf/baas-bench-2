@@ -207,11 +207,11 @@ async function collect(directory, backendId, runnerName, runnerCgroupFile, watch
       runnerId = state.id;
     }
     if (state.status === 'created') { record('discovery', role, state); return; }
-    if(role==='backend'&&process.env.SUPABASE_BACKEND_IDS){
-      const childIds=JSON.parse(process.env.SUPABASE_BACKEND_IDS);
+    if(role==='backend'&&(process.env.SUPABASE_BACKEND_IDS||process.env.CONVEX_BACKEND_IDS)){
+      const childIds=JSON.parse(process.env.SUPABASE_BACKEND_IDS||process.env.CONVEX_BACKEND_IDS);
       try {
         const {stdout}=await docker(['inspect',...childIds]);
-        state.aggregateScope='supabase-api-stack';
+        state.aggregateScope=process.env.CONVEX_BACKEND_IDS?'convex-postgres-stack':'supabase-api-stack';
         state.children=JSON.parse(stdout).map(s=>({id:s.Id,startedAt:s.State.StartedAt,restarts:s.RestartCount,running:s.State.Running,oomKilled:s.State.OOMKilled,health:s.State.Health?.Status,cgroupParent:s.HostConfig.CgroupParent}));
       } catch(error) {
         record('error',role,null,{operation:'aggregate_children',exitCode:error.code??null});
@@ -228,7 +228,7 @@ async function collect(directory, backendId, runnerName, runnerCgroupFile, watch
     }
     if (state.running) {
       stats(role, state.id);
-      try { const result = role === 'backend' && process.platform === 'linux' ? await captureHostCgroups(state) : await captureCgroups(state.id, docker); record('cgroup', role, result.source, { capture: result.capture }); }
+      try { const result = role === 'backend' && process.platform === 'linux' && !state.aggregateScope ? await captureHostCgroups(state) : await captureCgroups(state.id, docker); record('cgroup', role, result.source, { capture: result.capture }); }
       catch (error) {
         appendFileSync(`${directory}/cgroup-stderr.log`, error.stderr ?? 'Cgroup command failed\n');
         let terminal;

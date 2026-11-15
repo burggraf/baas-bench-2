@@ -15,7 +15,7 @@ import {stopOwnedRunner} from './recovery.js';
 import {campaignResourceStop,vmMemoryStop,assertHostMemoryCoverage,prestartMemoryReserve} from '../src/campaign.js';
 
 const json=(path,data)=>writeFileSync(path,JSON.stringify(data,null,2));
-const storageBytes=(service,dataPath)=>Number(capture('docker',['compose','exec','-T',service,'du','-sk',dataPath]).split(/\s+/)[0])*1024;
+const storageBytes=(service,dataPath)=>Number(capture('docker',['compose','exec','-T',service,'du','-sk',dataPath]).split(/\s+/)[0])*1024+(service==='convex'&&process.env.CONVEX_BACKEND_IDS?Number(capture('docker',['compose','exec','-T','db','du','-sk','/var/lib/postgresql/data']).split(/\s+/)[0])*1024:0);
 export async function verifySizingHost(prefix,backendId,runnerMemoryBytes=4294967296) {
   const vm=await execute('docker',['exec',backendId,'cat','/proc/meminfo'],{timeout:2000,maxBuffer:1024*1024});
   const host=await captureHostMemory();

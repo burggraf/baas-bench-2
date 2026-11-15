@@ -1,6 +1,32 @@
 name: baas-bench-2-pilot
+x-backend: &backend
+  cgroup_parent: ${CONVEX_CGROUP:?owned shared backend cgroup required}
+  cpus: 1.0
+  mem_limit: 4g
+  memswap_limit: 4g
+  restart: 'no'
 services:
+  db:
+    <<: *backend
+    image: postgres@sha256:87201f8f52bd05781bb86075ebb45674e96b1d08104d56402458c31289d0718d
+    environment:
+      POSTGRES_USER: convex
+      POSTGRES_PASSWORD: ${CONVEX_POSTGRES_PASSWORD:?private deployment password required}
+      POSTGRES_DB: convex_self_hosted
+    command: [postgres, -c, max_connections=64, -c, shared_buffers=256MB, -c, work_mem=4MB, -c, maintenance_work_mem=64MB, -c, jit=off]
+    volumes: ["convex-postgres-data:/var/lib/postgresql/data"]
+    healthcheck:
+      test: [CMD-SHELL, "pg_isready -U convex -d convex_self_hosted"]
+      interval: 2s
+      timeout: 2s
+      retries: 60
+    logging:
+      driver: json-file
+      options: {max-size: "10m", max-file: "2"}
   convex:
+    <<: *backend
+    depends_on:
+      db: {condition: service_healthy}
     image: ghcr.io/convex/convex-backend@sha256:a821eed4a1bf12e70dcd1bc1a8d3037d77d0e39bb2e56d30596dfe8dd549aa0a
     cpus: 1.0
     mem_limit: 4g
@@ -16,12 +42,16 @@ services:
       DISABLE_BEACON: "true"
       DISABLE_METRICS_ENDPOINT: "true"
       RUST_LOG: info
+      INSTANCE_NAME: convex-self-hosted
+      POSTGRES_URL: postgresql://convex:${CONVEX_POSTGRES_PASSWORD}@db:5432
+      DO_NOT_REQUIRE_SSL: 'true'
+      MALLOC_ARENA_MAX: "2"
       MAX_ISOLATE_WORKERS: "16"
       APPLICATION_MAX_CONCURRENT_MUTATIONS: "4"
       APPLICATION_MAX_CONCURRENT_QUERIES: "4"
       APPLICATION_MAX_CONCURRENT_V8_ACTIONS: "2"
       APPLICATION_MAX_CONCURRENT_NODE_ACTIONS: "1"
-    volumes: ["convex-data:/convex/data"]
+    volumes: ["convex-data:/convex/data", "/sys/fs/cgroup/${CONVEX_CGROUP}:/sys/fs/cgroup:ro"]
     healthcheck:
       test: ["CMD", "curl", "--fail", "--silent", "http://127.0.0.1:3210/version"]
       interval: 2s
@@ -44,3 +74,4 @@ services:
       convex: {condition: service_healthy}
 volumes:
   convex-data:
+  convex-postgres-data:
