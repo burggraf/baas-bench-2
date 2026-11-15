@@ -4,8 +4,10 @@ API-only, SDK-based capacity benchmarks for self-hosted backend-as-a-service sys
 
 **Latest M1 Max result:** TrailBase passed both comparable **10,000-user** runs. At 10,300 users, one run passed and one missed latency targets; both 10,625-user runs missed latency targets. The repeated short-run score is 10,000 users. An exact maximum and long-duration capacity remain unverified.
 
-**Supabase required API stack: 2,000 users** is the highest passing short observation (79,049 actions, zero failures); the user stopped discovery without endpoint repeats or soak. [Published results and exact stack scope](reports/supabase-api-2026-11/REPORT.md). This uses the same one-CPU/four-GiB budget and full 15,000-account recipe as the other M1 Max results. Convex is the next backend under implementation.
+**Supabase required API stack: 2,000 users** is the highest passing short observation (79,049 actions, zero failures); the user stopped discovery without endpoint repeats or soak. [Published results and exact stack scope](reports/supabase-api-2026-11/REPORT.md). This uses the same one-CPU/four-GiB budget and full 15,000-account recipe as the other M1 Max results.
 
+
+**Convex + PostgreSQL (provisional):** 375 users passed the measurement; 400 missed the like-action latency target. The 375-user controller later failed in untimed fixture-cleanup preflight; 350 is the highest pass with a fully completed controller/cleanup lifecycle. Endpoint repeats remain pending. [Observed range, caveats and sanitized evidence](reports/convex-postgres-2026-11/REPORT.md).
 
 The backend used **1 CPU / 4 GiB**; the generator used **9 CPUs / 48 GiB** on a 10-core, 64-GiB M1 Max. See [the current generator settings and result](#m1-max-generator-settings-and-result) below. Older milestones in this README describe their original configurations.
 

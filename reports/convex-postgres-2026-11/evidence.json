@@ -1,0 +1,1737 @@
+{
+  "backend": "Convex with PostgreSQL",
+  "date": "2026-11-15",
+  "kind": "provisional-short-run-capacity-observations",
+  "certified": false,
+  "observedMeasurementBracket": {
+    "highestPassingUsers": 375,
+    "lowestFailingUsers": 400
+  },
+  "highestPassingUsersWithCompletedControllerCleanup": 350,
+  "endpointRepeats": false,
+  "soak": false,
+  "versions": {
+    "resolvedAt": "2026-11-14",
+    "image": "ghcr.io/convex/convex-backend@sha256:a821eed4a1bf12e70dcd1bc1a8d3037d77d0e39bb2e56d30596dfe8dd549aa0a",
+    "manifestListDigest": "sha256:e9c084e8bd6c1f249012c672193f0988c748824f55a24cdad45f6185a8462f9a",
+    "upstreamRevision": "d1fcbeaf939502a23a0f4b7e9095a12e84866294",
+    "sdk": "1.50.0",
+    "auth": "2.0.0",
+    "architecture": "arm64",
+    "selection": "Official latest self-hosted image at campaign implementation start; immutable native digest",
+    "tuningProfile": "1cpu4g-shared-postgres-arena2-v1",
+    "runtimeKnobs": {
+      "MAX_ISOLATE_WORKERS": "16",
+      "APPLICATION_MAX_CONCURRENT_MUTATIONS": "4",
+      "APPLICATION_MAX_CONCURRENT_QUERIES": "4",
+      "APPLICATION_MAX_CONCURRENT_V8_ACTIONS": "2",
+      "APPLICATION_MAX_CONCURRENT_NODE_ACTIONS": "1",
+      "MALLOC_ARENA_MAX": "2"
+    },
+    "storage": "PostgreSQL",
+    "postgres": {
+      "version": "17.12",
+      "image": "postgres@sha256:87201f8f52bd05781bb86075ebb45674e96b1d08104d56402458c31289d0718d",
+      "architecture": "arm64"
+    }
+  },
+  "backendBudget": {
+    "cpus": 1,
+    "memoryGiB": 4,
+    "swapBytes": 0,
+    "enforcement": "shared parent cgroup",
+    "services": [
+      "Convex with native Convex Auth",
+      "PostgreSQL"
+    ]
+  },
+  "generatorBudget": {
+    "cpus": 9,
+    "memoryGiB": 48,
+    "gc": 150,
+    "softMemoryGiB": 36,
+    "payloadCacheMiB": 480
+  },
+  "dataset": {
+    "accounts": 15000,
+    "posts": 150000,
+    "likes": 150000,
+    "postBodyBytes": 1024
+  },
+  "workload": {
+    "version": "social-prepared-v1",
+    "admissionsPerSecond": 5,
+    "rampSeconds": 30,
+    "warmupSeconds": 60,
+    "measurementSeconds": 120,
+    "thinkSeconds": [
+      1,
+      5
+    ],
+    "sessionSeconds": [
+      300,
+      900
+    ],
+    "weights": {
+      "listPublic": 35,
+      "listOwn": 15,
+      "read": 15,
+      "create": 5,
+      "like": 17,
+      "unlike": 5,
+      "edit": 8
+    }
+  },
+  "originalFrozenSourceHashes": {
+    "scripts/baseline.js": "9a974bcffa2610b2459fdf9537d36a13f610191da22ae79241f377138de61a21",
+    "scripts/build.js": "4db29bcf68baec9a50be12eaf9b8e3fbb8a65acabbd1af3238a0638d32c3f75c",
+    "scripts/calibrate.js": "872be0feefe450c20fe17d8fcc37535bbd51bc3a609e9092fbe1b6d62d1d28b7",
+    "scripts/client.js": "c4b9a241c93b61f540986098e498b5fcc90402f21bac8d4ad51e7ad6284dd2e2",
+    "scripts/conformance.js": "65d23c2d172890645aa133ac84db33cf4ed4931e1a947229f2be55284c891e9f",
+    "scripts/convex-campaign.js": "6d25eb7c52a499b71cc7c21d6ada908592749a20455f096c9be05c45b515efd1",
+    "scripts/convex-deployment.js": "93ee617aa8565f391d176ccbd4cd0bdc8725743c0a4b2ba98a807fa7d53995aa",
+    "scripts/convex-postgres-group.js": "36adaacdc0ccdd3864273d5cdb5f339dab2cf0f2527ece61f74090f1c8e2c7c8",
+    "scripts/convex.js": "df9a2c024caddbf2a0b2ad40613c95791378ed8823713877d6e5dc6878035cd5",
+    "scripts/monitor.js": "2bc69da1394ccde06db128d402d0c6c095be1569aa00c87dfda7579ce877a3bd",
+    "scripts/payload-cache.js": "2a840cda3b67bdb639c46d7457aa31d93b22d170f7efcb2eeb3e996769291a80",
+    "scripts/pocketbase.js": "177ee1483a6fd59e4c0f05e1d8d7d4a47888728d23d4e1dd0364be6140ad1572",
+    "scripts/prepared-template.js": "8ea163fbdec467b23268936adc610255f6ac28fc0f8b64007afc2ad6531dbfa0",
+    "scripts/recovery.js": "a06cacc5246201bf004b34e0afab9d81b84f356af98d3f5d5c229a67a53f8e9d",
+    "scripts/run-k6.js": "92e0fcdc57751cbe4805f25c11923048f3c544a3440783fd6db317766486982a",
+    "scripts/runtime.js": "060a56e5b6156a21bc9c7a9e6edd5bcc327c2df1fb9b31af0fe8515e345ff216",
+    "scripts/social.js": "f8c37a5745f05279c1c802034d4748a30dbba95d1a979d3b9736e39ea7427828",
+    "scripts/supabase-campaign.js": "9704a701d9cf92121a746865e66b65c30e1fe3170bfbe6da15d6622f731c1503",
+    "scripts/supabase-deployment.js": "4160f083cfb2ef253e94bd7add2aa9b405c0441d30e67d450a0ccf152f4d84e2",
+    "scripts/supabase.js": "dd50f7e33d776d450d0fda74b57ed46fe5e17652c4fad4fa98c28679b533a044",
+    "scripts/workload-run.js": "25e1196c38b5c8c5b1b1a35dfee0644aaacfa6caa042e66803f27e88e43a3cd6",
+    "src/actions.js": "a02a0d6ac9ae40424dbf3ca0c48052308157fb4df808299db6c52d3c4b4f2378",
+    "src/auth.js": "eaf957745016cff8f48ec64ca522bde4624517b3bda58974287116df3c2cdbd8",
+    "src/base64.js": "b10ee51e3fe4caeb7afa509b0cef3028d07d3f4d44c933c039f8a5a86efc0d1a",
+    "src/calibration-runner.js": "055adad883bbc75e90b07c673093ca87dcd76d95db36ee977313c144a70228d9",
+    "src/calibration-target.js": "49c26d6781c0cdcc4f075c84445db430e020a89e91e74959192aa4ce3f8b9cf4",
+    "src/calibration.js": "a27ad0525d14ce98341ab622382dc469722bd4dc9be045e8eb988dbe0565aaa2",
+    "src/campaign.js": "4b1e874395464fb00395c4643a18278373a7ae69de3b311eb14791168a487959",
+    "src/convex-fixture-sessions.js": "e0e0fa6032fe4374ce868ff07f049fe70c5a1a1d5607b3522f858f1e7133439f",
+    "src/convex.js": "910af9b3cc6a9c6cd42872f2e5874563c5e06ff9f5a57f1ee471efddd9df9b34",
+    "src/fixture-auth.js": "15ab9aadc50920e11a04dfad04b587051d5e7464567e46a7d08f41ffa013efd3",
+    "src/fixtures.js": "15851f8ecf43e18fadd1df0827d91ff396b77f4706a235609baa9900a8ffd2eb",
+    "src/k6/auth.js": "86253ad664a3a13f27ed94f4b5174f98c8f4fe5662c78ad3c51d6322ca453368",
+    "src/k6/calibration.js": "d922e0b3f68e5faeebc12d5be70a95d5a4f5ef680b471917655ba3c0d4685757",
+    "src/k6/conformance.js": "dd305eaeda703eeb5490d744d0a24badf74c2e9a3d14e04715406bd9fb8b171e",
+    "src/k6/headers.js": "778c2e84d8e234cf7330525eee2ac6aa4a332367644abe7633f4f2e077d791ef",
+    "src/k6/payload-cache.js": "3110058bcd9d70289a4b928a1ea2493e5de66828d58d5cfa71d74a0e866250c2",
+    "src/k6/search-params.js": "7a19cc06782d3da17b073435794decb5b0cc4b151ca99d18bcd5378e87d687fd",
+    "src/k6/social.js": "ee7eb346eaf4b48c60fb9d2a152f898f0a76df031abd3c3d16368c0ef3329435",
+    "src/k6/transport.js": "5762e0645444ac48e806393a21696882b6178f6cb58ad07797cf21a00c167824",
+    "src/merge-worker-results.js": "591d1ac645445cedcf3d703fd8243e5d5da4dfb7a61f303f9d2d1d59f6aec4e5",
+    "src/payload-cache.js": "bcf1ca3be761eac11a6753d16c58aeb7d6fb5e5253f937e4272ea964f7b700e9",
+    "src/pocketbase.js": "3628245765a8f176b758e8bca005d93c9d1d29c0ed64a5bcf2b90a4eb97b6fa4",
+    "src/prepared-actions.js": "5872dffbae5e12a002b54af85abce6cd8365b3057a8c730ced2da14cfa5bd26d",
+    "src/prepared-cleanup.js": "d1dc39c733cf33e927d9cd3e48c3fb7b3e62eebbcc31b60d4c911911abf7d881",
+    "src/prepared-evidence.js": "75d56fd00a7c574c087180a1e735a84c8202f42fb0faff6825cebcd9b719f032",
+    "src/prepared-gate.js": "9f79e8c483b28a53f83900c8eaa0136ddd8c03b890c7e9c5718e95ff89fd9e28",
+    "src/prepared-template.js": "ea15a525c7db387a33ee8deba0c96cd873b59fdd0b223e899d261def2cdcd4fa",
+    "src/report.js": "470ca8d65f19853b9f068091e63581ab0101156b06146b8ad74bb72f82d1d87a",
+    "src/resources.js": "ea207f3e4120586247d998c4a42061dfd7434922cb084ec90942ff05861401df",
+    "src/runner-profiling.js": "8df804dbf17b5ab440dcd0d7b2d5edbe7a12831bb5279ffa93bcafa064c32a89",
+    "src/segmented-workers.js": "4211180268684ace4f78a48279f6985dd93f12e86055857e1fbee8c0cb5cd7d0",
+    "src/supabase-fixture-sessions.js": "6dff9a5d017cb980909fcfc84243c8f4430047b8a20eb9753569cdba4c4d8e76",
+    "src/supabase.js": "5f517ff5ab41eb28e0199a506ae9649c53338ad9a0ef2fe2d2b49feb271a427a",
+    "src/workload.js": "48368f6db28dc30118194581d3efeeb690162efa7133d8cbf52a1e33f9b88204",
+    "tests/action-bookkeeping.test.js": "d79ce4ffac61cf28b920c4d4cf913597bf24e11651534fbe8dfbbbb5b8cc7fd7",
+    "tests/actions.test.js": "ef472d5d3e7e3ca088a6bf7e89c50def66f6d9068a9f40d40f2dac4aa7c3a7e8",
+    "tests/auth.integration.js": "0600c3db6739a0233a4f128187ecabdc2f48ce021ca09f4491c6c3ffc04c6fc8",
+    "tests/auth.test.js": "706fe93b6bc612bdbc0a449b7dace8bf26e0b00ece8230886d27f2731b2cb8df",
+    "tests/backend95.test.js": "2d498ba732d6fabcc796a04a0448e1227ecd25bbb639d93832a5e8fcedc59c16",
+    "tests/base64.test.js": "61c4a4a7a7dd0680a9d2ba0e756fe9f8379d66120765f185fe2ddaeda661710d",
+    "tests/baseline-failure.test.js": "5caad507bc78843b28e3e76ed6c8f677bf7af188917900233e73f453ed2b5085",
+    "tests/baseline.integration.js": "bab88ff2d06d0b3ec44097124f562c3dc4c9b1ccd5fe0dd5b1ef8685a066d6cb",
+    "tests/baseline.test.js": "dd188ca0fa408a17592cbbedf956ca96b43147ac73433e56ea58585e21a02c84",
+    "tests/calibration-runner.test.js": "bcd62acd80e8a89266231497022363aa61bd7ab5d656a8e20ff6c8ce32ffce4f",
+    "tests/calibration-signal.integration.js": "78625ce0e195dc62d1dd2cbbe8346a214b45e9ef56777da35e706278194520e8",
+    "tests/calibration.integration.js": "05ae5df5f448103fbd8c4c8c4945e74eeeef42ccad7513f244854b16ef12b40a",
+    "tests/calibration.test.js": "bfe37b101f03db0c555edfb6fc0f6d57988366919f4506ff7563025e91a90a79",
+    "tests/campaign.integration.js": "ae8e99feccaa8e10891be96fc432a0c3e9fd566e5c8192cee12b8e802dd53076",
+    "tests/campaign.test.js": "68bf279d22010ea65de248e206915a377bcb06f0d00029b495ac18e7843a06db",
+    "tests/client.test.js": "53a8b159e7d5fed84e76c0b9bb27dc8814583ed142506111bed570f48798efc4",
+    "tests/command-timeout.test.js": "0d26afea2a531e3433dd3dc8d4e5af057965bba89c331bf36799d6d7bf06a59f",
+    "tests/conformance.js": "d4f2a14a12a022e3b3ccbfd68c2c455300a591abacdbac030ac8792bb5294ec7",
+    "tests/convex-conformance.js": "82c71d249c0654d57265d075b5012bd6a5577ab0089c9bb78b53d9467d000b40",
+    "tests/convex-expiry.js": "564422fcd16d0d5897ed0d21f84b1a64cbbe22efe577552c9dd0d7d7bbb67c76",
+    "tests/convex-postgres-resources.test.js": "83255e7a86ad694576be0c8be755ced44623175bcc8eb370ba8eb51ad420ce97",
+    "tests/convex.integration.js": "5c95d3ba5393d22262e8b63648495e4aa1e4a1e09d7afb7516aa9d1973c7f398",
+    "tests/convex.test.js": "b0df3f9af46cfde6ccb9fc18237f69b08b1806b8273ae1990a1e731cbee8bed4",
+    "tests/fixtures/actions-before-bookkeeping.js": "4493ff9fcc8c45f5c92cf7390c86b5b445b7cd34aed760c6f0e6442ddd680690",
+    "tests/fixtures.test.js": "21a7d57aae7d2c45820ea8372b55bc579052c71ed34f232ec204f7f8201f294c",
+    "tests/fresh-workload.integration.js": "0e8bb32f63e34b15c6d7982bc9b8fb45e56c255f987df1526be586746ac33db2",
+    "tests/helpers/action-bookkeeping.js": "12e34458d21415dc359377abdcec40f3b6b2aa202e6eb6caca3c66a848a153c9",
+    "tests/host-cgroups.test.js": "4377f3473255ea0e749259485c6383eb4fa673dddd59875f8be2226593f10a1a",
+    "tests/monitor-capture.test.js": "4e71676f87418e3c69930be77cf02a49af056a0b3ec086ba16501d44b6d89341",
+    "tests/monitor-inspect.test.js": "f2daf3910fbc27823f7ca2185a1509ba5081e0aa9b581cbf48260a4ef69bee60",
+    "tests/monitor-inspection-capture.test.js": "e09f57a93994278291d074725c322405172f06fc325290c914e4d33446954551",
+    "tests/payload-cache-profile.test.js": "eb4eb52670a30f182c2aaf37a33c8a3559a3c0ac916c075e736ccffef8d2b622",
+    "tests/payload-cache.integration.js": "64a6c95898fe490b711b1a0ae83f279cca30e410c748be70f3d6d440641532dd",
+    "tests/payload-cache.test.js": "9fb9da1e2046fda5a725dc2a3d32a131d40e8ea9723b807a5dccdedda2bc4c7d",
+    "tests/pilot.integration.js": "0e29625fb633bc611dee38400367a16a1cedbddec582c74961ba5e1d7023878b",
+    "tests/pocketbase-conformance.js": "a8a83e621da37424c7058386d6af392575a899e1496527a8bf9dd84dcbf1a877",
+    "tests/pocketbase-failure.test.js": "f9d135f1ce0ae6a30bc666a893f3dd9160936fa7b25be18c3524aa42ae04d24b",
+    "tests/pocketbase-profile.test.js": "6c756ed6c0b3c6cff21dc7ae4f3eef10da9ffc71da563f3c92b8b549f4d11173",
+    "tests/pocketbase-search.test.js": "19fb16f4adb161569c9755439f2e0da5a647f3af5a4849af3cab90ba1f3d15f5",
+    "tests/pocketbase.integration.js": "da2318a2fb4a88538d29276de47c7e99ecc851a1c3634ceef415b6100324f4d1",
+    "tests/pocketbase.test.js": "1e81136ad2ec957f38d19bb9c7f7c256d1bb089d92b89b9d9d390ad2c7123b05",
+    "tests/preparation-evidence.test.js": "57315e8393f40c25d7b4a44ce4dc7d7b9e017b02d0310038748f65608f0dc798",
+    "tests/prepared-clock-uncertainty.integration.js": "6c7428d4db9babcde92bf75a5a9979c95461a3a89352486665db5107b71c4cc1",
+    "tests/prepared-clock-uncertainty.test.js": "c4f03e3f93fee83a675d0f03224ef97a6ccb12a917f24e0f263629e43af1d2e7",
+    "tests/prepared-clock.integration.js": "48ccf3ac17788c5aca44b9ec14625df853db4d98841bab789dc60a594aa575e7",
+    "tests/prepared-clock.test.js": "a1c237ad143ca12a0f0de0f8cf4b8f5464e1fd082416c6fb1928d34d6b070ad7",
+    "tests/prepared-contract.test.js": "866c85b177f80fb884064060d4d4cbf533fb97456c8fd97ed22f897fafd145a7",
+    "tests/prepared-evidence.test.js": "de48c14df7c9e0fbba7620eb39d814bb653626e456aab5f8a85ed69bbf55bb14",
+    "tests/prepared-gate-cancellation.js": "a811a41a4b325496c02a5cdb16f86b0f5eec4953ab41aeef14bb175248adde82",
+    "tests/prepared-gate-cancellation.test.js": "aa7afbc3fb668cad020cb7f5cf5fff960a4dc7ad406ff5df26b536489c033b42",
+    "tests/prepared-gate.integration.js": "322a6d1d5c6ce1628642d2aa507ea33d795b70686c94a9c57de780adaf93808c",
+    "tests/prepared-gate.test.js": "a7717eb1ddb0c1bfb9d424dba625559a991be49891b47f16e14e3f0459ef93ed",
+    "tests/prepared-template-output.js": "a4ee8c11e80cfa5f60a337190819211fe9fdd7bcf24cc3dcb89a6c1ebe346d20",
+    "tests/prepared-template.integration.js": "da4e9ab390866c7e633766469df45db1e12b668ce80ff938cfe5449027dad364",
+    "tests/prepared-template.test.js": "d3ee364a15e5ba2b80d6ee5fd8742fb7c9929a6d351346c2c6f7340399b0497e",
+    "tests/prepared.integration.js": "e541522d99cb2de26df488a9655340733bc245b5b8a298af9380c87670900d4e",
+    "tests/profiling.integration.js": "186247158255506f8b030e7e7fb97e7f27756f6f337fc8fb7f8b0ebb84048011",
+    "tests/profiling.test.js": "4e3a370f9df1208af65e80cbcc127ebb7bdb475f6b4f797ef3e56524fd0fd9cf",
+    "tests/recovery.test.js": "7201f6c84e11eee64442d29f844132b885835719163c1dbbbe8531f5b5a7b6ed",
+    "tests/report.test.js": "76ad922d2634161fa1ece84eee5029073aa4c5730c89511c9a621b255d2632fb",
+    "tests/resources.test.js": "cfffb9c79c5ab2183b03360f103a6ec82f4a0d78d626963ac32126504b653f3e",
+    "tests/runner-allocation.test.js": "20510297a8a372e621b865fad4c8ed3b2cadecc5a19cb007044c62d7c8655a1e",
+    "tests/runner-gc.test.js": "be7aae50b5d82e42ba6149efb44a646a9e64b4885dbbc2bcf64e370332ae6c91",
+    "tests/runtime.test.js": "f897c912fc7747d83e2293fd1aeaecd786261f382fd9d374a77946b4c66bec5f",
+    "tests/search-params.test.js": "53d25c7a29193351639a3b5eebc4baeaaeee6d33fc31c7d4878b2ffde834e985",
+    "tests/segmented-workers.test.js": "519e45375d34705e353a7a195bcda0f50a9403269ee88c78470785843a9f0e9a",
+    "tests/sizing10000-fixed.test.js": "3b2f9b0e860e7bf52a6407a769aaf13b344ad06096b4b93d7c751d39a0a29529",
+    "tests/sizing10300.test.js": "c75077a04575080f8a3178462617b0354e4786aa4f479541bc7d6faee32a5d92",
+    "tests/sizing10625.test.js": "54308e32c1845f79103a44e3847c6d614c5039e324e4446c2154b46ef9a4d758",
+    "tests/sizing11250.test.js": "4e71e59d9caac88066a37665a69afc4741067c84dee294d9f36109b2f0e24f7c",
+    "tests/sizing12500.test.js": "9e23361209c0169782a3f626169ab62f42ea5cee2c2330ad7d1f879ed1b8ffa1",
+    "tests/sizing15000.test.js": "52a2cd697f19c81f6185cd752c8c4f280138031b049446d824bc7a0570784916",
+    "tests/sizing16g.test.js": "db864ebf6574b97fd76b02d92bfa9aa928654e00306c8026d8bab91e6ee63282",
+    "tests/sizing20g.test.js": "16ce4d80145c402b7a3ce98ec8f6eeca7ffbb9d321eed09ad1f1f761c6456959",
+    "tests/sizing48g.test.js": "ae75d4db93f82d483b2ed169bc78e3ee670d7087d0d4ece518970e9813bad904",
+    "tests/sizing4g.test.js": "ae2e1edf865a07c6d2b40f8568e38a8b349d138fa74c49f23f9639f00ad5f64a",
+    "tests/sizing6cpu.test.js": "fcdea962679a86c7dc6ca272c3bbb09bebd5224123593b07228e64e88767267d",
+    "tests/sizing7cpu.test.js": "39e5483beb3f6e4d187f9853919253b0919789b8f86d0b31d5168a91d0ec7671",
+    "tests/sizing9cpu.test.js": "f6a37c8ca98d65cb5d15d6431a6779720e2e250061e7d44f311bc74448a44c0d",
+    "tests/social.integration.js": "8db7cf3d27a538069f8e37b85f7ea38dd6e45be91bb8e7a42eb3878acc90d2e3",
+    "tests/supabase-conformance.js": "76a5ce83c3f565e7d75c4daf61bdbde49c60a149368b3b7bf424f92b9784ab51",
+    "tests/supabase-resources.test.js": "1385aea5fed0b59052537bf03109b6ca6e58b37891acc0fa456e3f8b05464913",
+    "tests/supabase-setup-optimization.test.js": "c2ce48a7eeb4cbf1174b10db467790a40c0bbdaf3d8ead932308c81ec83ecfe0",
+    "tests/supabase.integration.js": "f5f7cede02b2f9a7a10073c8ded77a9ec719d0ec65fdfc7b114b5a7bd2bf34c4",
+    "tests/supabase.test.js": "609b81bdbca814259906cc8ffe2904957424f5c9bf8b1e75e71efd29e5f78b62",
+    "tests/trailbase-version.test.js": "cfff135756e8bd71ab5c048302108ce6f1cb73b9afdd4862a3851e715aee865f",
+    "tests/transport-cache.test.js": "579e156285da4efa18f6bd3ce40e21c16a2d5bd119d97eed8144032102717c96",
+    "tests/transport-canonical.test.js": "b3799d52dddb770f96d49008389ecc46473917f776b760f4a7cc079f75df886a",
+    "tests/transport-lazy.test.js": "ef7e7246490d0b4664a93a70a5b316a189e4a499d6c54eec8d1218b720ae733f",
+    "tests/transport.test.js": "bfd1672de31340ef818249ceac5c0e3bb9ddec6e79bfbf0c310df44b92d0d584",
+    "tests/workload.test.js": "3c8a3d0ce55bbbcd0808f91d4f7ef3f613adc40ba6bef5848908ca540706aadc",
+    "configs/pilot-small.json": "1616ce719b8f135b9316cddd7afd30512ee22f87d6bcb75225e842c9cb1becae",
+    "configs/prepared-smoke.json": "4229fb10f6f649bf885904f9d1a4437a9327c3439c2a96b602416747cdedd577",
+    "configs/prepared-social-12500.json": "77f8e80310ba473f44bccbeb84c7ed1d098d5264e6df9d272e4723082b17b90f",
+    "configs/prepared-social-15000.json": "3c6b1e60541e6cdb7ebf161aa32c4a241c789a16e3ba0fab55f747d5a674bb34",
+    "configs/prepared-social-baseline.json": "0b583686c8048cec157bbb534de180ae2e63eb0622e974dc0de1b4f033d1ed05",
+    "configs/smoke.json": "579ae955775111348a0b94ecd8a1e5648834688c3b479bcfd7575bf9255611ce",
+    "configs/social-baseline.json": "4102693e068d237986f19ac9905b810211e46e888993ec7d181894092d92522d",
+    "backends/convex/convex/auth.config.ts": "eb040363b6111ffae7450eb941fc4a639a316e62abf59b64516d4e74a34625c9",
+    "backends/convex/convex/auth.ts": "de01881461e67bc290793cd45d8ce7ab6386c9d2c3e4ee3dba00fe1687ff62fb",
+    "backends/convex/convex/convex.config.ts": "6970256dac81755149cf4f790afff7c68a18cde6d9d571b4db11b8003eebdf04",
+    "backends/convex/convex/schema.ts": "ebb8cd5f4afa4b75d6a6634ae6ad305039ae5c01c255603e77114ead0168a3d7",
+    "backends/convex/convex/social.ts": "ab77da161932307db32eb464f753a5088c3e5be1c19560e161a7903edbf4bbf1",
+    "backends/convex/convex/users.ts": "f4bdbf86f180b7aa8b2962703240cde2d7b2986f02d2fccde11202a72fdbb975",
+    "backends/convex/convex.json": "fb9e9c070c7e86f79b2bd46222300f9a42c52c9714dbb94ff668fc8608241243",
+    "backends/convex/package.json": "999b26f04b2851c1c1634fe3ee889fdbbc299e725399a1d514de3478a83d9ebe",
+    "backends/convex/versions.json": "a294e2fea32698b046a2c6fd2afc06f3d8aab73981ac61e56e63b58b6c53cad9",
+    "backends/pocketbase/Dockerfile": "797793035de20975a8d2d4a2dd956be3c45192bf7fc08e78583afdcabfb6717e",
+    "backends/pocketbase/pb_migrations/1792454400_social.js": "0d540dd7ada41fa227e0ac56d5d7b519848d75155974d5828c4c01e0b5311793",
+    "backends/supabase/envoy.yaml": "1d2ee5e0431d9d81d5412553a74538e3b2ec63e7d9e52125a043b71dbc4857c5",
+    "backends/supabase/versions.json": "ce073a6bea83329918342766c1f4086425dcee5ae869ca291fc926edb35fdd1b",
+    "backends/trailbase/Dockerfile": "53c1e000b642ddbcfae68f09e6383747c7ac8dc44e1400b0b932621e085b4079",
+    "runner/Dockerfile": "08f02a5b89f7d4779a9e1960cf4ae06e2aeff8b6e7a917672566a6330c12062f",
+    "package.json": "6cafd9df08c985fa61ced76d3535a85ea52840d63a83d75cc66976e94b45e813",
+    "package-lock.json": "76067d69027927094c944cdf913ca135a20533e438d179b5903fdba19c000d7d",
+    "compose.yaml": "61687e234ab1c5ab51ad395f861561d472828cb7d52ec5275a1ca97ccbf60893",
+    "compose.pocketbase.yaml": "1211acc4d457b12beb31fde42d3a6a268377cdedc992476a8812b2b8741541e8",
+    "compose.supabase.yaml": "5845765f9407ae2efabed1a068411505aa3ec39ef813468a84a3096902a3c1e5",
+    "compose.convex.yaml": "5a1a5cf69b6e7fef448342c7d4f454001eedc2c05dde2d38cbc5ab569f072c88"
+  },
+  "points": [
+    {
+      "users": 100,
+      "verdict": "pass",
+      "measurementEvidenceValid": true,
+      "measuredActions": 3974,
+      "failedActions": 0,
+      "authFailures": 0,
+      "participation": {
+        "configuredUsers": 100,
+        "measuredUsers": 100,
+        "completedUsers": 100,
+        "missingMeasurementUsers": 0,
+        "missingCompletions": 0,
+        "drainMilliseconds": 27
+      },
+      "actions": {
+        "listPublic": {
+          "requested": 1432,
+          "count": 1432,
+          "successes": 1432,
+          "failures": 0,
+          "observedPercent": 36.03422244589834,
+          "configuredPercent": 35,
+          "p95Ms": 9,
+          "p99Ms": 12,
+          "slo": "pass"
+        },
+        "listOwn": {
+          "requested": 559,
+          "count": 559,
+          "successes": 559,
+          "failures": 0,
+          "observedPercent": 14.066431806743834,
+          "configuredPercent": 15,
+          "p95Ms": 11,
+          "p99Ms": 16.419999999999995,
+          "slo": "insufficient_samples"
+        },
+        "read": {
+          "requested": 580,
+          "count": 580,
+          "successes": 580,
+          "failures": 0,
+          "observedPercent": 14.59486663311525,
+          "configuredPercent": 15,
+          "p95Ms": 7.049999999999974,
+          "p99Ms": 12,
+          "slo": "insufficient_samples"
+        },
+        "create": {
+          "requested": 227,
+          "count": 227,
+          "successes": 227,
+          "failures": 0,
+          "observedPercent": 5.712128837443382,
+          "configuredPercent": 5,
+          "p95Ms": 31,
+          "p99Ms": 37.48,
+          "slo": "insufficient_samples"
+        },
+        "like": {
+          "requested": 664,
+          "count": 664,
+          "successes": 664,
+          "failures": 0,
+          "observedPercent": 16.708605938600908,
+          "configuredPercent": 17,
+          "p95Ms": 45,
+          "p99Ms": 54.37,
+          "slo": "insufficient_samples"
+        },
+        "unlike": {
+          "requested": 220,
+          "count": 220,
+          "successes": 220,
+          "failures": 0,
+          "observedPercent": 5.5359838953195775,
+          "configuredPercent": 5,
+          "p95Ms": 30,
+          "p99Ms": 36.42999999999999,
+          "slo": "insufficient_samples"
+        },
+        "edit": {
+          "requested": 292,
+          "count": 292,
+          "successes": 292,
+          "failures": 0,
+          "observedPercent": 7.3477604428787116,
+          "configuredPercent": 8,
+          "p95Ms": 31,
+          "p99Ms": 42.089999999999996,
+          "slo": "insufficient_samples"
+        }
+      },
+      "measurementSeconds": 120,
+      "measurementStartedAt": "2026-11-15T01:27:49.017Z",
+      "authenticationEvidence": {
+        "login": {
+          "state": "not_exercised",
+          "attempts": 0,
+          "successes": 0,
+          "failures": 0
+        },
+        "refresh": {
+          "state": "not_exercised",
+          "requests": 0
+        },
+        "phases": {
+          "preparation": {
+            "login": {
+              "attempts": 100,
+              "successes": 100,
+              "failures": 0,
+              "p95Ms": 89.1,
+              "p99Ms": 107.05
+            },
+            "logout": {
+              "attempts": 0,
+              "failures": 0
+            },
+            "refresh": {
+              "requests": 0,
+              "failures": 0
+            }
+          },
+          "ramp": {
+            "login": {
+              "attempts": 0,
+              "successes": 0,
+              "failures": 0,
+              "p95Ms": null,
+              "p99Ms": null
+            },
+            "logout": {
+              "attempts": 0,
+              "failures": 0
+            },
+            "refresh": {
+              "requests": 0,
+              "failures": 0
+            }
+          },
+          "warmup": {
+            "login": {
+              "attempts": 0,
+              "successes": 0,
+              "failures": 0,
+              "p95Ms": null,
+              "p99Ms": null
+            },
+            "logout": {
+              "attempts": 0,
+              "failures": 0
+            },
+            "refresh": {
+              "requests": 0,
+              "failures": 0
+            }
+          },
+          "measurement": {
+            "login": {
+              "attempts": 0,
+              "successes": 0,
+              "failures": 0,
+              "p95Ms": null,
+              "p99Ms": null
+            },
+            "logout": {
+              "attempts": 0,
+              "failures": 0
+            },
+            "refresh": {
+              "requests": 0,
+              "failures": 0
+            }
+          },
+          "cleanup": {
+            "login": {
+              "attempts": 0,
+              "successes": 0,
+              "failures": 0,
+              "p95Ms": null,
+              "p99Ms": null
+            },
+            "logout": {
+              "attempts": 100,
+              "failures": 0
+            },
+            "refresh": {
+              "requests": 0,
+              "failures": 0
+            }
+          }
+        }
+      },
+      "controllerUnexpectedFailure": null,
+      "apiFixtureCleanupCompleted": true,
+      "ownedShutdownVerified": true,
+      "nativeWorkloadExit": {
+        "code": 0,
+        "signal": null,
+        "spawnFailed": false
+      },
+      "reportSha256": "9e4d935d0a70c8099287b46aef3cc1653ab5e3427902106613fde38a94554d75",
+      "manifestSha256": "32954fa183c4df4258b4b90c33e2db633a9826aa709bd3c2e64e1e1a5a60c93e",
+      "sourceRevision": "f613bf6558f1b5acd23cb24e5674ed822f56492f",
+      "rawActionAndParticipationReplayMatches": true,
+      "rawResourceAndGeneratorCpuReplayMatches": true,
+      "resources": {
+        "valid": true,
+        "stability": "no_instability_observed",
+        "generatorHeadroom": "unverified",
+        "measuredGeneratorCpuPressure": false,
+        "containers": {
+          "backend": {
+            "peakCpuCores": 0.6761029069096116,
+            "peakMemoryBytes": 1190293504,
+            "oomKillDelta": 0,
+            "oomDelta": 0,
+            "throttledUsecDelta": 1103378
+          },
+          "runner": {
+            "peakCpuCores": 0.36590000000000006,
+            "peakMemoryBytes": 633454592,
+            "oomKillDelta": 0,
+            "oomDelta": 0,
+            "throttledUsecDelta": 0
+          }
+        }
+      },
+      "counts": {
+        "before": {
+          "users": 15000,
+          "posts": 150000,
+          "likes": 150000,
+          "storageBytes": 2423971840
+        },
+        "after": {
+          "users": 15000,
+          "posts": 150349,
+          "likes": 150762,
+          "storageBytes": 2476089344
+        }
+      }
+    },
+    {
+      "users": 200,
+      "verdict": "pass",
+      "measurementEvidenceValid": true,
+      "measuredActions": 7983,
+      "failedActions": 0,
+      "authFailures": 0,
+      "participation": {
+        "configuredUsers": 200,
+        "measuredUsers": 200,
+        "completedUsers": 200,
+        "missingMeasurementUsers": 0,
+        "missingCompletions": 0,
+        "drainMilliseconds": 7
+      },
+      "actions": {
+        "listPublic": {
+          "requested": 2850,
+          "count": 2850,
+          "successes": 2850,
+          "failures": 0,
+          "observedPercent": 35.70086433671552,
+          "configuredPercent": 35,
+          "p95Ms": 7,
+          "p99Ms": 19,
+          "slo": "pass"
+        },
+        "listOwn": {
+          "requested": 1123,
+          "count": 1123,
+          "successes": 1123,
+          "failures": 0,
+          "observedPercent": 14.067393210572465,
+          "configuredPercent": 15,
+          "p95Ms": 9,
+          "p99Ms": 19.89999999999995,
+          "slo": "pass"
+        },
+        "read": {
+          "requested": 1223,
+          "count": 1223,
+          "successes": 1223,
+          "failures": 0,
+          "observedPercent": 15.320055117123887,
+          "configuredPercent": 15,
+          "p95Ms": 6,
+          "p99Ms": 21,
+          "slo": "pass"
+        },
+        "create": {
+          "requested": 439,
+          "count": 439,
+          "successes": 439,
+          "failures": 0,
+          "observedPercent": 5.499185769760741,
+          "configuredPercent": 5,
+          "p95Ms": 26,
+          "p99Ms": 52.62,
+          "slo": "insufficient_samples"
+        },
+        "like": {
+          "requested": 1357,
+          "count": 1357,
+          "successes": 1357,
+          "failures": 0,
+          "observedPercent": 16.998622071902794,
+          "configuredPercent": 17,
+          "p95Ms": 51.19999999999994,
+          "p99Ms": 140.87999999999997,
+          "slo": "pass"
+        },
+        "unlike": {
+          "requested": 424,
+          "count": 424,
+          "successes": 424,
+          "failures": 0,
+          "observedPercent": 5.311286483778028,
+          "configuredPercent": 5,
+          "p95Ms": 28.699999999999964,
+          "p99Ms": 70.38999999999997,
+          "slo": "insufficient_samples"
+        },
+        "edit": {
+          "requested": 567,
+          "count": 567,
+          "successes": 567,
+          "failures": 0,
+          "observedPercent": 7.1025930101465615,
+          "configuredPercent": 8,
+          "p95Ms": 31,
+          "p99Ms": 109.9199999999998,
+          "slo": "insufficient_samples"
+        }
+      },
+      "measurementSeconds": 120,
+      "measurementStartedAt": "2026-11-15T03:31:39.602Z",
+      "authenticationEvidence": {
+        "login": {
+          "state": "not_exercised",
+          "attempts": 0,
+          "successes": 0,
+          "failures": 0
+        },
+        "refresh": {
+          "state": "not_exercised",
+          "requests": 0
+        },
+        "phases": {
+          "preparation": {
+            "login": {
+              "attempts": 200,
+              "successes": 200,
+              "failures": 0,
+              "p95Ms": 94.09999999999998,
+              "p99Ms": 129.07
+            },
+            "logout": {
+              "attempts": 0,
+              "failures": 0
+            },
+            "refresh": {
+              "requests": 0,
+              "failures": 0
+            }
+          },
+          "ramp": {
+            "login": {
+              "attempts": 0,
+              "successes": 0,
+              "failures": 0,
+              "p95Ms": null,
+              "p99Ms": null
+            },
+            "logout": {
+              "attempts": 0,
+              "failures": 0
+            },
+            "refresh": {
+              "requests": 0,
+              "failures": 0
+            }
+          },
+          "warmup": {
+            "login": {
+              "attempts": 0,
+              "successes": 0,
+              "failures": 0,
+              "p95Ms": null,
+              "p99Ms": null
+            },
+            "logout": {
+              "attempts": 0,
+              "failures": 0
+            },
+            "refresh": {
+              "requests": 0,
+              "failures": 0
+            }
+          },
+          "measurement": {
+            "login": {
+              "attempts": 0,
+              "successes": 0,
+              "failures": 0,
+              "p95Ms": null,
+              "p99Ms": null
+            },
+            "logout": {
+              "attempts": 0,
+              "failures": 0
+            },
+            "refresh": {
+              "requests": 0,
+              "failures": 0
+            }
+          },
+          "cleanup": {
+            "login": {
+              "attempts": 0,
+              "successes": 0,
+              "failures": 0,
+              "p95Ms": null,
+              "p99Ms": null
+            },
+            "logout": {
+              "attempts": 200,
+              "failures": 0
+            },
+            "refresh": {
+              "requests": 0,
+              "failures": 0
+            }
+          }
+        }
+      },
+      "controllerUnexpectedFailure": null,
+      "apiFixtureCleanupCompleted": true,
+      "ownedShutdownVerified": true,
+      "nativeWorkloadExit": {
+        "code": 0,
+        "signal": null,
+        "spawnFailed": false
+      },
+      "reportSha256": "89c1583162d0e97f4c563a291175c8c79a34fcd64229ede9426a4db38e322848",
+      "manifestSha256": "d33b0b230947bb4546e7078a2b6aa88ea8af18d5fe2a5f2e3c0d781c5f235ac3",
+      "sourceRevision": "0f8c32d9fed6e423aac4388c27baab8fc0b8fa0b",
+      "rawActionAndParticipationReplayMatches": true,
+      "rawResourceAndGeneratorCpuReplayMatches": true,
+      "resources": {
+        "valid": true,
+        "stability": "no_instability_observed",
+        "generatorHeadroom": "unverified",
+        "measuredGeneratorCpuPressure": false,
+        "containers": {
+          "backend": {
+            "peakCpuCores": 0.8775905194705058,
+            "peakMemoryBytes": 1333723136,
+            "oomKillDelta": 0,
+            "oomDelta": 0,
+            "throttledUsecDelta": 6218081
+          },
+          "runner": {
+            "peakCpuCores": 0.5427000000000001,
+            "peakMemoryBytes": 1026875392,
+            "oomKillDelta": 0,
+            "oomDelta": 0,
+            "throttledUsecDelta": 0
+          }
+        }
+      },
+      "counts": {
+        "before": {
+          "users": 15000,
+          "posts": 150000,
+          "likes": 150000,
+          "storageBytes": 2415722496
+        },
+        "after": {
+          "users": 15000,
+          "posts": 150681,
+          "likes": 151556,
+          "storageBytes": 2507235328
+        }
+      }
+    },
+    {
+      "users": 300,
+      "verdict": "pass",
+      "measurementEvidenceValid": true,
+      "measuredActions": 11981,
+      "failedActions": 0,
+      "authFailures": 0,
+      "participation": {
+        "configuredUsers": 300,
+        "measuredUsers": 300,
+        "completedUsers": 300,
+        "missingMeasurementUsers": 0,
+        "missingCompletions": 0,
+        "drainMilliseconds": 38
+      },
+      "actions": {
+        "listPublic": {
+          "requested": 4215,
+          "count": 4215,
+          "successes": 4215,
+          "failures": 0,
+          "observedPercent": 35.18070277940072,
+          "configuredPercent": 35,
+          "p95Ms": 10.299999999999812,
+          "p99Ms": 44,
+          "slo": "pass"
+        },
+        "listOwn": {
+          "requested": 1743,
+          "count": 1743,
+          "successes": 1743,
+          "failures": 0,
+          "observedPercent": 14.548034387780653,
+          "configuredPercent": 15,
+          "p95Ms": 12,
+          "p99Ms": 47.15999999999997,
+          "slo": "pass"
+        },
+        "read": {
+          "requested": 1818,
+          "count": 1818,
+          "successes": 1818,
+          "failures": 0,
+          "observedPercent": 15.174025540439029,
+          "configuredPercent": 15,
+          "p95Ms": 11,
+          "p99Ms": 45,
+          "slo": "pass"
+        },
+        "create": {
+          "requested": 635,
+          "count": 635,
+          "successes": 635,
+          "failures": 0,
+          "observedPercent": 5.3000584258409145,
+          "configuredPercent": 5,
+          "p95Ms": 60,
+          "p99Ms": 159.45999999999984,
+          "slo": "insufficient_samples"
+        },
+        "like": {
+          "requested": 2061,
+          "count": 2061,
+          "successes": 2061,
+          "failures": 0,
+          "observedPercent": 17.202236875052165,
+          "configuredPercent": 17,
+          "p95Ms": 107,
+          "p99Ms": 264.4,
+          "slo": "pass"
+        },
+        "unlike": {
+          "requested": 608,
+          "count": 608,
+          "successes": 608,
+          "failures": 0,
+          "observedPercent": 5.074701610883899,
+          "configuredPercent": 5,
+          "p95Ms": 61,
+          "p99Ms": 130.94999999999993,
+          "slo": "insufficient_samples"
+        },
+        "edit": {
+          "requested": 901,
+          "count": 901,
+          "successes": 901,
+          "failures": 0,
+          "observedPercent": 7.520240380602621,
+          "configuredPercent": 8,
+          "p95Ms": 72,
+          "p99Ms": 157,
+          "slo": "insufficient_samples"
+        }
+      },
+      "measurementSeconds": 120,
+      "measurementStartedAt": "2026-11-15T07:20:21.482Z",
+      "authenticationEvidence": {
+        "login": {
+          "state": "not_exercised",
+          "attempts": 0,
+          "successes": 0,
+          "failures": 0
+        },
+        "refresh": {
+          "state": "not_exercised",
+          "requests": 0
+        },
+        "phases": {
+          "preparation": {
+            "login": {
+              "attempts": 300,
+              "successes": 300,
+              "failures": 0,
+              "p95Ms": 94,
+              "p99Ms": 127.09999999999998
+            },
+            "logout": {
+              "attempts": 0,
+              "failures": 0
+            },
+            "refresh": {
+              "requests": 0,
+              "failures": 0
+            }
+          },
+          "ramp": {
+            "login": {
+              "attempts": 0,
+              "successes": 0,
+              "failures": 0,
+              "p95Ms": null,
+              "p99Ms": null
+            },
+            "logout": {
+              "attempts": 0,
+              "failures": 0
+            },
+            "refresh": {
+              "requests": 0,
+              "failures": 0
+            }
+          },
+          "warmup": {
+            "login": {
+              "attempts": 0,
+              "successes": 0,
+              "failures": 0,
+              "p95Ms": null,
+              "p99Ms": null
+            },
+            "logout": {
+              "attempts": 0,
+              "failures": 0
+            },
+            "refresh": {
+              "requests": 0,
+              "failures": 0
+            }
+          },
+          "measurement": {
+            "login": {
+              "attempts": 0,
+              "successes": 0,
+              "failures": 0,
+              "p95Ms": null,
+              "p99Ms": null
+            },
+            "logout": {
+              "attempts": 0,
+              "failures": 0
+            },
+            "refresh": {
+              "requests": 0,
+              "failures": 0
+            }
+          },
+          "cleanup": {
+            "login": {
+              "attempts": 0,
+              "successes": 0,
+              "failures": 0,
+              "p95Ms": null,
+              "p99Ms": null
+            },
+            "logout": {
+              "attempts": 300,
+              "failures": 0
+            },
+            "refresh": {
+              "requests": 0,
+              "failures": 0
+            }
+          }
+        }
+      },
+      "controllerUnexpectedFailure": null,
+      "apiFixtureCleanupCompleted": true,
+      "ownedShutdownVerified": true,
+      "nativeWorkloadExit": {
+        "code": 0,
+        "signal": null,
+        "spawnFailed": false
+      },
+      "reportSha256": "bb783f34fee872d8638686e83e964b7674bf7599b6aae1d61ee6cc282cc9cd75",
+      "manifestSha256": "ea50ca64ccfae50cb4e1940ca41629ed3f88820f7b14aed8983f7890f12f6ffb",
+      "sourceRevision": "0f8c32d9fed6e423aac4388c27baab8fc0b8fa0b",
+      "rawActionAndParticipationReplayMatches": true,
+      "rawResourceAndGeneratorCpuReplayMatches": true,
+      "resources": {
+        "valid": true,
+        "stability": "no_instability_observed",
+        "generatorHeadroom": "unverified",
+        "measuredGeneratorCpuPressure": false,
+        "containers": {
+          "backend": {
+            "peakCpuCores": 1.01105586253556,
+            "peakMemoryBytes": 1474834432,
+            "oomKillDelta": 0,
+            "oomDelta": 0,
+            "throttledUsecDelta": 26762641
+          },
+          "runner": {
+            "peakCpuCores": 0.8534,
+            "peakMemoryBytes": 1411313664,
+            "oomKillDelta": 0,
+            "oomDelta": 0,
+            "throttledUsecDelta": 0
+          }
+        }
+      },
+      "counts": {
+        "before": {
+          "users": 15000,
+          "posts": 150000,
+          "likes": 150000,
+          "storageBytes": 2427076608
+        },
+        "after": {
+          "users": 15000,
+          "posts": 151013,
+          "likes": 152367,
+          "storageBytes": 2394218496
+        }
+      }
+    },
+    {
+      "users": 350,
+      "verdict": "pass",
+      "measurementEvidenceValid": true,
+      "measuredActions": 13929,
+      "failedActions": 0,
+      "authFailures": 0,
+      "participation": {
+        "configuredUsers": 350,
+        "measuredUsers": 350,
+        "completedUsers": 350,
+        "missingMeasurementUsers": 0,
+        "missingCompletions": 0,
+        "drainMilliseconds": 31
+      },
+      "actions": {
+        "listPublic": {
+          "requested": 4882,
+          "count": 4882,
+          "successes": 4882,
+          "failures": 0,
+          "observedPercent": 35.04917797401106,
+          "configuredPercent": 35,
+          "p95Ms": 35,
+          "p99Ms": 60,
+          "slo": "pass"
+        },
+        "listOwn": {
+          "requested": 2029,
+          "count": 2029,
+          "successes": 2029,
+          "failures": 0,
+          "observedPercent": 14.566731280063177,
+          "configuredPercent": 15,
+          "p95Ms": 37,
+          "p99Ms": 67.71999999999998,
+          "slo": "pass"
+        },
+        "read": {
+          "requested": 2092,
+          "count": 2092,
+          "successes": 2092,
+          "failures": 0,
+          "observedPercent": 15.019025055639313,
+          "configuredPercent": 15,
+          "p95Ms": 34,
+          "p99Ms": 62.08999999999998,
+          "slo": "pass"
+        },
+        "create": {
+          "requested": 716,
+          "count": 716,
+          "successes": 716,
+          "failures": 0,
+          "observedPercent": 5.140354655754182,
+          "configuredPercent": 5,
+          "p95Ms": 139.24999999999997,
+          "p99Ms": 229.94999999999996,
+          "slo": "insufficient_samples"
+        },
+        "like": {
+          "requested": 2419,
+          "count": 2419,
+          "successes": 2419,
+          "failures": 0,
+          "observedPercent": 17.36664512886783,
+          "configuredPercent": 17,
+          "p95Ms": 244.09999999999988,
+          "p99Ms": 397,
+          "slo": "pass"
+        },
+        "unlike": {
+          "requested": 705,
+          "count": 705,
+          "successes": 705,
+          "failures": 0,
+          "observedPercent": 5.061382726685332,
+          "configuredPercent": 5,
+          "p95Ms": 140,
+          "p99Ms": 214,
+          "slo": "insufficient_samples"
+        },
+        "edit": {
+          "requested": 1086,
+          "count": 1086,
+          "successes": 1086,
+          "failures": 0,
+          "observedPercent": 7.796683178979108,
+          "configuredPercent": 8,
+          "p95Ms": 137.24999999999986,
+          "p99Ms": 232.49999999999991,
+          "slo": "pass"
+        }
+      },
+      "measurementSeconds": 120,
+      "measurementStartedAt": "2026-11-15T09:26:17.107Z",
+      "authenticationEvidence": {
+        "login": {
+          "state": "not_exercised",
+          "attempts": 0,
+          "successes": 0,
+          "failures": 0
+        },
+        "refresh": {
+          "state": "not_exercised",
+          "requests": 0
+        },
+        "phases": {
+          "preparation": {
+            "login": {
+              "attempts": 350,
+              "successes": 350,
+              "failures": 0,
+              "p95Ms": 93.54999999999998,
+              "p99Ms": 150.53
+            },
+            "logout": {
+              "attempts": 0,
+              "failures": 0
+            },
+            "refresh": {
+              "requests": 0,
+              "failures": 0
+            }
+          },
+          "ramp": {
+            "login": {
+              "attempts": 0,
+              "successes": 0,
+              "failures": 0,
+              "p95Ms": null,
+              "p99Ms": null
+            },
+            "logout": {
+              "attempts": 0,
+              "failures": 0
+            },
+            "refresh": {
+              "requests": 0,
+              "failures": 0
+            }
+          },
+          "warmup": {
+            "login": {
+              "attempts": 0,
+              "successes": 0,
+              "failures": 0,
+              "p95Ms": null,
+              "p99Ms": null
+            },
+            "logout": {
+              "attempts": 0,
+              "failures": 0
+            },
+            "refresh": {
+              "requests": 0,
+              "failures": 0
+            }
+          },
+          "measurement": {
+            "login": {
+              "attempts": 0,
+              "successes": 0,
+              "failures": 0,
+              "p95Ms": null,
+              "p99Ms": null
+            },
+            "logout": {
+              "attempts": 0,
+              "failures": 0
+            },
+            "refresh": {
+              "requests": 0,
+              "failures": 0
+            }
+          },
+          "cleanup": {
+            "login": {
+              "attempts": 0,
+              "successes": 0,
+              "failures": 0,
+              "p95Ms": null,
+              "p99Ms": null
+            },
+            "logout": {
+              "attempts": 350,
+              "failures": 0
+            },
+            "refresh": {
+              "requests": 0,
+              "failures": 0
+            }
+          }
+        }
+      },
+      "controllerUnexpectedFailure": null,
+      "apiFixtureCleanupCompleted": true,
+      "ownedShutdownVerified": true,
+      "nativeWorkloadExit": {
+        "code": 0,
+        "signal": null,
+        "spawnFailed": false
+      },
+      "reportSha256": "06f1fae9470c5f3ab3afb312cf8ad939da58cc55fc1bf1c2e452de85388fc678",
+      "manifestSha256": "e6a26ce2a89f3fc29a066f125b21a00aeba967401a81950b18b320a846c1b022",
+      "sourceRevision": "0f8c32d9fed6e423aac4388c27baab8fc0b8fa0b",
+      "rawActionAndParticipationReplayMatches": true,
+      "rawResourceAndGeneratorCpuReplayMatches": true,
+      "resources": {
+        "valid": true,
+        "stability": "no_instability_observed",
+        "generatorHeadroom": "unverified",
+        "measuredGeneratorCpuPressure": false,
+        "containers": {
+          "backend": {
+            "peakCpuCores": 1.024705752883662,
+            "peakMemoryBytes": 1331113984,
+            "oomKillDelta": 0,
+            "oomDelta": 0,
+            "throttledUsecDelta": 56431399
+          },
+          "runner": {
+            "peakCpuCores": 0.9843999999999999,
+            "peakMemoryBytes": 1616072704,
+            "oomKillDelta": 0,
+            "oomDelta": 0,
+            "throttledUsecDelta": 0
+          }
+        }
+      },
+      "counts": {
+        "before": {
+          "users": 15000,
+          "posts": 150000,
+          "likes": 150000,
+          "storageBytes": 2426724352
+        },
+        "after": {
+          "users": 15000,
+          "posts": 151167,
+          "likes": 152780,
+          "storageBytes": 2366586880
+        }
+      }
+    },
+    {
+      "users": 375,
+      "verdict": "pass",
+      "measurementEvidenceValid": true,
+      "measuredActions": 14811,
+      "failedActions": 0,
+      "authFailures": 0,
+      "participation": {
+        "configuredUsers": 375,
+        "measuredUsers": 375,
+        "completedUsers": 375,
+        "missingMeasurementUsers": 0,
+        "missingCompletions": 0,
+        "drainMilliseconds": 7
+      },
+      "actions": {
+        "listPublic": {
+          "requested": 5201,
+          "count": 5201,
+          "successes": 5201,
+          "failures": 0,
+          "observedPercent": 35.11579231652151,
+          "configuredPercent": 35,
+          "p95Ms": 56,
+          "p99Ms": 86,
+          "slo": "pass"
+        },
+        "listOwn": {
+          "requested": 2162,
+          "count": 2162,
+          "successes": 2162,
+          "failures": 0,
+          "observedPercent": 14.597258794139492,
+          "configuredPercent": 15,
+          "p95Ms": 62,
+          "p99Ms": 87.38999999999999,
+          "slo": "pass"
+        },
+        "read": {
+          "requested": 2220,
+          "count": 2220,
+          "successes": 2220,
+          "failures": 0,
+          "observedPercent": 14.988859631355073,
+          "configuredPercent": 15,
+          "p95Ms": 52,
+          "p99Ms": 73,
+          "slo": "pass"
+        },
+        "create": {
+          "requested": 756,
+          "count": 756,
+          "successes": 756,
+          "failures": 0,
+          "observedPercent": 5.104314360947944,
+          "configuredPercent": 5,
+          "p95Ms": 341.24999999999994,
+          "p99Ms": 482.79999999999995,
+          "slo": "insufficient_samples"
+        },
+        "like": {
+          "requested": 2574,
+          "count": 2574,
+          "successes": 2574,
+          "failures": 0,
+          "observedPercent": 17.378975086084665,
+          "configuredPercent": 17,
+          "p95Ms": 486,
+          "p99Ms": 646.27,
+          "slo": "pass"
+        },
+        "unlike": {
+          "requested": 740,
+          "count": 740,
+          "successes": 740,
+          "failures": 0,
+          "observedPercent": 4.996286543785025,
+          "configuredPercent": 5,
+          "p95Ms": 330.1499999999999,
+          "p99Ms": 510.9299999999999,
+          "slo": "insufficient_samples"
+        },
+        "edit": {
+          "requested": 1158,
+          "count": 1158,
+          "successes": 1158,
+          "failures": 0,
+          "observedPercent": 7.818513267166296,
+          "configuredPercent": 8,
+          "p95Ms": 322.1499999999999,
+          "p99Ms": 476.43999999999994,
+          "slo": "pass"
+        }
+      },
+      "measurementSeconds": 120,
+      "measurementStartedAt": "2026-11-15T11:32:21.590Z",
+      "authenticationEvidence": {
+        "login": {
+          "state": "not_exercised",
+          "attempts": 0,
+          "successes": 0,
+          "failures": 0
+        },
+        "refresh": {
+          "state": "not_exercised",
+          "requests": 0
+        },
+        "phases": {
+          "preparation": {
+            "login": {
+              "attempts": 375,
+              "successes": 375,
+              "failures": 0,
+              "p95Ms": 92.29999999999998,
+              "p99Ms": 144.07999999999998
+            },
+            "logout": {
+              "attempts": 0,
+              "failures": 0
+            },
+            "refresh": {
+              "requests": 0,
+              "failures": 0
+            }
+          },
+          "ramp": {
+            "login": {
+              "attempts": 0,
+              "successes": 0,
+              "failures": 0,
+              "p95Ms": null,
+              "p99Ms": null
+            },
+            "logout": {
+              "attempts": 0,
+              "failures": 0
+            },
+            "refresh": {
+              "requests": 0,
+              "failures": 0
+            }
+          },
+          "warmup": {
+            "login": {
+              "attempts": 0,
+              "successes": 0,
+              "failures": 0,
+              "p95Ms": null,
+              "p99Ms": null
+            },
+            "logout": {
+              "attempts": 0,
+              "failures": 0
+            },
+            "refresh": {
+              "requests": 0,
+              "failures": 0
+            }
+          },
+          "measurement": {
+            "login": {
+              "attempts": 0,
+              "successes": 0,
+              "failures": 0,
+              "p95Ms": null,
+              "p99Ms": null
+            },
+            "logout": {
+              "attempts": 0,
+              "failures": 0
+            },
+            "refresh": {
+              "requests": 0,
+              "failures": 0
+            }
+          },
+          "cleanup": {
+            "login": {
+              "attempts": 0,
+              "successes": 0,
+              "failures": 0,
+              "p95Ms": null,
+              "p99Ms": null
+            },
+            "logout": {
+              "attempts": 375,
+              "failures": 0
+            },
+            "refresh": {
+              "requests": 0,
+              "failures": 0
+            }
+          }
+        }
+      },
+      "controllerUnexpectedFailure": {
+        "type": "Error",
+        "phase": "untimed-fixture-cleanup-identity-preflight",
+        "accountsDeleted": 0
+      },
+      "apiFixtureCleanupCompleted": false,
+      "ownedShutdownVerified": true,
+      "nativeWorkloadExit": {
+        "code": 0,
+        "signal": null,
+        "spawnFailed": false
+      },
+      "reportSha256": "5920a4c95c2c82ba1962d3af19fca6b82d2a27582d1de4decf50d6d296dd75c8",
+      "manifestSha256": "ae806cb2b899694381b2cb5355d6918c7a0a78e7db83d0fce68115323a56a384",
+      "sourceRevision": "0f8c32d9fed6e423aac4388c27baab8fc0b8fa0b",
+      "rawActionAndParticipationReplayMatches": true,
+      "rawResourceAndGeneratorCpuReplayMatches": true,
+      "resources": {
+        "valid": true,
+        "stability": "no_instability_observed",
+        "generatorHeadroom": "unverified",
+        "measuredGeneratorCpuPressure": false,
+        "containers": {
+          "backend": {
+            "peakCpuCores": 1.036163959921262,
+            "peakMemoryBytes": 1460404224,
+            "oomKillDelta": 0,
+            "oomDelta": 0,
+            "throttledUsecDelta": 111219540
+          },
+          "runner": {
+            "peakCpuCores": 1.0771,
+            "peakMemoryBytes": 1699389440,
+            "oomKillDelta": 0,
+            "oomDelta": 0,
+            "throttledUsecDelta": 0
+          }
+        }
+      },
+      "counts": {
+        "before": {
+          "users": 15000,
+          "posts": 150000,
+          "likes": 150000,
+          "storageBytes": 2446016512
+        },
+        "after": {
+          "users": 15000,
+          "posts": 151229,
+          "likes": 152991,
+          "storageBytes": 2432876544
+        }
+      }
+    },
+    {
+      "users": 400,
+      "verdict": "slo_failure",
+      "measurementEvidenceValid": true,
+      "measuredActions": 15589,
+      "failedActions": 0,
+      "authFailures": 0,
+      "participation": {
+        "configuredUsers": 400,
+        "measuredUsers": 400,
+        "completedUsers": 400,
+        "missingMeasurementUsers": 0,
+        "missingCompletions": 0,
+        "drainMilliseconds": 199
+      },
+      "actions": {
+        "listPublic": {
+          "requested": 5479,
+          "count": 5479,
+          "successes": 5479,
+          "failures": 0,
+          "observedPercent": 35.146577715055486,
+          "configuredPercent": 35,
+          "p95Ms": 64,
+          "p99Ms": 92,
+          "slo": "pass"
+        },
+        "listOwn": {
+          "requested": 2268,
+          "count": 2268,
+          "successes": 2268,
+          "failures": 0,
+          "observedPercent": 14.548720251459363,
+          "configuredPercent": 15,
+          "p95Ms": 74,
+          "p99Ms": 139.32999999999998,
+          "slo": "pass"
+        },
+        "read": {
+          "requested": 2341,
+          "count": 2341,
+          "successes": 2341,
+          "failures": 0,
+          "observedPercent": 15.016999166078646,
+          "configuredPercent": 15,
+          "p95Ms": 64,
+          "p99Ms": 110,
+          "slo": "pass"
+        },
+        "create": {
+          "requested": 797,
+          "count": 797,
+          "successes": 797,
+          "failures": 0,
+          "observedPercent": 5.112579382898198,
+          "configuredPercent": 5,
+          "p95Ms": 637.7999999999995,
+          "p99Ms": 841.4399999999999,
+          "slo": "insufficient_samples"
+        },
+        "like": {
+          "requested": 2708,
+          "count": 2708,
+          "successes": 2708,
+          "failures": 0,
+          "observedPercent": 17.371223298479695,
+          "configuredPercent": 17,
+          "p95Ms": 819.2999999999997,
+          "p99Ms": 1096.58,
+          "slo": "fail"
+        },
+        "unlike": {
+          "requested": 776,
+          "count": 776,
+          "successes": 776,
+          "failures": 0,
+          "observedPercent": 4.9778690101995,
+          "configuredPercent": 5,
+          "p95Ms": 668.25,
+          "p99Ms": 940.9999999999995,
+          "slo": "insufficient_samples"
+        },
+        "edit": {
+          "requested": 1220,
+          "count": 1220,
+          "successes": 1220,
+          "failures": 0,
+          "observedPercent": 7.826031175829111,
+          "configuredPercent": 8,
+          "p95Ms": 718.0999999999999,
+          "p99Ms": 919.43,
+          "slo": "pass"
+        }
+      },
+      "measurementSeconds": 120,
+      "measurementStartedAt": "2026-11-15T05:37:00.695Z",
+      "authenticationEvidence": {
+        "login": {
+          "state": "not_exercised",
+          "attempts": 0,
+          "successes": 0,
+          "failures": 0
+        },
+        "refresh": {
+          "state": "not_exercised",
+          "requests": 0
+        },
+        "phases": {
+          "preparation": {
+            "login": {
+              "attempts": 400,
+              "successes": 400,
+              "failures": 0,
+              "p95Ms": 92,
+              "p99Ms": 144.08999999999997
+            },
+            "logout": {
+              "attempts": 0,
+              "failures": 0
+            },
+            "refresh": {
+              "requests": 0,
+              "failures": 0
+            }
+          },
+          "ramp": {
+            "login": {
+              "attempts": 0,
+              "successes": 0,
+              "failures": 0,
+              "p95Ms": null,
+              "p99Ms": null
+            },
+            "logout": {
+              "attempts": 0,
+              "failures": 0
+            },
+            "refresh": {
+              "requests": 0,
+              "failures": 0
+            }
+          },
+          "warmup": {
+            "login": {
+              "attempts": 0,
+              "successes": 0,
+              "failures": 0,
+              "p95Ms": null,
+              "p99Ms": null
+            },
+            "logout": {
+              "attempts": 0,
+              "failures": 0
+            },
+            "refresh": {
+              "requests": 0,
+              "failures": 0
+            }
+          },
+          "measurement": {
+            "login": {
+              "attempts": 0,
+              "successes": 0,
+              "failures": 0,
+              "p95Ms": null,
+              "p99Ms": null
+            },
+            "logout": {
+              "attempts": 0,
+              "failures": 0
+            },
+            "refresh": {
+              "requests": 0,
+              "failures": 0
+            }
+          },
+          "cleanup": {
+            "login": {
+              "attempts": 0,
+              "successes": 0,
+              "failures": 0,
+              "p95Ms": null,
+              "p99Ms": null
+            },
+            "logout": {
+              "attempts": 400,
+              "failures": 0
+            },
+            "refresh": {
+              "requests": 0,
+              "failures": 0
+            }
+          }
+        }
+      },
+      "controllerUnexpectedFailure": null,
+      "apiFixtureCleanupCompleted": false,
+      "ownedShutdownVerified": true,
+      "nativeWorkloadExit": {
+        "code": 99,
+        "signal": null,
+        "spawnFailed": false
+      },
+      "reportSha256": "4fdce58b13eb89e15c5fc1670b041fc91e30c4e708fda70f2dc05a041d3c68a3",
+      "manifestSha256": "a9a5e8f93107ef5ac540ea2fea26f6c70ced97b13f347e35ac54962f6000e5e4",
+      "sourceRevision": "0f8c32d9fed6e423aac4388c27baab8fc0b8fa0b",
+      "rawActionAndParticipationReplayMatches": true,
+      "rawResourceAndGeneratorCpuReplayMatches": true,
+      "resources": {
+        "valid": true,
+        "stability": "no_instability_observed",
+        "generatorHeadroom": "unverified",
+        "measuredGeneratorCpuPressure": false,
+        "containers": {
+          "backend": {
+            "peakCpuCores": 1.0466972542104171,
+            "peakMemoryBytes": 1453305856,
+            "oomKillDelta": 0,
+            "oomDelta": 0,
+            "throttledUsecDelta": 177944803
+          },
+          "runner": {
+            "peakCpuCores": 1.0676999999999999,
+            "peakMemoryBytes": 1812254720,
+            "oomKillDelta": 0,
+            "oomDelta": 0,
+            "throttledUsecDelta": 0
+          }
+        }
+      },
+      "counts": {
+        "before": {
+          "users": 15000,
+          "posts": 150000,
+          "likes": 150000,
+          "storageBytes": 2438037504
+        },
+        "after": {
+          "users": 15000,
+          "posts": 151304,
+          "likes": 153170,
+          "storageBytes": 2411888640
+        }
+      }
+    }
+  ]
+}

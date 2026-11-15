@@ -179,7 +179,7 @@ export async function runConvex(args = []) {
       }
 
     }
-  } catch (error) { uncertain ||= error.retainLock === true; failure = { type: error.name, code: error.code ?? null, locations: error.stack?.split('\n').filter(line => /^\s+at /.test(line)) }; json(`${directory}/failure.json`, failure); }
+  } catch (error) { savePrivate(`.fixtures/archive/${run}-controller-error.json`,{name:error.name,code:error.code??null,message:error.message,stack:error.stack},true); uncertain ||= error.retainLock === true; failure = { type: error.name, code: error.code ?? null, locations: error.stack?.split('\n').filter(line => /^\s+at /.test(line)) }; json(`${directory}/failure.json`, failure); }
   finally {
     const completed = !failure && history.length === plan.points.length && history.every(row => row.verdict === 'pass');
     const summary = { backend: 'convex',capacityEligible:!plan.validationDataset,validationOnly:plan.validationDataset, fixturePreparationTimeoutSeconds:plan.fixturePreparationTimeoutSeconds, ...(plan.preparedSessions?{kind:'prepared-session-single-point',workloadVersion:plan.config.version,authPreparation:plan.config.authPreparation,discovery:false}:{}), points: plan.points, smoke: plan.smoke, history, completed, failure: failure ?? null, certified: false, limitations: ['Short single points; no repeated capacity/tail/headroom certification.', 'Native Convex Auth sessions and refresh tokens are revoked; protected functions verify live sessions.', 'API-seeded fresh isolated volumes retained. Own cleanup deletes users, username mappings, posts and likes and revokes sessions; inaccessible native password-component hashes remain in the retained volume.'] };
