@@ -1,0 +1,4509 @@
+{
+  "createdAt": "2026-11-18T19:30:53.059020+00:00",
+  "method": "HTTP timings: request_phase=measurement (fallback phase), traffic=backend, raw k6 Point metrics; milliseconds; linear interpolation percentiles. Completion may be after window end. HTTP request counts differ from logical action counts. DB deltas: project-labelled first/last cached metric snapshots, not exact measurement boundaries.",
+  "trials": [
+    {
+      "users": 500,
+      "directory": "social-4tdYtS",
+      "result": {
+        "users": 500,
+        "classification": "pass",
+        "actions": 19670,
+        "failedActions": 0,
+        "actionFailurePercent": 0,
+        "authFailures": 0,
+        "perActionP95Ms": {
+          "listPublic": 218,
+          "listOwn": 219.74999999999986,
+          "read": 216,
+          "create": 178,
+          "like": 346,
+          "unlike": 208.6999999999999,
+          "edit": 221
+        },
+        "gatewayRejectionDeltas": {
+          "admission_rejections_total": 0,
+          "upstream_admission_rejections_total": 0
+        },
+        "gateway": {
+          "activeRequests": {
+            "minimum": 0,
+            "mean": 10.25,
+            "maximum": 76
+          },
+          "upstreamConnections": {
+            "minimum": 16,
+            "mean": 21.925,
+            "maximum": 80
+          },
+          "inboundConnections": {
+            "minimum": 500,
+            "mean": 500,
+            "maximum": 500
+          },
+          "openDescriptors": {
+            "minimum": 561,
+            "mean": 566.7333333333333,
+            "maximum": 627
+          },
+          "minimumSampledDescriptorHeadroomFraction": 0.9402629573170732
+        },
+        "database": {
+          "databaseBackends": {
+            "minimum": 6,
+            "mean": 6.25,
+            "maximum": 7
+          },
+          "databaseConnectionLimit": 60,
+          "cacheHitFraction": 0.8828810805567681,
+          "deadlockDelta": 0,
+          "tempBytesDelta": 0
+        },
+        "hostCpu": {
+          "userPercent": {
+            "minimum": 9.490509490509492,
+            "mean": 14.537864101730653,
+            "maximum": 43.93179538615847
+          },
+          "systemPercent": {
+            "minimum": 6.841046277665996,
+            "mean": 9.237212544216558,
+            "maximum": 16.549648946840524
+          },
+          "idlePercent": {
+            "minimum": 39.518555667001,
+            "mean": 76.22492335405279,
+            "maximum": 83.40040241448692
+          }
+        },
+        "backend": {
+          "cpuCores": {
+            "minimum": 0.6427221172020062,
+            "mean": 0.8683995607176521,
+            "maximum": 1.1669829222010006
+          },
+          "peakRssBytes": 996229120
+        },
+        "measurementAudit": "raw-results/social-4tdYtS/measurement-audit.json",
+        "gatewayAudit": "raw-results/social-4tdYtS/gateway-load-audit.json",
+        "projectMetricsAudit": "raw-results/social-4tdYtS/project-metrics-audit.json"
+      },
+      "successfulActionsPerSecond": 163.91666666666666,
+      "rawHttp": {
+        "2xx": {
+          "http_req_duration": {
+            "count": 23080,
+            "mean": 50.58895294627383,
+            "p50": 16.212,
+            "p95": 200.42889999999997,
+            "p99": 388.20555999999885,
+            "maximum": 1366.021
+          },
+          "http_req_blocked": {
+            "count": 23080,
+            "mean": 0.002250476603119584,
+            "p50": 0.002,
+            "p95": 0.004,
+            "p99": 0.006,
+            "maximum": 0.039
+          },
+          "http_req_connecting": {
+            "count": 23080,
+            "mean": 0.0,
+            "p50": 0.0,
+            "p95": 0.0,
+            "p99": 0.0,
+            "maximum": 0
+          },
+          "http_req_tls_handshaking": {
+            "count": 23080,
+            "mean": 0.0,
+            "p50": 0.0,
+            "p95": 0.0,
+            "p99": 0.0,
+            "maximum": 0
+          },
+          "http_req_sending": {
+            "count": 23080,
+            "mean": 0.009179896013864817,
+            "p50": 0.009,
+            "p95": 0.013,
+            "p99": 0.017,
+            "maximum": 0.528
+          },
+          "http_req_waiting": {
+            "count": 23080,
+            "mean": 50.544924610052,
+            "p50": 16.1675,
+            "p95": 200.39779999999996,
+            "p99": 388.13771999999886,
+            "maximum": 1365.993
+          },
+          "http_req_receiving": {
+            "count": 23080,
+            "mean": 0.03484844020797227,
+            "p50": 0.023,
+            "p95": 0.078,
+            "p99": 0.14320999999999912,
+            "maximum": 3.801
+          }
+        }
+      },
+      "successfulHttpCompletedPerSecond": 192.33333333333334,
+      "successfulHttpTenSecondBuckets": {
+        "0": {
+          "count": 1913,
+          "mean": 13.276228959749085,
+          "p50": 9.697,
+          "p95": 25.98979999999999,
+          "p99": 119.21839999999928,
+          "maximum": 164.53
+        },
+        "1": {
+          "count": 1981,
+          "mean": 15.058362948006057,
+          "p50": 10.559,
+          "p95": 37.642,
+          "p99": 98.93480000000001,
+          "maximum": 152.972
+        },
+        "2": {
+          "count": 1951,
+          "mean": 11.37312352639672,
+          "p50": 9.912,
+          "p95": 24.144,
+          "p99": 33.8615,
+          "maximum": 47.706
+        },
+        "3": {
+          "count": 1946,
+          "mean": 12.20630421377184,
+          "p50": 9.379999999999999,
+          "p95": 27.49125,
+          "p99": 77.1324999999998,
+          "maximum": 124.544
+        },
+        "4": {
+          "count": 2004,
+          "mean": 15.375169660678642,
+          "p50": 9.8535,
+          "p95": 43.51525,
+          "p99": 126.06933000000005,
+          "maximum": 180.461
+        },
+        "5": {
+          "count": 1919,
+          "mean": 13.420989056800417,
+          "p50": 10.502,
+          "p95": 27.804199999999994,
+          "p99": 86.8135799999999,
+          "maximum": 146.597
+        },
+        "6": {
+          "count": 1970,
+          "mean": 23.40260659898477,
+          "p50": 14.049,
+          "p95": 74.2281,
+          "p99": 194.50764999999996,
+          "maximum": 294.504
+        },
+        "7": {
+          "count": 1913,
+          "mean": 34.82111291165709,
+          "p50": 21.08,
+          "p95": 112.89999999999998,
+          "p99": 268.5008799999999,
+          "maximum": 422.715
+        },
+        "8": {
+          "count": 1911,
+          "mean": 50.06885923600209,
+          "p50": 37.226,
+          "p95": 121.40950000000001,
+          "p99": 296.49080000000004,
+          "maximum": 383.109
+        },
+        "9": {
+          "count": 1884,
+          "mean": 107.1776703821656,
+          "p50": 81.9885,
+          "p95": 314.5903999999996,
+          "p99": 492.03733000000005,
+          "maximum": 728.349
+        },
+        "10": {
+          "count": 1843,
+          "mean": 160.25209169831794,
+          "p50": 142.169,
+          "p95": 367.93229999999994,
+          "p99": 568.6228599999995,
+          "maximum": 917.078
+        },
+        "11": {
+          "count": 1816,
+          "mean": 165.06755892070484,
+          "p50": 141.8755,
+          "p95": 377.33574999999996,
+          "p99": 680.7822,
+          "maximum": 1366.021
+        },
+        "12": {
+          "count": 29,
+          "mean": 152.70013793103448,
+          "p50": 148.6,
+          "p95": 172.9994,
+          "p99": 261.0449199999999,
+          "maximum": 295.159
+        }
+      },
+      "phaseHttpStatusCounts": {
+        "preparation:200": 1000,
+        "ramp:200": 2624,
+        "ramp:201": 633,
+        "warmup:200": 9490,
+        "warmup:201": 2195,
+        "measurement:200": 18641,
+        "measurement:201": 4439,
+        "cleanup:201": 2,
+        "cleanup:204": 500
+      },
+      "gateway": {
+        "projectDatabaseMetrics": {
+          "path": "raw-results/social-4tdYtS/project-metrics-audit.json",
+          "timedSamples": 120,
+          "seriesCount": 379,
+          "databaseBackends": {
+            "minimum": 6,
+            "mean": 6.25,
+            "maximum": 7
+          },
+          "databaseConnectionLimit": 60,
+          "cacheHitFraction": 0.8828810805567681,
+          "deadlockDelta": 0,
+          "tempBytesDelta": 0
+        },
+        "kind": "native-supa-desktop-gateway-audit",
+        "version": "0.14.1",
+        "directory": "raw-results/social-4tdYtS",
+        "classification": {
+          "verdict": "pass",
+          "reasons": [
+            "short_run_observation_only; insufficient tails remain uncertified"
+          ],
+          "certified": false,
+          "generatorHeadroom": "unverified"
+        },
+        "actions": 19670,
+        "failedActions": 0,
+        "authFailures": 0,
+        "capture": {
+          "gatewayMetricSamples": 640,
+          "timedGatewayMetricSamples": 120,
+          "firstAt": "2026-11-18T16:32:16Z",
+          "lastAt": "2026-11-18T17:36:03Z",
+          "measurementWindow": {
+            "releaseAt": 1795023051901,
+            "measurementAt": 1795023141901,
+            "endAt": 1795023261901
+          },
+          "counterScope": "First-to-last diagnostic snapshots spanning preparation, load and paced sign-outs; raw HTTP counters are separately phase-attributed."
+        },
+        "effectiveLimits": {
+          "connection_limit": 2048,
+          "request_limit": 256,
+          "descriptor_soft_limit": 10496,
+          "descriptor_hard_limit": "9223372036854775807"
+        },
+        "counterDeltas": {
+          "admission_rejections_total": 0,
+          "upstream_admission_rejections_total": 0
+        },
+        "allPhaseHttp503Responses": 0,
+        "allPhaseTransportFailures": {},
+        "acceptErrorSeries": [],
+        "requestRejectionDeltaMatchesHttp503": true,
+        "measuredGateway": {
+          "activeRequests": {
+            "minimum": 0,
+            "mean": 10.25,
+            "maximum": 76
+          },
+          "upstreamConnections": {
+            "minimum": 16,
+            "mean": 21.925,
+            "maximum": 80
+          },
+          "inboundConnections": {
+            "minimum": 500,
+            "mean": 500,
+            "maximum": 500
+          },
+          "openDescriptors": {
+            "minimum": 561,
+            "mean": 566.7333333333333,
+            "maximum": 627
+          },
+          "minimumSampledDescriptorHeadroomFraction": 0.9402629573170732
+        },
+        "responseBodies": {
+          "sampleLimitPerVu": 2,
+          "maximumBodyBytes": 4096,
+          "captured": 0,
+          "categories": {},
+          "distinctBodies": [],
+          "examples": [],
+          "originalRunBodiesNotReconstructed": true
+        },
+        "host": {
+          "hardware": {
+            "cpu": "Apple M1 Max",
+            "cores": 10,
+            "memoryBytes": 68719476736,
+            "platform": "darwin",
+            "arch": "arm64"
+          },
+          "operatingSystem": "27.2.1",
+          "cpuPercent": {
+            "userPercent": {
+              "minimum": 9.490509490509492,
+              "mean": 14.537864101730653,
+              "maximum": 43.93179538615847
+            },
+            "systemPercent": {
+              "minimum": 6.841046277665996,
+              "mean": 9.237212544216558,
+              "maximum": 16.549648946840524
+            },
+            "idlePercent": {
+              "minimum": 39.518555667001,
+              "mean": 76.22492335405279,
+              "maximum": 83.40040241448692
+            }
+          },
+          "memorySnapshots": [
+            {
+              "at": "2026-11-18T17:32:27Z",
+              "lines": [
+                "Load Avg: 3.67, 4.25, 4.39 ",
+                "PhysMem: 62G used (2497M wired, 3270M compressor), 676M unused.",
+                "VM: 509T vsize, 57G framework vsize, 0(0) swapins, 0(0) swapouts."
+              ]
+            },
+            {
+              "at": "2026-11-18T17:32:37Z",
+              "lines": [
+                "Load Avg: 3.41, 4.18, 4.36 ",
+                "PhysMem: 63G used (2497M wired, 3270M compressor), 569M unused.",
+                "VM: 509T vsize, 57G framework vsize, 0(0) swapins, 0(0) swapouts."
+              ]
+            },
+            {
+              "at": "2026-11-18T17:32:47Z",
+              "lines": [
+                "Load Avg: 4.11, 4.30, 4.40 ",
+                "PhysMem: 63G used (2495M wired, 3270M compressor), 496M unused.",
+                "VM: 510T vsize, 57G framework vsize, 0(0) swapins, 0(0) swapouts."
+              ]
+            },
+            {
+              "at": "2026-11-18T17:32:57Z",
+              "lines": [
+                "Load Avg: 3.80, 4.23, 4.37 ",
+                "PhysMem: 63G used (2488M wired, 3270M compressor), 403M unused.",
+                "VM: 510T vsize, 57G framework vsize, 0(0) swapins, 0(0) swapouts."
+              ]
+            },
+            {
+              "at": "2026-11-18T17:33:07Z",
+              "lines": [
+                "Load Avg: 3.75, 4.20, 4.36 ",
+                "PhysMem: 63G used (2482M wired, 3270M compressor), 317M unused.",
+                "VM: 510T vsize, 57G framework vsize, 0(0) swapins, 0(0) swapouts."
+              ]
+            },
+            {
+              "at": "2026-11-18T17:33:17Z",
+              "lines": [
+                "Load Avg: 3.41, 4.11, 4.33 ",
+                "PhysMem: 63G used (2485M wired, 3270M compressor), 223M unused.",
+                "VM: 510T vsize, 57G framework vsize, 0(0) swapins, 0(0) swapouts."
+              ]
+            },
+            {
+              "at": "2026-11-18T17:33:27Z",
+              "lines": [
+                "Load Avg: 4.37, 4.29, 4.39 ",
+                "PhysMem: 63G used (2474M wired, 3270M compressor), 72M unused.",
+                "VM: 510T vsize, 57G framework vsize, 0(0) swapins, 0(0) swapouts."
+              ]
+            },
+            {
+              "at": "2026-11-18T17:33:37Z",
+              "lines": [
+                "Load Avg: 4.09, 4.23, 4.37 ",
+                "PhysMem: 63G used (2468M wired, 3270M compressor), 77M unused.",
+                "VM: 510T vsize, 57G framework vsize, 0(0) swapins, 0(0) swapouts."
+              ]
+            },
+            {
+              "at": "2026-11-18T17:33:46Z",
+              "lines": [
+                "Load Avg: 3.77, 4.16, 4.34 ",
+                "PhysMem: 63G used (2467M wired, 3270M compressor), 169M unused.",
+                "VM: 508T vsize, 57G framework vsize, 0(0) swapins, 0(0) swapouts."
+              ]
+            },
+            {
+              "at": "2026-11-18T17:33:56Z",
+              "lines": [
+                "Load Avg: 4.59, 4.32, 4.39 ",
+                "PhysMem: 63G used (2464M wired, 3270M compressor), 120M unused.",
+                "VM: 508T vsize, 57G framework vsize, 0(0) swapins, 0(0) swapouts."
+              ]
+            },
+            {
+              "at": "2026-11-18T17:34:06Z",
+              "lines": [
+                "Load Avg: 4.57, 4.33, 4.39 ",
+                "PhysMem: 63G used (2463M wired, 3270M compressor), 77M unused.",
+                "VM: 508T vsize, 57G framework vsize, 0(0) swapins, 0(0) swapouts."
+              ]
+            },
+            {
+              "at": "2026-11-18T17:34:16Z",
+              "lines": [
+                "Load Avg: 4.09, 4.23, 4.36 ",
+                "PhysMem: 63G used (2461M wired, 3270M compressor), 102M unused.",
+                "VM: 508T vsize, 57G framework vsize, 0(0) swapins, 0(0) swapouts."
+              ]
+            }
+          ],
+          "totalMemoryBytes": 68719476736,
+          "pressureValues": [
+            1
+          ],
+          "maximumSwapMiB": 0
+        },
+        "processes": {
+          "7320": {
+            "executable": "/Applications/Supa Desktop.app/Contents/MacOS/supa-desktop",
+            "parentPid": 1,
+            "meanCpuCores": 0.17539557028930974,
+            "peakRssBytes": 179142656,
+            "role": "manager_gateway"
+          },
+          "7844": {
+            "executable": "/Applications/Supa Desktop.app/Contents/Resources/runtime/supa-wasm",
+            "parentPid": 7320,
+            "meanCpuCores": 8.45687417016923e-05,
+            "peakRssBytes": 225443840,
+            "role": "project_runtime"
+          },
+          "13395": {
+            "executable": "/Applications/Supa Desktop.app/Contents/Resources/runtime/supa-wasm",
+            "parentPid": 7320,
+            "meanCpuCores": 0.5911355044948294,
+            "peakRssBytes": 278937600,
+            "role": "project_runtime"
+          },
+          "13397": {
+            "executable": "/Applications/Supa Desktop.app/Contents/Resources/runtime/supa-wasm",
+            "parentPid": 13395,
+            "meanCpuCores": 0.09979111520799451,
+            "peakRssBytes": 224493568,
+            "role": "runtime_descendant"
+          },
+          "13867": {
+            "executable": "/Applications/Supa Desktop.app/Contents/Resources/runtime/supa-wasm",
+            "parentPid": 7844,
+            "meanCpuCores": 0.0032981809263659865,
+            "peakRssBytes": 98566144,
+            "role": "runtime_descendant"
+          }
+        },
+        "backend": {
+          "cpuCores": {
+            "minimum": 0.6427221172020062,
+            "mean": 0.8683995607176521,
+            "maximum": 1.1669829222010006
+          },
+          "peakRssBytes": 996229120
+        },
+        "generator": {
+          "cpuCores": {
+            "minimum": 0.445920303605312,
+            "mean": 0.8131019558603384,
+            "maximum": 3.2163187855787347
+          },
+          "peakRssBytes": 4566188032,
+          "pressureGuardFired": false
+        },
+        "processOpenDescriptors": {
+          "7320": {
+            "minimum": 561,
+            "mean": 567.2583333333333,
+            "maximum": 625
+          },
+          "7844": {
+            "minimum": 26,
+            "mean": 26,
+            "maximum": 26
+          },
+          "13395": {
+            "minimum": 97,
+            "mean": 145.875,
+            "maximum": 277
+          },
+          "13397": {
+            "minimum": 251,
+            "mean": 260.94166666666666,
+            "maximum": 313
+          },
+          "13867": {
+            "minimum": 105,
+            "mean": 105,
+            "maximum": 105
+          }
+        },
+        "afterLoad": {
+          "ipv4HealthStatus": 200,
+          "ipv6HealthStatus": 200,
+          "listeners": "COMMAND    PID  USER   FD   TYPE             DEVICE SIZE/OFF NODE NAME\nsupa-desk 7320 markb   17u  IPv4 0x2938ba2f66597509      0t0  TCP 127.0.0.1:54321 (LISTEN)\nsupa-desk 7320 markb   21u  IPv6 0x9a8e0f2091f6d136      0t0  TCP [::1]:54321 (LISTEN)\n",
+          "fixtureCleanupVerified": true,
+          "sharedDockerSourcesUnchanged": true
+        },
+        "sources": {
+          "collectorSha256": "d7e39a43b3e29e6c5fb91118cec39ecbeec68dcc59c3039c9f64bd68407b8330",
+          "manifestSha256": "f4b50e67527d9e1b0eee3259e9fe9a6dc1cde5a0d65beaf856ecec12415958e2",
+          "rawMetricsSha256": "707fb1a6d4e56b1bc0518516afa2668bc95d916d698f2b913a80823c7176c07f",
+          "diagnosticSamplesSha256": "9cc5d3a19309b4e1ef0838dc7df56143ce0a695c8e892f8f4511a0882a9adef1",
+          "bodyLogSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "limitations": [
+          "Diagnostic repeat retains the original workload but adds bounded 503 body logging and metrics sampling.",
+          "Descriptor and CPU/memory peaks are sampled; short spikes and short-lived processes can be missed.",
+          "Native app and generator share the host; no cgroup or dedicated-core isolation.",
+          "Two native projects are running; gateway counters and aggregate backend resources include co-resident activity."
+        ],
+        "auditedAt": "2026-11-18T17:41:52.403Z",
+        "runtimeOpenDescriptors": {
+          "7844": {
+            "minimum": 26,
+            "mean": 26,
+            "maximum": 26
+          },
+          "13395": {
+            "minimum": 97,
+            "mean": 145.875,
+            "maximum": 277
+          },
+          "13397": {
+            "minimum": 251,
+            "mean": 260.94166666666666,
+            "maximum": 313
+          },
+          "13867": {
+            "minimum": 105,
+            "mean": 105,
+            "maximum": 105
+          }
+        }
+      },
+      "projectDatabaseSeries": {
+        "max_connections_connection_count{supabase_project_ref=\"d6e75d8811c143a292f6405173b4b0fb\",supabase_identifier=\"d6e75d8811c143a292f6405173b4b0fb\",service_type=\"postgresql\",server=\"local\"}": {
+          "name": "max_connections_connection_count",
+          "samples": 120,
+          "first": 60,
+          "last": 60,
+          "minimum": 60,
+          "maximum": 60,
+          "counterResetObserved": false,
+          "mean": 60,
+          "observedDelta": 0
+        },
+        "pg_stat_bgwriter_buffers_alloc_total{supabase_project_ref=\"d6e75d8811c143a292f6405173b4b0fb\",supabase_identifier=\"d6e75d8811c143a292f6405173b4b0fb\",service_type=\"postgresql\",server=\"local\"}": {
+          "name": "pg_stat_bgwriter_buffers_alloc_total",
+          "samples": 120,
+          "first": 478668,
+          "last": 496906,
+          "minimum": 478668,
+          "maximum": 496906,
+          "counterResetObserved": false,
+          "mean": 487675.48333333334,
+          "observedDelta": 18238
+        },
+        "pg_stat_bgwriter_buffers_clean_total{supabase_project_ref=\"d6e75d8811c143a292f6405173b4b0fb\",supabase_identifier=\"d6e75d8811c143a292f6405173b4b0fb\",service_type=\"postgresql\",server=\"local\"}": {
+          "name": "pg_stat_bgwriter_buffers_clean_total",
+          "samples": 120,
+          "first": 243755,
+          "last": 256109,
+          "minimum": 243755,
+          "maximum": 256109,
+          "counterResetObserved": false,
+          "mean": 249964.45,
+          "observedDelta": 12354
+        },
+        "pg_stat_bgwriter_maxwritten_clean_total{supabase_project_ref=\"d6e75d8811c143a292f6405173b4b0fb\",supabase_identifier=\"d6e75d8811c143a292f6405173b4b0fb\",service_type=\"postgresql\",server=\"local\"}": {
+          "name": "pg_stat_bgwriter_maxwritten_clean_total",
+          "samples": 120,
+          "first": 912,
+          "last": 931,
+          "minimum": 912,
+          "maximum": 931,
+          "counterResetObserved": false,
+          "mean": 921.5333333333333,
+          "observedDelta": 19
+        },
+        "pg_stat_database_blks_hit_total{supabase_project_ref=\"d6e75d8811c143a292f6405173b4b0fb\",supabase_identifier=\"d6e75d8811c143a292f6405173b4b0fb\",service_type=\"postgresql\",server=\"local\"}": {
+          "name": "pg_stat_database_blks_hit_total",
+          "samples": 120,
+          "first": 99508390,
+          "last": 99799656,
+          "minimum": 99508390,
+          "maximum": 99799656,
+          "counterResetObserved": false,
+          "mean": 99657914.96666667,
+          "observedDelta": 291266
+        },
+        "pg_stat_database_blks_read_total{supabase_project_ref=\"d6e75d8811c143a292f6405173b4b0fb\",supabase_identifier=\"d6e75d8811c143a292f6405173b4b0fb\",service_type=\"postgresql\",server=\"local\"}": {
+          "name": "pg_stat_database_blks_read_total",
+          "samples": 120,
+          "first": 658064,
+          "last": 696702,
+          "minimum": 658064,
+          "maximum": 696702,
+          "counterResetObserved": false,
+          "mean": 669574.9833333333,
+          "observedDelta": 38638
+        },
+        "pg_stat_database_conflicts_total{supabase_project_ref=\"d6e75d8811c143a292f6405173b4b0fb\",supabase_identifier=\"d6e75d8811c143a292f6405173b4b0fb\",service_type=\"postgresql\",server=\"local\"}": {
+          "name": "pg_stat_database_conflicts_total",
+          "samples": 120,
+          "first": 0,
+          "last": 0,
+          "minimum": 0,
+          "maximum": 0,
+          "counterResetObserved": false,
+          "mean": 0,
+          "observedDelta": 0
+        },
+        "pg_stat_database_deadlocks_total{supabase_project_ref=\"d6e75d8811c143a292f6405173b4b0fb\",supabase_identifier=\"d6e75d8811c143a292f6405173b4b0fb\",service_type=\"postgresql\",server=\"local\"}": {
+          "name": "pg_stat_database_deadlocks_total",
+          "samples": 120,
+          "first": 0,
+          "last": 0,
+          "minimum": 0,
+          "maximum": 0,
+          "counterResetObserved": false,
+          "mean": 0,
+          "observedDelta": 0
+        },
+        "pg_stat_database_num_backends{supabase_project_ref=\"d6e75d8811c143a292f6405173b4b0fb\",supabase_identifier=\"d6e75d8811c143a292f6405173b4b0fb\",service_type=\"postgresql\",server=\"local\"}": {
+          "name": "pg_stat_database_num_backends",
+          "samples": 120,
+          "first": 6,
+          "last": 6,
+          "minimum": 6,
+          "maximum": 7,
+          "counterResetObserved": false,
+          "mean": 6.25,
+          "observedDelta": 0
+        },
+        "pg_stat_database_temp_bytes_total{supabase_project_ref=\"d6e75d8811c143a292f6405173b4b0fb\",supabase_identifier=\"d6e75d8811c143a292f6405173b4b0fb\",service_type=\"postgresql\",server=\"local\"}": {
+          "name": "pg_stat_database_temp_bytes_total",
+          "samples": 120,
+          "first": 0,
+          "last": 0,
+          "minimum": 0,
+          "maximum": 0,
+          "counterResetObserved": false,
+          "mean": 0,
+          "observedDelta": 0
+        },
+        "pg_stat_database_temp_files_total{supabase_project_ref=\"d6e75d8811c143a292f6405173b4b0fb\",supabase_identifier=\"d6e75d8811c143a292f6405173b4b0fb\",service_type=\"postgresql\",server=\"local\"}": {
+          "name": "pg_stat_database_temp_files_total",
+          "samples": 120,
+          "first": 0,
+          "last": 0,
+          "minimum": 0,
+          "maximum": 0,
+          "counterResetObserved": false,
+          "mean": 0,
+          "observedDelta": 0
+        },
+        "pg_stat_database_tup_deleted_total{supabase_project_ref=\"d6e75d8811c143a292f6405173b4b0fb\",supabase_identifier=\"d6e75d8811c143a292f6405173b4b0fb\",service_type=\"postgresql\",server=\"local\"}": {
+          "name": "pg_stat_database_tup_deleted_total",
+          "samples": 120,
+          "first": 47072,
+          "last": 48083,
+          "minimum": 47072,
+          "maximum": 48083,
+          "counterResetObserved": false,
+          "mean": 47593.3,
+          "observedDelta": 1011
+        },
+        "pg_stat_database_tup_fetched_total{supabase_project_ref=\"d6e75d8811c143a292f6405173b4b0fb\",supabase_identifier=\"d6e75d8811c143a292f6405173b4b0fb\",service_type=\"postgresql\",server=\"local\"}": {
+          "name": "pg_stat_database_tup_fetched_total",
+          "samples": 120,
+          "first": 48604905,
+          "last": 48803920,
+          "minimum": 48604905,
+          "maximum": 48803920,
+          "counterResetObserved": false,
+          "mean": 48706200.083333336,
+          "observedDelta": 199015
+        },
+        "pg_stat_database_tup_inserted_total{supabase_project_ref=\"d6e75d8811c143a292f6405173b4b0fb\",supabase_identifier=\"d6e75d8811c143a292f6405173b4b0fb\",service_type=\"postgresql\",server=\"local\"}": {
+          "name": "pg_stat_database_tup_inserted_total",
+          "samples": 120,
+          "first": 446191,
+          "last": 450693,
+          "minimum": 446191,
+          "maximum": 450693,
+          "counterResetObserved": false,
+          "mean": 448496.01666666666,
+          "observedDelta": 4502
+        },
+        "pg_stat_database_tup_returned_total{supabase_project_ref=\"d6e75d8811c143a292f6405173b4b0fb\",supabase_identifier=\"d6e75d8811c143a292f6405173b4b0fb\",service_type=\"postgresql\",server=\"local\"}": {
+          "name": "pg_stat_database_tup_returned_total",
+          "samples": 120,
+          "first": 50311023,
+          "last": 50522422,
+          "minimum": 50311023,
+          "maximum": 50522422,
+          "counterResetObserved": false,
+          "mean": 50417651.03333333,
+          "observedDelta": 211399
+        },
+        "pg_stat_database_tup_updated_total{supabase_project_ref=\"d6e75d8811c143a292f6405173b4b0fb\",supabase_identifier=\"d6e75d8811c143a292f6405173b4b0fb\",service_type=\"postgresql\",server=\"local\"}": {
+          "name": "pg_stat_database_tup_updated_total",
+          "samples": 120,
+          "first": 95583,
+          "last": 97095,
+          "minimum": 95583,
+          "maximum": 97095,
+          "counterResetObserved": false,
+          "mean": 96363.1,
+          "observedDelta": 1512
+        },
+        "pg_stat_database_xact_commit_total{supabase_project_ref=\"d6e75d8811c143a292f6405173b4b0fb\",supabase_identifier=\"d6e75d8811c143a292f6405173b4b0fb\",service_type=\"postgresql\",server=\"local\"}": {
+          "name": "pg_stat_database_xact_commit_total",
+          "samples": 120,
+          "first": 961687,
+          "last": 985147,
+          "minimum": 961687,
+          "maximum": 985147,
+          "counterResetObserved": false,
+          "mean": 973688.25,
+          "observedDelta": 23460
+        },
+        "pg_stat_database_xact_rollback_total{supabase_project_ref=\"d6e75d8811c143a292f6405173b4b0fb\",supabase_identifier=\"d6e75d8811c143a292f6405173b4b0fb\",service_type=\"postgresql\",server=\"local\"}": {
+          "name": "pg_stat_database_xact_rollback_total",
+          "samples": 120,
+          "first": 12,
+          "last": 12,
+          "minimum": 12,
+          "maximum": 12,
+          "counterResetObserved": false,
+          "mean": 12,
+          "observedDelta": 0
+        },
+        "supa_desktop_database_checkpoint_buffers_written_total{supabase_project_ref=\"d6e75d8811c143a292f6405173b4b0fb\",supabase_identifier=\"d6e75d8811c143a292f6405173b4b0fb\",service_type=\"postgresql\"}": {
+          "name": "supa_desktop_database_checkpoint_buffers_written_total",
+          "samples": 120,
+          "first": 15223,
+          "last": 15777,
+          "minimum": 15223,
+          "maximum": 15777,
+          "counterResetObserved": false,
+          "mean": 15540.616666666667,
+          "observedDelta": 554
+        },
+        "supa_desktop_database_checkpoint_sync_seconds_total{supabase_project_ref=\"d6e75d8811c143a292f6405173b4b0fb\",supabase_identifier=\"d6e75d8811c143a292f6405173b4b0fb\",service_type=\"postgresql\"}": {
+          "name": "supa_desktop_database_checkpoint_sync_seconds_total",
+          "samples": 120,
+          "first": 6.401,
+          "last": 6.401,
+          "minimum": 6.401,
+          "maximum": 6.401,
+          "counterResetObserved": false,
+          "mean": 6.400999999999988,
+          "observedDelta": 0
+        },
+        "supa_desktop_database_checkpoint_write_seconds_total{supabase_project_ref=\"d6e75d8811c143a292f6405173b4b0fb\",supabase_identifier=\"d6e75d8811c143a292f6405173b4b0fb\",service_type=\"postgresql\"}": {
+          "name": "supa_desktop_database_checkpoint_write_seconds_total",
+          "samples": 120,
+          "first": 1964.954,
+          "last": 1964.954,
+          "minimum": 1964.954,
+          "maximum": 1964.954,
+          "counterResetObserved": false,
+          "mean": 1964.9539999999984,
+          "observedDelta": 0
+        },
+        "supa_desktop_database_checkpoints_requested_total{supabase_project_ref=\"d6e75d8811c143a292f6405173b4b0fb\",supabase_identifier=\"d6e75d8811c143a292f6405173b4b0fb\",service_type=\"postgresql\"}": {
+          "name": "supa_desktop_database_checkpoints_requested_total",
+          "samples": 120,
+          "first": 29,
+          "last": 30,
+          "minimum": 29,
+          "maximum": 30,
+          "counterResetObserved": false,
+          "mean": 29.633333333333333,
+          "observedDelta": 1
+        },
+        "supa_desktop_database_checkpoints_timed_total{supabase_project_ref=\"d6e75d8811c143a292f6405173b4b0fb\",supabase_identifier=\"d6e75d8811c143a292f6405173b4b0fb\",service_type=\"postgresql\"}": {
+          "name": "supa_desktop_database_checkpoints_timed_total",
+          "samples": 120,
+          "first": 5,
+          "last": 5,
+          "minimum": 5,
+          "maximum": 5,
+          "counterResetObserved": false,
+          "mean": 5,
+          "observedDelta": 0
+        },
+        "supa_desktop_database_connections{supabase_project_ref=\"d6e75d8811c143a292f6405173b4b0fb\",supabase_identifier=\"d6e75d8811c143a292f6405173b4b0fb\",service_type=\"postgresql\",state=\"active\",wait=\"io\"}": {
+          "name": "supa_desktop_database_connections",
+          "samples": 44,
+          "first": 1,
+          "last": 1,
+          "minimum": 1,
+          "maximum": 1,
+          "counterResetObserved": false,
+          "mean": 1,
+          "observedDelta": 0
+        },
+        "supa_desktop_database_connections{supabase_project_ref=\"d6e75d8811c143a292f6405173b4b0fb\",supabase_identifier=\"d6e75d8811c143a292f6405173b4b0fb\",service_type=\"postgresql\",state=\"idle\",wait=\"client\"}": {
+          "name": "supa_desktop_database_connections",
+          "samples": 120,
+          "first": 2,
+          "last": 1,
+          "minimum": 1,
+          "maximum": 3,
+          "counterResetObserved": false,
+          "mean": 1.8666666666666667,
+          "observedDelta": -1
+        },
+        "supa_desktop_database_io_reads_total{supabase_project_ref=\"d6e75d8811c143a292f6405173b4b0fb\",supabase_identifier=\"d6e75d8811c143a292f6405173b4b0fb\",service_type=\"postgresql\"}": {
+          "name": "supa_desktop_database_io_reads_total",
+          "samples": 120,
+          "first": 657658,
+          "last": 696374,
+          "minimum": 657658,
+          "maximum": 696374,
+          "counterResetObserved": false,
+          "mean": 669205.1333333333,
+          "observedDelta": 38716
+        },
+        "supa_desktop_database_io_writes_total{supabase_project_ref=\"d6e75d8811c143a292f6405173b4b0fb\",supabase_identifier=\"d6e75d8811c143a292f6405173b4b0fb\",service_type=\"postgresql\"}": {
+          "name": "supa_desktop_database_io_writes_total",
+          "samples": 120,
+          "first": 308158,
+          "last": 342138,
+          "minimum": 308158,
+          "maximum": 342138,
+          "counterResetObserved": false,
+          "mean": 317667.1666666667,
+          "observedDelta": 33980
+        },
+        "supa_desktop_database_tracked_statement_calls{supabase_project_ref=\"d6e75d8811c143a292f6405173b4b0fb\",supabase_identifier=\"d6e75d8811c143a292f6405173b4b0fb\",service_type=\"postgresql\"}": {
+          "name": "supa_desktop_database_tracked_statement_calls",
+          "samples": 120,
+          "first": 1131249,
+          "last": 1177777,
+          "minimum": 1131249,
+          "maximum": 1177777,
+          "counterResetObserved": false,
+          "mean": 1155020.7333333334,
+          "observedDelta": 46528
+        },
+        "supa_desktop_database_tracked_statement_execution_seconds{supabase_project_ref=\"d6e75d8811c143a292f6405173b4b0fb\",supabase_identifier=\"d6e75d8811c143a292f6405173b4b0fb\",service_type=\"postgresql\"}": {
+          "name": "supa_desktop_database_tracked_statement_execution_seconds",
+          "samples": 120,
+          "first": 120.77547931299964,
+          "last": 123.62857704299965,
+          "minimum": 120.77547931299964,
+          "maximum": 123.62857704299965,
+          "counterResetObserved": false,
+          "mean": 122.2282112789164,
+          "observedDelta": 2.853097730000016
+        },
+        "supa_desktop_database_wal_bytes_total{supabase_project_ref=\"d6e75d8811c143a292f6405173b4b0fb\",supabase_identifier=\"d6e75d8811c143a292f6405173b4b0fb\",service_type=\"postgresql\"}": {
+          "name": "supa_desktop_database_wal_bytes_total",
+          "samples": 120,
+          "first": 989715513,
+          "last": 1019616235,
+          "minimum": 989715513,
+          "maximum": 1019616235,
+          "counterResetObserved": false,
+          "mean": 1004902453.6833333,
+          "observedDelta": 29900722
+        },
+        "supa_desktop_database_wal_full_page_images_total{supabase_project_ref=\"d6e75d8811c143a292f6405173b4b0fb\",supabase_identifier=\"d6e75d8811c143a292f6405173b4b0fb\",service_type=\"postgresql\"}": {
+          "name": "supa_desktop_database_wal_full_page_images_total",
+          "samples": 120,
+          "first": 89967,
+          "last": 93775,
+          "minimum": 89967,
+          "maximum": 93775,
+          "counterResetObserved": false,
+          "mean": 91886.73333333334,
+          "observedDelta": 3808
+        },
+        "supa_desktop_database_wal_records_total{supabase_project_ref=\"d6e75d8811c143a292f6405173b4b0fb\",supabase_identifier=\"d6e75d8811c143a292f6405173b4b0fb\",service_type=\"postgresql\"}": {
+          "name": "supa_desktop_database_wal_records_total",
+          "samples": 120,
+          "first": 2476528,
+          "last": 2517438,
+          "minimum": 2476528,
+          "maximum": 2517438,
+          "counterResetObserved": false,
+          "mean": 2497708.6666666665,
+          "observedDelta": 40910
+        },
+        "supa_desktop_database_connections{supabase_project_ref=\"d6e75d8811c143a292f6405173b4b0fb\",supabase_identifier=\"d6e75d8811c143a292f6405173b4b0fb\",service_type=\"postgresql\",state=\"idle_in_transaction\",wait=\"client\"}": {
+          "name": "supa_desktop_database_connections",
+          "samples": 46,
+          "first": 2,
+          "last": 2,
+          "minimum": 2,
+          "maximum": 2,
+          "counterResetObserved": false,
+          "mean": 2,
+          "observedDelta": 0
+        }
+      },
+      "projectTimedSamples": 120
+    },
+    {
+      "users": 625,
+      "directory": "social-NdmKc0",
+      "result": {
+        "users": 625,
+        "classification": "slo_failure",
+        "actions": 15413,
+        "failedActions": 42,
+        "actionFailurePercent": 0.2724972425874262,
+        "authFailures": 0,
+        "perActionP95Ms": {
+          "listPublic": 4839.749999999998,
+          "listOwn": 4996.049999999995,
+          "read": 4717.3,
+          "create": 5003,
+          "like": 7645.799999999999,
+          "unlike": 4928,
+          "edit": 5186
+        },
+        "gatewayRejectionDeltas": {
+          "admission_rejections_total": 5,
+          "upstream_admission_rejections_total": 0
+        },
+        "gateway": {
+          "activeRequests": {
+            "minimum": 202,
+            "mean": 239.73949579831933,
+            "maximum": 256
+          },
+          "upstreamConnections": {
+            "minimum": 214,
+            "mean": 247.34453781512605,
+            "maximum": 256
+          },
+          "inboundConnections": {
+            "minimum": 622,
+            "mean": 624.0252100840336,
+            "maximum": 625
+          },
+          "openDescriptors": {
+            "minimum": 884,
+            "mean": 915.9495798319327,
+            "maximum": 928
+          },
+          "minimumSampledDescriptorHeadroomFraction": 0.9115853658536586
+        },
+        "database": {
+          "databaseBackends": {
+            "minimum": 6,
+            "mean": 6,
+            "maximum": 6
+          },
+          "databaseConnectionLimit": 60,
+          "cacheHitFraction": 0.9167340775494796,
+          "deadlockDelta": 0,
+          "tempBytesDelta": 0
+        },
+        "hostCpu": {
+          "userPercent": {
+            "minimum": 9.218436873747494,
+            "mean": 13.555498874744323,
+            "maximum": 42.59818731117825
+          },
+          "systemPercent": {
+            "minimum": 7.429718875502007,
+            "mean": 9.351581461964722,
+            "maximum": 20.599999999999998
+          },
+          "idlePercent": {
+            "minimum": 48.23766364551863,
+            "mean": 77.09291966329097,
+            "maximum": 82.92929292929293
+          }
+        },
+        "backend": {
+          "cpuCores": {
+            "minimum": 0.8555133079850934,
+            "mean": 0.9176367973280457,
+            "maximum": 1.064638783270576
+          },
+          "peakRssBytes": 1022590976
+        },
+        "measurementAudit": "raw-results/social-NdmKc0/measurement-audit.json",
+        "gatewayAudit": "raw-results/social-NdmKc0/gateway-load-audit.json",
+        "projectMetricsAudit": "raw-results/social-NdmKc0/project-metrics-audit.json"
+      },
+      "successfulActionsPerSecond": 128.09166666666667,
+      "rawHttp": {
+        "2xx": {
+          "http_req_duration": {
+            "count": 18068,
+            "mean": 1574.94636849679,
+            "p50": 1095.1799999999998,
+            "p95": 4839.9232999999995,
+            "p99": 7217.296369999989,
+            "maximum": 9977.041
+          },
+          "http_req_blocked": {
+            "count": 18068,
+            "mean": 0.002839273854328094,
+            "p50": 0.002,
+            "p95": 0.004,
+            "p99": 0.007,
+            "maximum": 0.424
+          },
+          "http_req_connecting": {
+            "count": 18068,
+            "mean": 0.00044476422404250606,
+            "p50": 0.0,
+            "p95": 0.0,
+            "p99": 0.0,
+            "maximum": 0.381
+          },
+          "http_req_tls_handshaking": {
+            "count": 18068,
+            "mean": 0.0,
+            "p50": 0.0,
+            "p95": 0.0,
+            "p99": 0.0,
+            "maximum": 0
+          },
+          "http_req_sending": {
+            "count": 18068,
+            "mean": 0.009562264777507195,
+            "p50": 0.009,
+            "p95": 0.014,
+            "p99": 0.024,
+            "maximum": 0.102
+          },
+          "http_req_waiting": {
+            "count": 18068,
+            "mean": 1574.8960054793004,
+            "p50": 1095.1475,
+            "p95": 4839.78035,
+            "p99": 7217.2617199999895,
+            "maximum": 9977.005
+          },
+          "http_req_receiving": {
+            "count": 18068,
+            "mean": 0.04080075271197697,
+            "p50": 0.025,
+            "p95": 0.087,
+            "p99": 0.2453299999999981,
+            "maximum": 5.546
+          }
+        },
+        "0": {
+          "http_req_duration": {
+            "count": 37,
+            "mean": 10000.57927027027,
+            "p50": 10000.108,
+            "p95": 10001.0816,
+            "p99": 10008.46592,
+            "maximum": 10012.427
+          },
+          "http_req_blocked": {
+            "count": 37,
+            "mean": 0.008810810810810811,
+            "p50": 0.002,
+            "p95": 0.005199999999999996,
+            "p99": 0.15640000000000012,
+            "maximum": 0.241
+          },
+          "http_req_connecting": {
+            "count": 37,
+            "mean": 0.005729729729729729,
+            "p50": 0.0,
+            "p95": 0.0,
+            "p99": 0.1356800000000001,
+            "maximum": 0.212
+          },
+          "http_req_tls_handshaking": {
+            "count": 37,
+            "mean": 0.0,
+            "p50": 0.0,
+            "p95": 0.0,
+            "p99": 0.0,
+            "maximum": 0
+          },
+          "http_req_sending": {
+            "count": 37,
+            "mean": 0.009432432432432431,
+            "p50": 0.009,
+            "p95": 0.014599999999999988,
+            "p99": 0.02660000000000001,
+            "maximum": 0.032
+          },
+          "http_req_waiting": {
+            "count": 37,
+            "mean": 10000.569837837837,
+            "p50": 10000.101,
+            "p95": 10001.073199999999,
+            "p99": 10008.458480000001,
+            "maximum": 10012.421
+          },
+          "http_req_receiving": {
+            "count": 37,
+            "mean": 0.0,
+            "p50": 0.0,
+            "p95": 0.0,
+            "p99": 0.0,
+            "maximum": 0
+          }
+        },
+        "503": {
+          "http_req_duration": {
+            "count": 5,
+            "mean": 102.0004,
+            "p50": 101.197,
+            "p95": 104.81060000000001,
+            "p99": 105.50532,
+            "maximum": 105.679
+          },
+          "http_req_blocked": {
+            "count": 5,
+            "mean": 0.0056,
+            "p50": 0.004,
+            "p95": 0.010599999999999998,
+            "p99": 0.011720000000000001,
+            "maximum": 0.012
+          },
+          "http_req_connecting": {
+            "count": 5,
+            "mean": 0.0,
+            "p50": 0.0,
+            "p95": 0.0,
+            "p99": 0.0,
+            "maximum": 0
+          },
+          "http_req_tls_handshaking": {
+            "count": 5,
+            "mean": 0.0,
+            "p50": 0.0,
+            "p95": 0.0,
+            "p99": 0.0,
+            "maximum": 0
+          },
+          "http_req_sending": {
+            "count": 5,
+            "mean": 0.009600000000000001,
+            "p50": 0.01,
+            "p95": 0.0132,
+            "p99": 0.01384,
+            "maximum": 0.014
+          },
+          "http_req_waiting": {
+            "count": 5,
+            "mean": 101.9556,
+            "p50": 101.151,
+            "p95": 104.7624,
+            "p99": 105.45488,
+            "maximum": 105.628
+          },
+          "http_req_receiving": {
+            "count": 5,
+            "mean": 0.035199999999999995,
+            "p50": 0.038,
+            "p95": 0.048999999999999995,
+            "p99": 0.0506,
+            "maximum": 0.051
+          }
+        }
+      },
+      "successfulHttpCompletedPerSecond": 150.56666666666666,
+      "successfulHttpTenSecondBuckets": {
+        "0": {
+          "count": 1342,
+          "mean": 1182.56506780924,
+          "p50": 833.8865000000001,
+          "p95": 3478.2786499999997,
+          "p99": 5228.762429999989,
+          "maximum": 7344.371
+        },
+        "1": {
+          "count": 1495,
+          "mean": 1581.6451284280938,
+          "p50": 1075.159,
+          "p95": 4826.564799999999,
+          "p99": 7448.556399999999,
+          "maximum": 8817.376
+        },
+        "2": {
+          "count": 1492,
+          "mean": 1607.258481233244,
+          "p50": 1103.304,
+          "p95": 4954.2859,
+          "p99": 7507.203799999994,
+          "maximum": 9689.283
+        },
+        "3": {
+          "count": 1506,
+          "mean": 1583.4866347941568,
+          "p50": 1132.8225,
+          "p95": 4907.96775,
+          "p99": 6902.269700000001,
+          "maximum": 9603.777
+        },
+        "4": {
+          "count": 1490,
+          "mean": 1603.6264416107383,
+          "p50": 1117.2894999999999,
+          "p95": 4964.269299999999,
+          "p99": 6974.01800999999,
+          "maximum": 9718.332
+        },
+        "5": {
+          "count": 1483,
+          "mean": 1615.3244389750507,
+          "p50": 1142.161,
+          "p95": 4983.958199999997,
+          "p99": 7183.911140000011,
+          "maximum": 9855.904
+        },
+        "6": {
+          "count": 1495,
+          "mean": 1575.4400247491637,
+          "p50": 1124.969,
+          "p95": 4734.844799999999,
+          "p99": 7413.638699999998,
+          "maximum": 9959.887
+        },
+        "7": {
+          "count": 1489,
+          "mean": 1556.2719335124245,
+          "p50": 1051.788,
+          "p95": 4984.641599999994,
+          "p99": 7239.249599999998,
+          "maximum": 9977.041
+        },
+        "8": {
+          "count": 1552,
+          "mean": 1563.7654845360826,
+          "p50": 1079.0214999999998,
+          "p95": 4758.695149999992,
+          "p99": 7143.469360000002,
+          "maximum": 9558.121
+        },
+        "9": {
+          "count": 1510,
+          "mean": 1554.4405589403973,
+          "p50": 1054.5905,
+          "p95": 4892.366149999999,
+          "p99": 7078.304410000007,
+          "maximum": 9974.225
+        },
+        "10": {
+          "count": 1483,
+          "mean": 1641.173185434929,
+          "p50": 1122.165,
+          "p95": 5002.050199999997,
+          "p99": 7481.21524,
+          "maximum": 9941.196
+        },
+        "11": {
+          "count": 1477,
+          "mean": 1595.0639241706162,
+          "p50": 1161.425,
+          "p95": 4587.957600000001,
+          "p99": 6799.11464,
+          "maximum": 9387.91
+        },
+        "12": {
+          "count": 254,
+          "mean": 2757.3577125984248,
+          "p50": 2508.875,
+          "p95": 6581.92825,
+          "p99": 8779.83823,
+          "maximum": 9381.615
+        }
+      },
+      "phaseHttpStatusCounts": {
+        "preparation:200": 1250,
+        "ramp:200": 3292,
+        "ramp:201": 798,
+        "warmup:201": 2240,
+        "warmup:200": 9957,
+        "measurement:200": 14594,
+        "measurement:201": 3474,
+        "warmup:0": 2,
+        "measurement:0": 37,
+        "measurement:503": 5,
+        "cleanup:200": 7,
+        "cleanup:201": 36,
+        "cleanup:204": 625
+      },
+      "gateway": {
+        "projectDatabaseMetrics": {
+          "path": "raw-results/social-NdmKc0/project-metrics-audit.json",
+          "timedSamples": 119,
+          "seriesCount": 379,
+          "databaseBackends": {
+            "minimum": 6,
+            "mean": 6,
+            "maximum": 6
+          },
+          "databaseConnectionLimit": 60,
+          "cacheHitFraction": 0.9167340775494796,
+          "deadlockDelta": 0,
+          "tempBytesDelta": 0
+        },
+        "kind": "native-supa-desktop-gateway-audit",
+        "version": "0.14.1",
+        "directory": "raw-results/social-NdmKc0",
+        "classification": {
+          "verdict": "slo_failure",
+          "reasons": [
+            "observed_action_slo:listPublic",
+            "observed_action_slo:listOwn",
+            "observed_action_slo:read",
+            "observed_action_slo:create",
+            "observed_action_slo:like",
+            "observed_action_slo:unlike",
+            "observed_action_slo:edit"
+          ],
+          "certified": false,
+          "generatorHeadroom": "unverified"
+        },
+        "actions": 15413,
+        "failedActions": 42,
+        "authFailures": 0,
+        "capture": {
+          "gatewayMetricSamples": 526,
+          "timedGatewayMetricSamples": 119,
+          "firstAt": "2026-11-18T19:01:34Z",
+          "lastAt": "2026-11-18T19:10:21Z",
+          "measurementWindow": {
+            "releaseAt": 1795028685610,
+            "measurementAt": 1795028775610,
+            "endAt": 1795028895610
+          },
+          "counterScope": "First-to-last diagnostic snapshots spanning preparation, load and paced sign-outs; raw HTTP counters are separately phase-attributed."
+        },
+        "effectiveLimits": {
+          "connection_limit": 2048,
+          "request_limit": 256,
+          "descriptor_soft_limit": 10496,
+          "descriptor_hard_limit": "9223372036854775807"
+        },
+        "counterDeltas": {
+          "admission_rejections_total": 5,
+          "upstream_admission_rejections_total": 0
+        },
+        "allPhaseHttp503Responses": 5,
+        "allPhaseTransportFailures": {
+          "request_timeout": 39
+        },
+        "acceptErrorSeries": [],
+        "requestRejectionDeltaMatchesHttp503": true,
+        "measuredGateway": {
+          "activeRequests": {
+            "minimum": 202,
+            "mean": 239.73949579831933,
+            "maximum": 256
+          },
+          "upstreamConnections": {
+            "minimum": 214,
+            "mean": 247.34453781512605,
+            "maximum": 256
+          },
+          "inboundConnections": {
+            "minimum": 622,
+            "mean": 624.0252100840336,
+            "maximum": 625
+          },
+          "openDescriptors": {
+            "minimum": 884,
+            "mean": 915.9495798319327,
+            "maximum": 928
+          },
+          "minimumSampledDescriptorHeadroomFraction": 0.9115853658536586
+        },
+        "responseBodies": {
+          "sampleLimitPerVu": 2,
+          "maximumBodyBytes": 4096,
+          "captured": 5,
+          "categories": {
+            "gateway_request_capacity": 5
+          },
+          "distinctBodies": [
+            "{\"error\":\"gateway_request_capacity\"}"
+          ],
+          "examples": [
+            {
+              "event": "backend_503_body",
+              "at": 1795028818179,
+              "ordinal": 165,
+              "phase": "measurement",
+              "method": "GET",
+              "path": "/rest/v1/likes",
+              "body": "{\"error\":\"gateway_request_capacity\"}"
+            },
+            {
+              "event": "backend_503_body",
+              "at": 1795028894216,
+              "ordinal": 605,
+              "phase": "measurement",
+              "method": "GET",
+              "path": "/rest/v1/posts",
+              "body": "{\"error\":\"gateway_request_capacity\"}"
+            },
+            {
+              "event": "backend_503_body",
+              "at": 1795028894221,
+              "ordinal": 311,
+              "phase": "measurement",
+              "method": "GET",
+              "path": "/rest/v1/posts",
+              "body": "{\"error\":\"gateway_request_capacity\"}"
+            },
+            {
+              "event": "backend_503_body",
+              "at": 1795028894232,
+              "ordinal": 133,
+              "phase": "measurement",
+              "method": "GET",
+              "path": "/rest/v1/posts",
+              "body": "{\"error\":\"gateway_request_capacity\"}"
+            },
+            {
+              "event": "backend_503_body",
+              "at": 1795028894289,
+              "ordinal": 280,
+              "phase": "measurement",
+              "method": "GET",
+              "path": "/rest/v1/posts",
+              "body": "{\"error\":\"gateway_request_capacity\"}"
+            }
+          ],
+          "originalRunBodiesNotReconstructed": true
+        },
+        "host": {
+          "hardware": {
+            "cpu": "Apple M1 Max",
+            "cores": 10,
+            "memoryBytes": 68719476736,
+            "platform": "darwin",
+            "arch": "arm64"
+          },
+          "operatingSystem": "27.2.1",
+          "cpuPercent": {
+            "userPercent": {
+              "minimum": 9.218436873747494,
+              "mean": 13.555498874744323,
+              "maximum": 42.59818731117825
+            },
+            "systemPercent": {
+              "minimum": 7.429718875502007,
+              "mean": 9.351581461964722,
+              "maximum": 20.599999999999998
+            },
+            "idlePercent": {
+              "minimum": 48.23766364551863,
+              "mean": 77.09291966329097,
+              "maximum": 82.92929292929293
+            }
+          },
+          "memorySnapshots": [
+            {
+              "at": "2026-11-18T19:06:25Z",
+              "lines": [
+                "Load Avg: 3.27, 2.23, 2.06 ",
+                "PhysMem: 60G used (2349M wired, 3341M compressor), 2988M unused.",
+                "VM: 501T vsize, 57G framework vsize, 0(0) swapins, 0(0) swapouts."
+              ]
+            },
+            {
+              "at": "2026-11-18T19:06:35Z",
+              "lines": [
+                "Load Avg: 3.00, 2.20, 2.06 ",
+                "PhysMem: 60G used (2350M wired, 3341M compressor), 2890M unused.",
+                "VM: 501T vsize, 57G framework vsize, 0(0) swapins, 0(0) swapouts."
+              ]
+            },
+            {
+              "at": "2026-11-18T19:06:45Z",
+              "lines": [
+                "Load Avg: 2.84, 2.20, 2.06 ",
+                "PhysMem: 60G used (2333M wired, 3341M compressor), 2774M unused.",
+                "VM: 502T vsize, 57G framework vsize, 0(0) swapins, 0(0) swapouts."
+              ]
+            },
+            {
+              "at": "2026-11-18T19:06:55Z",
+              "lines": [
+                "Load Avg: 2.79, 2.21, 2.06 ",
+                "PhysMem: 60G used (2351M wired, 3341M compressor), 2754M unused.",
+                "VM: 502T vsize, 57G framework vsize, 0(0) swapins, 0(0) swapouts."
+              ]
+            },
+            {
+              "at": "2026-11-18T19:07:05Z",
+              "lines": [
+                "Load Avg: 3.18, 2.31, 2.10 ",
+                "PhysMem: 61G used (2351M wired, 3341M compressor), 2657M unused.",
+                "VM: 502T vsize, 57G framework vsize, 0(0) swapins, 0(0) swapouts."
+              ]
+            },
+            {
+              "at": "2026-11-18T19:07:15Z",
+              "lines": [
+                "Load Avg: 3.39, 2.38, 2.13 ",
+                "PhysMem: 61G used (2351M wired, 3341M compressor), 2591M unused.",
+                "VM: 503T vsize, 57G framework vsize, 0(0) swapins, 0(0) swapouts."
+              ]
+            },
+            {
+              "at": "2026-11-18T19:07:25Z",
+              "lines": [
+                "Load Avg: 2.95, 2.32, 2.11 ",
+                "PhysMem: 61G used (2351M wired, 3341M compressor), 2519M unused.",
+                "VM: 503T vsize, 57G framework vsize, 0(0) swapins, 0(0) swapouts."
+              ]
+            },
+            {
+              "at": "2026-11-18T19:07:35Z",
+              "lines": [
+                "Load Avg: 2.57, 2.26, 2.09 ",
+                "PhysMem: 61G used (2335M wired, 3341M compressor), 2390M unused.",
+                "VM: 503T vsize, 57G framework vsize, 0(0) swapins, 0(0) swapouts."
+              ]
+            },
+            {
+              "at": "2026-11-18T19:07:45Z",
+              "lines": [
+                "Load Avg: 2.57, 2.27, 2.09 ",
+                "PhysMem: 61G used (2350M wired, 3341M compressor), 2396M unused.",
+                "VM: 503T vsize, 57G framework vsize, 0(0) swapins, 0(0) swapouts."
+              ]
+            },
+            {
+              "at": "2026-11-18T19:07:55Z",
+              "lines": [
+                "Load Avg: 2.56, 2.28, 2.10 ",
+                "PhysMem: 61G used (2353M wired, 3341M compressor), 2343M unused.",
+                "VM: 502T vsize, 57G framework vsize, 0(0) swapins, 0(0) swapouts."
+              ]
+            },
+            {
+              "at": "2026-11-18T19:08:05Z",
+              "lines": [
+                "Load Avg: 2.40, 2.25, 2.09 ",
+                "PhysMem: 61G used (2344M wired, 3341M compressor), 2277M unused.",
+                "VM: 502T vsize, 57G framework vsize, 0(0) swapins, 0(0) swapouts."
+              ]
+            }
+          ],
+          "totalMemoryBytes": 68719476736,
+          "pressureValues": [
+            1
+          ],
+          "maximumSwapMiB": 0
+        },
+        "processes": {
+          "7320": {
+            "executable": "/Applications/Supa Desktop.app/Contents/MacOS/supa-desktop",
+            "parentPid": 1,
+            "meanCpuCores": 0.15987445030044609,
+            "peakRssBytes": 208109568,
+            "role": "manager_gateway"
+          },
+          "7844": {
+            "executable": "/Applications/Supa Desktop.app/Contents/Resources/runtime/supa-wasm",
+            "parentPid": 7320,
+            "meanCpuCores": 8.392359595823968e-05,
+            "peakRssBytes": 225460224,
+            "role": "project_runtime"
+          },
+          "13395": {
+            "executable": "/Applications/Supa Desktop.app/Contents/Resources/runtime/supa-wasm",
+            "parentPid": 7320,
+            "meanCpuCores": 0.6760884890395779,
+            "peakRssBytes": 328302592,
+            "role": "project_runtime"
+          },
+          "13397": {
+            "executable": "/Applications/Supa Desktop.app/Contents/Resources/runtime/supa-wasm",
+            "parentPid": 13395,
+            "meanCpuCores": 0.07846856222095709,
+            "peakRssBytes": 161071104,
+            "role": "runtime_descendant"
+          },
+          "13867": {
+            "executable": "/Applications/Supa Desktop.app/Contents/Resources/runtime/supa-wasm",
+            "parentPid": 7844,
+            "meanCpuCores": 0.0031890966464130674,
+            "peakRssBytes": 99696640,
+            "role": "runtime_descendant"
+          }
+        },
+        "backend": {
+          "cpuCores": {
+            "minimum": 0.8555133079850934,
+            "mean": 0.9176367973280457,
+            "maximum": 1.064638783270576
+          },
+          "peakRssBytes": 1022590976
+        },
+        "generator": {
+          "cpuCores": {
+            "minimum": 0.37001897533208233,
+            "mean": 0.6609409117231873,
+            "maximum": 3.2542694497153763
+          },
+          "peakRssBytes": 5147607040,
+          "pressureGuardFired": false
+        },
+        "processOpenDescriptors": {
+          "7320": {
+            "minimum": 884,
+            "mean": 916.8235294117648,
+            "maximum": 929
+          },
+          "7844": {
+            "minimum": 26,
+            "mean": 26,
+            "maximum": 26
+          },
+          "13395": {
+            "minimum": 713,
+            "mean": 791.6638655462185,
+            "maximum": 805
+          },
+          "13397": {
+            "minimum": 240,
+            "mean": 243.9327731092437,
+            "maximum": 249
+          },
+          "13867": {
+            "minimum": 105,
+            "mean": 105,
+            "maximum": 105
+          }
+        },
+        "afterLoad": {
+          "ipv4HealthStatus": 200,
+          "ipv6HealthStatus": 200,
+          "listeners": "COMMAND    PID  USER   FD   TYPE             DEVICE SIZE/OFF NODE NAME\nsupa-desk 7320 markb   17u  IPv4 0x2938ba2f66597509      0t0  TCP 127.0.0.1:54321 (LISTEN)\nsupa-desk 7320 markb   21u  IPv6 0x9a8e0f2091f6d136      0t0  TCP [::1]:54321 (LISTEN)\n",
+          "fixtureCleanupVerified": true,
+          "readOnlyDatabaseCounts": {
+            "users": 15000,
+            "posts": 150000,
+            "likes": 150000
+          }
+        },
+        "sources": {
+          "collectorSha256": "d7e39a43b3e29e6c5fb91118cec39ecbeec68dcc59c3039c9f64bd68407b8330",
+          "manifestSha256": "ec3f741a9af352c3f3d5af73dfc8d1f98665073b23bbd330fca806b0df300856",
+          "rawMetricsSha256": "0e76b8623726286db0327fa5e1294978323078dafa53cb90767d6185d48bac35",
+          "diagnosticSamplesSha256": "5ff15eca75a47dd33b9fcc1d9e0ec843c399c3b91bbcf21583a8088d4cfed11f",
+          "bodyLogSha256": "669e5151bd38ef1dac67fe80500f271a0bce664f942451dcd79b17e4b134cc21"
+        },
+        "limitations": [
+          "Diagnostic repeat retains the original workload but adds bounded 503 body logging and metrics sampling.",
+          "Descriptor and CPU/memory peaks are sampled; short spikes and short-lived processes can be missed.",
+          "Native app and generator share the host; no cgroup or dedicated-core isolation.",
+          "Two native projects are running; gateway counters and aggregate backend resources include co-resident activity."
+        ],
+        "auditedAt": "2026-11-18T19:10:24.226Z",
+        "runtimeOpenDescriptors": {
+          "7844": {
+            "minimum": 26,
+            "mean": 26,
+            "maximum": 26
+          },
+          "13395": {
+            "minimum": 713,
+            "mean": 791.6638655462185,
+            "maximum": 805
+          },
+          "13397": {
+            "minimum": 240,
+            "mean": 243.9327731092437,
+            "maximum": 249
+          },
+          "13867": {
+            "minimum": 105,
+            "mean": 105,
+            "maximum": 105
+          }
+        }
+      },
+      "projectDatabaseSeries": {
+        "max_connections_connection_count{supabase_project_ref=\"d6e75d8811c143a292f6405173b4b0fb\",supabase_identifier=\"d6e75d8811c143a292f6405173b4b0fb\",service_type=\"postgresql\",server=\"local\"}": {
+          "name": "max_connections_connection_count",
+          "samples": 119,
+          "first": 60,
+          "last": 60,
+          "minimum": 60,
+          "maximum": 60,
+          "counterResetObserved": false,
+          "mean": 60,
+          "observedDelta": 0
+        },
+        "pg_stat_bgwriter_buffers_alloc_total{supabase_project_ref=\"d6e75d8811c143a292f6405173b4b0fb\",supabase_identifier=\"d6e75d8811c143a292f6405173b4b0fb\",service_type=\"postgresql\",server=\"local\"}": {
+          "name": "pg_stat_bgwriter_buffers_alloc_total",
+          "samples": 119,
+          "first": 722360,
+          "last": 742545,
+          "minimum": 722360,
+          "maximum": 742545,
+          "counterResetObserved": false,
+          "mean": 731376.512605042,
+          "observedDelta": 20185
+        },
+        "pg_stat_bgwriter_buffers_clean_total{supabase_project_ref=\"d6e75d8811c143a292f6405173b4b0fb\",supabase_identifier=\"d6e75d8811c143a292f6405173b4b0fb\",service_type=\"postgresql\",server=\"local\"}": {
+          "name": "pg_stat_bgwriter_buffers_clean_total",
+          "samples": 119,
+          "first": 336292,
+          "last": 346708,
+          "minimum": 336292,
+          "maximum": 346708,
+          "counterResetObserved": false,
+          "mean": 340981.2773109244,
+          "observedDelta": 10416
+        },
+        "pg_stat_bgwriter_maxwritten_clean_total{supabase_project_ref=\"d6e75d8811c143a292f6405173b4b0fb\",supabase_identifier=\"d6e75d8811c143a292f6405173b4b0fb\",service_type=\"postgresql\",server=\"local\"}": {
+          "name": "pg_stat_bgwriter_maxwritten_clean_total",
+          "samples": 119,
+          "first": 1019,
+          "last": 1030,
+          "minimum": 1019,
+          "maximum": 1030,
+          "counterResetObserved": false,
+          "mean": 1024.1176470588234,
+          "observedDelta": 11
+        },
+        "pg_stat_database_blks_hit_total{supabase_project_ref=\"d6e75d8811c143a292f6405173b4b0fb\",supabase_identifier=\"d6e75d8811c143a292f6405173b4b0fb\",service_type=\"postgresql\",server=\"local\"}": {
+          "name": "pg_stat_database_blks_hit_total",
+          "samples": 119,
+          "first": 127357647,
+          "last": 127578634,
+          "minimum": 127357647,
+          "maximum": 127578634,
+          "counterResetObserved": false,
+          "mean": 127459597.36134453,
+          "observedDelta": 220987
+        },
+        "pg_stat_database_blks_read_total{supabase_project_ref=\"d6e75d8811c143a292f6405173b4b0fb\",supabase_identifier=\"d6e75d8811c143a292f6405173b4b0fb\",service_type=\"postgresql\",server=\"local\"}": {
+          "name": "pg_stat_database_blks_read_total",
+          "samples": 119,
+          "first": 982145,
+          "last": 1002217,
+          "minimum": 982145,
+          "maximum": 1002217,
+          "counterResetObserved": false,
+          "mean": 991099.2689075631,
+          "observedDelta": 20072
+        },
+        "pg_stat_database_conflicts_total{supabase_project_ref=\"d6e75d8811c143a292f6405173b4b0fb\",supabase_identifier=\"d6e75d8811c143a292f6405173b4b0fb\",service_type=\"postgresql\",server=\"local\"}": {
+          "name": "pg_stat_database_conflicts_total",
+          "samples": 119,
+          "first": 0,
+          "last": 0,
+          "minimum": 0,
+          "maximum": 0,
+          "counterResetObserved": false,
+          "mean": 0,
+          "observedDelta": 0
+        },
+        "pg_stat_database_deadlocks_total{supabase_project_ref=\"d6e75d8811c143a292f6405173b4b0fb\",supabase_identifier=\"d6e75d8811c143a292f6405173b4b0fb\",service_type=\"postgresql\",server=\"local\"}": {
+          "name": "pg_stat_database_deadlocks_total",
+          "samples": 119,
+          "first": 0,
+          "last": 0,
+          "minimum": 0,
+          "maximum": 0,
+          "counterResetObserved": false,
+          "mean": 0,
+          "observedDelta": 0
+        },
+        "pg_stat_database_num_backends{supabase_project_ref=\"d6e75d8811c143a292f6405173b4b0fb\",supabase_identifier=\"d6e75d8811c143a292f6405173b4b0fb\",service_type=\"postgresql\",server=\"local\"}": {
+          "name": "pg_stat_database_num_backends",
+          "samples": 119,
+          "first": 6,
+          "last": 6,
+          "minimum": 6,
+          "maximum": 6,
+          "counterResetObserved": false,
+          "mean": 6,
+          "observedDelta": 0
+        },
+        "pg_stat_database_temp_bytes_total{supabase_project_ref=\"d6e75d8811c143a292f6405173b4b0fb\",supabase_identifier=\"d6e75d8811c143a292f6405173b4b0fb\",service_type=\"postgresql\",server=\"local\"}": {
+          "name": "pg_stat_database_temp_bytes_total",
+          "samples": 119,
+          "first": 0,
+          "last": 0,
+          "minimum": 0,
+          "maximum": 0,
+          "counterResetObserved": false,
+          "mean": 0,
+          "observedDelta": 0
+        },
+        "pg_stat_database_temp_files_total{supabase_project_ref=\"d6e75d8811c143a292f6405173b4b0fb\",supabase_identifier=\"d6e75d8811c143a292f6405173b4b0fb\",service_type=\"postgresql\",server=\"local\"}": {
+          "name": "pg_stat_database_temp_files_total",
+          "samples": 119,
+          "first": 0,
+          "last": 0,
+          "minimum": 0,
+          "maximum": 0,
+          "counterResetObserved": false,
+          "mean": 0,
+          "observedDelta": 0
+        },
+        "pg_stat_database_tup_deleted_total{supabase_project_ref=\"d6e75d8811c143a292f6405173b4b0fb\",supabase_identifier=\"d6e75d8811c143a292f6405173b4b0fb\",service_type=\"postgresql\",server=\"local\"}": {
+          "name": "pg_stat_database_tup_deleted_total",
+          "samples": 119,
+          "first": 83800,
+          "last": 84609,
+          "minimum": 83800,
+          "maximum": 84609,
+          "counterResetObserved": false,
+          "mean": 84181.6050420168,
+          "observedDelta": 809
+        },
+        "pg_stat_database_tup_fetched_total{supabase_project_ref=\"d6e75d8811c143a292f6405173b4b0fb\",supabase_identifier=\"d6e75d8811c143a292f6405173b4b0fb\",service_type=\"postgresql\",server=\"local\"}": {
+          "name": "pg_stat_database_tup_fetched_total",
+          "samples": 119,
+          "first": 63560460,
+          "last": 63714126,
+          "minimum": 63560460,
+          "maximum": 63714126,
+          "counterResetObserved": false,
+          "mean": 63630584.067226894,
+          "observedDelta": 153666
+        },
+        "pg_stat_database_tup_inserted_total{supabase_project_ref=\"d6e75d8811c143a292f6405173b4b0fb\",supabase_identifier=\"d6e75d8811c143a292f6405173b4b0fb\",service_type=\"postgresql\",server=\"local\"}": {
+          "name": "pg_stat_database_tup_inserted_total",
+          "samples": 119,
+          "first": 492780,
+          "last": 496253,
+          "minimum": 492780,
+          "maximum": 496253,
+          "counterResetObserved": false,
+          "mean": 494351.06722689077,
+          "observedDelta": 3473
+        },
+        "pg_stat_database_tup_returned_total{supabase_project_ref=\"d6e75d8811c143a292f6405173b4b0fb\",supabase_identifier=\"d6e75d8811c143a292f6405173b4b0fb\",service_type=\"postgresql\",server=\"local\"}": {
+          "name": "pg_stat_database_tup_returned_total",
+          "samples": 119,
+          "first": 68804288,
+          "last": 68969837,
+          "minimum": 68804288,
+          "maximum": 68969837,
+          "counterResetObserved": false,
+          "mean": 68879150.02521008,
+          "observedDelta": 165549
+        },
+        "pg_stat_database_tup_updated_total{supabase_project_ref=\"d6e75d8811c143a292f6405173b4b0fb\",supabase_identifier=\"d6e75d8811c143a292f6405173b4b0fb\",service_type=\"postgresql\",server=\"local\"}": {
+          "name": "pg_stat_database_tup_updated_total",
+          "samples": 119,
+          "first": 114639,
+          "last": 115818,
+          "minimum": 114639,
+          "maximum": 115818,
+          "counterResetObserved": false,
+          "mean": 115194.55462184874,
+          "observedDelta": 1179
+        },
+        "pg_stat_database_xact_commit_total{supabase_project_ref=\"d6e75d8811c143a292f6405173b4b0fb\",supabase_identifier=\"d6e75d8811c143a292f6405173b4b0fb\",service_type=\"postgresql\",server=\"local\"}": {
+          "name": "pg_stat_database_xact_commit_total",
+          "samples": 119,
+          "first": 1296426,
+          "last": 1314722,
+          "minimum": 1296426,
+          "maximum": 1314722,
+          "counterResetObserved": false,
+          "mean": 1304789.3949579832,
+          "observedDelta": 18296
+        },
+        "pg_stat_database_xact_rollback_total{supabase_project_ref=\"d6e75d8811c143a292f6405173b4b0fb\",supabase_identifier=\"d6e75d8811c143a292f6405173b4b0fb\",service_type=\"postgresql\",server=\"local\"}": {
+          "name": "pg_stat_database_xact_rollback_total",
+          "samples": 119,
+          "first": 12,
+          "last": 12,
+          "minimum": 12,
+          "maximum": 12,
+          "counterResetObserved": false,
+          "mean": 12,
+          "observedDelta": 0
+        },
+        "supa_desktop_database_checkpoint_buffers_written_total{supabase_project_ref=\"d6e75d8811c143a292f6405173b4b0fb\",supabase_identifier=\"d6e75d8811c143a292f6405173b4b0fb\",service_type=\"postgresql\"}": {
+          "name": "supa_desktop_database_checkpoint_buffers_written_total",
+          "samples": 119,
+          "first": 19587,
+          "last": 19863,
+          "minimum": 19587,
+          "maximum": 19863,
+          "counterResetObserved": false,
+          "mean": 19684.764705882353,
+          "observedDelta": 276
+        },
+        "supa_desktop_database_checkpoint_sync_seconds_total{supabase_project_ref=\"d6e75d8811c143a292f6405173b4b0fb\",supabase_identifier=\"d6e75d8811c143a292f6405173b4b0fb\",service_type=\"postgresql\"}": {
+          "name": "supa_desktop_database_checkpoint_sync_seconds_total",
+          "samples": 119,
+          "first": 8.432,
+          "last": 8.432,
+          "minimum": 8.432,
+          "maximum": 8.432,
+          "counterResetObserved": false,
+          "mean": 8.432000000000011,
+          "observedDelta": 0
+        },
+        "supa_desktop_database_checkpoint_write_seconds_total{supabase_project_ref=\"d6e75d8811c143a292f6405173b4b0fb\",supabase_identifier=\"d6e75d8811c143a292f6405173b4b0fb\",service_type=\"postgresql\"}": {
+          "name": "supa_desktop_database_checkpoint_write_seconds_total",
+          "samples": 119,
+          "first": 2774.035,
+          "last": 2774.035,
+          "minimum": 2774.035,
+          "maximum": 2774.035,
+          "counterResetObserved": false,
+          "mean": 2774.0349999999967,
+          "observedDelta": 0
+        },
+        "supa_desktop_database_checkpoints_requested_total{supabase_project_ref=\"d6e75d8811c143a292f6405173b4b0fb\",supabase_identifier=\"d6e75d8811c143a292f6405173b4b0fb\",service_type=\"postgresql\"}": {
+          "name": "supa_desktop_database_checkpoints_requested_total",
+          "samples": 119,
+          "first": 34,
+          "last": 35,
+          "minimum": 34,
+          "maximum": 35,
+          "counterResetObserved": false,
+          "mean": 34.57983193277311,
+          "observedDelta": 1
+        },
+        "supa_desktop_database_checkpoints_timed_total{supabase_project_ref=\"d6e75d8811c143a292f6405173b4b0fb\",supabase_identifier=\"d6e75d8811c143a292f6405173b4b0fb\",service_type=\"postgresql\"}": {
+          "name": "supa_desktop_database_checkpoints_timed_total",
+          "samples": 119,
+          "first": 20,
+          "last": 20,
+          "minimum": 20,
+          "maximum": 20,
+          "counterResetObserved": false,
+          "mean": 20,
+          "observedDelta": 0
+        },
+        "supa_desktop_database_connections{supabase_project_ref=\"d6e75d8811c143a292f6405173b4b0fb\",supabase_identifier=\"d6e75d8811c143a292f6405173b4b0fb\",service_type=\"postgresql\",state=\"idle\",wait=\"client\"}": {
+          "name": "supa_desktop_database_connections",
+          "samples": 119,
+          "first": 1,
+          "last": 1,
+          "minimum": 1,
+          "maximum": 1,
+          "counterResetObserved": false,
+          "mean": 1,
+          "observedDelta": 0
+        },
+        "supa_desktop_database_connections{supabase_project_ref=\"d6e75d8811c143a292f6405173b4b0fb\",supabase_identifier=\"d6e75d8811c143a292f6405173b4b0fb\",service_type=\"postgresql\",state=\"idle_in_transaction\",wait=\"client\"}": {
+          "name": "supa_desktop_database_connections",
+          "samples": 119,
+          "first": 2,
+          "last": 2,
+          "minimum": 1,
+          "maximum": 2,
+          "counterResetObserved": false,
+          "mean": 1.7478991596638656,
+          "observedDelta": 0
+        },
+        "supa_desktop_database_io_reads_total{supabase_project_ref=\"d6e75d8811c143a292f6405173b4b0fb\",supabase_identifier=\"d6e75d8811c143a292f6405173b4b0fb\",service_type=\"postgresql\"}": {
+          "name": "supa_desktop_database_io_reads_total",
+          "samples": 119,
+          "first": 981984,
+          "last": 1002128,
+          "minimum": 981984,
+          "maximum": 1002128,
+          "counterResetObserved": false,
+          "mean": 990970.9411764706,
+          "observedDelta": 20144
+        },
+        "supa_desktop_database_io_writes_total{supabase_project_ref=\"d6e75d8811c143a292f6405173b4b0fb\",supabase_identifier=\"d6e75d8811c143a292f6405173b4b0fb\",service_type=\"postgresql\"}": {
+          "name": "supa_desktop_database_io_writes_total",
+          "samples": 119,
+          "first": 444475,
+          "last": 455536,
+          "minimum": 444475,
+          "maximum": 455536,
+          "counterResetObserved": false,
+          "mean": 449429.3613445378,
+          "observedDelta": 11061
+        },
+        "supa_desktop_database_tracked_statement_calls{supabase_project_ref=\"d6e75d8811c143a292f6405173b4b0fb\",supabase_identifier=\"d6e75d8811c143a292f6405173b4b0fb\",service_type=\"postgresql\"}": {
+          "name": "supa_desktop_database_tracked_statement_calls",
+          "samples": 119,
+          "first": 1559958,
+          "last": 1596376,
+          "minimum": 1559958,
+          "maximum": 1596376,
+          "counterResetObserved": false,
+          "mean": 1576610.1176470588,
+          "observedDelta": 36418
+        },
+        "supa_desktop_database_tracked_statement_execution_seconds{supabase_project_ref=\"d6e75d8811c143a292f6405173b4b0fb\",supabase_identifier=\"d6e75d8811c143a292f6405173b4b0fb\",service_type=\"postgresql\"}": {
+          "name": "supa_desktop_database_tracked_statement_execution_seconds",
+          "samples": 119,
+          "first": 159.55449414499955,
+          "last": 161.7726906889996,
+          "minimum": 159.55449414499955,
+          "maximum": 161.7726906889996,
+          "counterResetObserved": false,
+          "mean": 160.56603556236067,
+          "observedDelta": 2.218196544000051
+        },
+        "supa_desktop_database_wal_bytes_total{supabase_project_ref=\"d6e75d8811c143a292f6405173b4b0fb\",supabase_identifier=\"d6e75d8811c143a292f6405173b4b0fb\",service_type=\"postgresql\"}": {
+          "name": "supa_desktop_database_wal_bytes_total",
+          "samples": 119,
+          "first": 1320545612,
+          "last": 1349049748,
+          "minimum": 1320545612,
+          "maximum": 1349049748,
+          "counterResetObserved": false,
+          "mean": 1331053376.907563,
+          "observedDelta": 28504136
+        },
+        "supa_desktop_database_wal_full_page_images_total{supabase_project_ref=\"d6e75d8811c143a292f6405173b4b0fb\",supabase_identifier=\"d6e75d8811c143a292f6405173b4b0fb\",service_type=\"postgresql\"}": {
+          "name": "supa_desktop_database_wal_full_page_images_total",
+          "samples": 119,
+          "first": 137293,
+          "last": 141158,
+          "minimum": 137293,
+          "maximum": 141158,
+          "counterResetObserved": false,
+          "mean": 138661.27731092437,
+          "observedDelta": 3865
+        },
+        "supa_desktop_database_wal_records_total{supabase_project_ref=\"d6e75d8811c143a292f6405173b4b0fb\",supabase_identifier=\"d6e75d8811c143a292f6405173b4b0fb\",service_type=\"postgresql\"}": {
+          "name": "supa_desktop_database_wal_records_total",
+          "samples": 119,
+          "first": 2907451,
+          "last": 2938779,
+          "minimum": 2907451,
+          "maximum": 2938779,
+          "counterResetObserved": false,
+          "mean": 2921746.731092437,
+          "observedDelta": 31328
+        },
+        "supa_desktop_database_connections{supabase_project_ref=\"d6e75d8811c143a292f6405173b4b0fb\",supabase_identifier=\"d6e75d8811c143a292f6405173b4b0fb\",service_type=\"postgresql\",state=\"active\",wait=\"io\"}": {
+          "name": "supa_desktop_database_connections",
+          "samples": 30,
+          "first": 1,
+          "last": 1,
+          "minimum": 1,
+          "maximum": 1,
+          "counterResetObserved": false,
+          "mean": 1,
+          "observedDelta": 0
+        }
+      },
+      "projectTimedSamples": 119
+    },
+    {
+      "users": 750,
+      "directory": "social-fFYb3T",
+      "result": {
+        "users": 750,
+        "classification": "slo_failure",
+        "actions": 19290,
+        "failedActions": 1681,
+        "actionFailurePercent": 8.71435977190254,
+        "authFailures": 0,
+        "perActionP95Ms": {
+          "listPublic": 4440.049999999999,
+          "listOwn": 4183.149999999999,
+          "read": 4610.749999999999,
+          "create": 4402.349999999999,
+          "like": 7066,
+          "unlike": 3862,
+          "edit": 4084.6999999999985
+        },
+        "gatewayRejectionDeltas": {
+          "admission_rejections_total": 2473,
+          "upstream_admission_rejections_total": 0
+        },
+        "gateway": {
+          "activeRequests": {
+            "minimum": 247,
+            "mean": 255.81666666666666,
+            "maximum": 256
+          },
+          "upstreamConnections": {
+            "minimum": 256,
+            "mean": 256.4166666666667,
+            "maximum": 257
+          },
+          "inboundConnections": {
+            "minimum": 747,
+            "mean": 749.0833333333334,
+            "maximum": 750
+          },
+          "openDescriptors": {
+            "minimum": 1048,
+            "mean": 1050.8416666666667,
+            "maximum": 1056
+          },
+          "minimumSampledDescriptorHeadroomFraction": 0.899390243902439
+        },
+        "database": {
+          "databaseBackends": {
+            "minimum": 6,
+            "mean": 6,
+            "maximum": 6
+          },
+          "databaseConnectionLimit": 60,
+          "cacheHitFraction": 0.8827928195288938,
+          "deadlockDelta": 0,
+          "tempBytesDelta": 0
+        },
+        "hostCpu": {
+          "userPercent": {
+            "minimum": 10.616784630940344,
+            "mean": 14.83580707232714,
+            "maximum": 46.15384615384615
+          },
+          "systemPercent": {
+            "minimum": 6.714140386571719,
+            "mean": 8.560027949846576,
+            "maximum": 15.709969788519636
+          },
+          "idlePercent": {
+            "minimum": 44.02834008097166,
+            "mean": 76.60416497782626,
+            "maximum": 82.50758341759354
+          }
+        },
+        "backend": {
+          "cpuCores": {
+            "minimum": 0.8365019011401397,
+            "mean": 0.8839727898833282,
+            "maximum": 1.0312204351930678
+          },
+          "peakRssBytes": 1027506176
+        },
+        "measurementAudit": "raw-results/social-fFYb3T/measurement-audit.json",
+        "gatewayAudit": "raw-results/social-fFYb3T/gateway-load-audit.json",
+        "projectMetricsAudit": "raw-results/social-fFYb3T/project-metrics-audit.json"
+      },
+      "successfulActionsPerSecond": 146.74166666666667,
+      "rawHttp": {
+        "2xx": {
+          "http_req_duration": {
+            "count": 20683,
+            "mean": 1527.359767635256,
+            "p50": 1084.254,
+            "p95": 4484.961099999996,
+            "p99": 6728.317280000001,
+            "maximum": 9970.384
+          },
+          "http_req_blocked": {
+            "count": 20683,
+            "mean": 0.0026915341101387616,
+            "p50": 0.002,
+            "p95": 0.004,
+            "p99": 0.006,
+            "maximum": 0.369
+          },
+          "http_req_connecting": {
+            "count": 20683,
+            "mean": 0.0003357346613160567,
+            "p50": 0.0,
+            "p95": 0.0,
+            "p99": 0.0,
+            "maximum": 0.334
+          },
+          "http_req_tls_handshaking": {
+            "count": 20683,
+            "mean": 0.0,
+            "p50": 0.0,
+            "p95": 0.0,
+            "p99": 0.0,
+            "maximum": 0
+          },
+          "http_req_sending": {
+            "count": 20683,
+            "mean": 0.009493158632693517,
+            "p50": 0.009,
+            "p95": 0.014,
+            "p99": 0.017,
+            "maximum": 0.181
+          },
+          "http_req_waiting": {
+            "count": 20683,
+            "mean": 1527.3040499927477,
+            "p50": 1084.228,
+            "p95": 4484.931399999997,
+            "p99": 6728.232400000002,
+            "maximum": 9970.347
+          },
+          "http_req_receiving": {
+            "count": 20683,
+            "mean": 0.04622448387564667,
+            "p50": 0.025,
+            "p95": 0.106,
+            "p99": 0.255,
+            "maximum": 3.969
+          }
+        },
+        "503": {
+          "http_req_duration": {
+            "count": 1653,
+            "mean": 101.35485420447671,
+            "p50": 101.263,
+            "p95": 102.277,
+            "p99": 103.75848,
+            "maximum": 117.38
+          },
+          "http_req_blocked": {
+            "count": 1653,
+            "mean": 0.0027586206896551726,
+            "p50": 0.002,
+            "p95": 0.005,
+            "p99": 0.007,
+            "maximum": 0.276
+          },
+          "http_req_connecting": {
+            "count": 1653,
+            "mean": 0.00026678765880217784,
+            "p50": 0.0,
+            "p95": 0.0,
+            "p99": 0.0,
+            "maximum": 0.246
+          },
+          "http_req_tls_handshaking": {
+            "count": 1653,
+            "mean": 0.0,
+            "p50": 0.0,
+            "p95": 0.0,
+            "p99": 0.0,
+            "maximum": 0
+          },
+          "http_req_sending": {
+            "count": 1653,
+            "mean": 0.009688445251058681,
+            "p50": 0.009,
+            "p95": 0.015,
+            "p99": 0.019,
+            "maximum": 0.179
+          },
+          "http_req_waiting": {
+            "count": 1653,
+            "mean": 101.32197156684816,
+            "p50": 101.231,
+            "p95": 102.2346,
+            "p99": 103.71732000000002,
+            "maximum": 117.353
+          },
+          "http_req_receiving": {
+            "count": 1653,
+            "mean": 0.023194192377495464,
+            "p50": 0.019,
+            "p95": 0.046,
+            "p99": 0.09096000000000004,
+            "maximum": 0.632
+          }
+        },
+        "0": {
+          "http_req_duration": {
+            "count": 32,
+            "mean": 10000.4373125,
+            "p50": 10000.2145,
+            "p95": 10001.2457,
+            "p99": 10001.50845,
+            "maximum": 10001.541
+          },
+          "http_req_blocked": {
+            "count": 32,
+            "mean": 0.0025625,
+            "p50": 0.002,
+            "p95": 0.004449999999999999,
+            "p99": 0.009140000000000007,
+            "maximum": 0.011
+          },
+          "http_req_connecting": {
+            "count": 32,
+            "mean": 0.0,
+            "p50": 0.0,
+            "p95": 0.0,
+            "p99": 0.0,
+            "maximum": 0
+          },
+          "http_req_tls_handshaking": {
+            "count": 32,
+            "mean": 0.0,
+            "p50": 0.0,
+            "p95": 0.0,
+            "p99": 0.0,
+            "maximum": 0
+          },
+          "http_req_sending": {
+            "count": 32,
+            "mean": 0.00934375,
+            "p50": 0.009,
+            "p95": 0.01245,
+            "p99": 0.013,
+            "maximum": 0.013
+          },
+          "http_req_waiting": {
+            "count": 32,
+            "mean": 10000.42796875,
+            "p50": 10000.206,
+            "p95": 10001.23835,
+            "p99": 10001.49945,
+            "maximum": 10001.532
+          },
+          "http_req_receiving": {
+            "count": 32,
+            "mean": 0.0,
+            "p50": 0.0,
+            "p95": 0.0,
+            "p99": 0.0,
+            "maximum": 0
+          }
+        }
+      },
+      "successfulHttpCompletedPerSecond": 172.35833333333332,
+      "successfulHttpTenSecondBuckets": {
+        "0": {
+          "count": 1478,
+          "mean": 1235.7848680649527,
+          "p50": 873.2819999999999,
+          "p95": 3664.4915499999975,
+          "p99": 5340.866070000002,
+          "maximum": 7750.162
+        },
+        "1": {
+          "count": 1716,
+          "mean": 1557.7443991841492,
+          "p50": 1077.7195,
+          "p95": 4680.581,
+          "p99": 6864.941899999995,
+          "maximum": 9597.843
+        },
+        "2": {
+          "count": 1723,
+          "mean": 1512.9595803830528,
+          "p50": 1054.368,
+          "p95": 4394.173799999996,
+          "p99": 6964.705539999994,
+          "maximum": 9316.233
+        },
+        "3": {
+          "count": 1739,
+          "mean": 1503.6336670500289,
+          "p50": 1094.427,
+          "p95": 4442.628499999999,
+          "p99": 6416.261639999993,
+          "maximum": 9744.874
+        },
+        "4": {
+          "count": 1749,
+          "mean": 1530.4040903373357,
+          "p50": 1108.052,
+          "p95": 4412.9565999999995,
+          "p99": 6445.3474799999985,
+          "maximum": 9116.486
+        },
+        "5": {
+          "count": 1708,
+          "mean": 1551.8577347775176,
+          "p50": 1110.533,
+          "p95": 4434.465899999999,
+          "p99": 6698.55029,
+          "maximum": 9919.389
+        },
+        "6": {
+          "count": 1721,
+          "mean": 1533.314496223126,
+          "p50": 1091.384,
+          "p95": 4618.657,
+          "p99": 6737.958199999998,
+          "maximum": 9495.603
+        },
+        "7": {
+          "count": 1716,
+          "mean": 1518.6068752913752,
+          "p50": 1086.835,
+          "p95": 4553.644,
+          "p99": 6867.060799999987,
+          "maximum": 9742.727
+        },
+        "8": {
+          "count": 1752,
+          "mean": 1520.3962642694064,
+          "p50": 1097.827,
+          "p95": 4406.635399999998,
+          "p99": 6617.7222,
+          "maximum": 9046.978
+        },
+        "9": {
+          "count": 1696,
+          "mean": 1573.8024864386794,
+          "p50": 1106.098,
+          "p95": 4639.3015,
+          "p99": 7369.718999999999,
+          "maximum": 8824.589
+        },
+        "10": {
+          "count": 1723,
+          "mean": 1506.1118566453858,
+          "p50": 1071.796,
+          "p95": 4516.539399999995,
+          "p99": 6469.924779999997,
+          "maximum": 8836.013
+        },
+        "11": {
+          "count": 1694,
+          "mean": 1571.2481357733177,
+          "p50": 1092.804,
+          "p95": 4548.9019499999995,
+          "p99": 6943.98006,
+          "maximum": 9970.384
+        },
+        "12": {
+          "count": 268,
+          "mean": 2639.972358208955,
+          "p50": 2391.1755000000003,
+          "p95": 6184.141249999996,
+          "p99": 7472.254639999999,
+          "maximum": 8852.418
+        }
+      },
+      "phaseHttpStatusCounts": {
+        "preparation:200": 1500,
+        "ramp:200": 3947,
+        "ramp:201": 942,
+        "warmup:200": 8868,
+        "warmup:201": 1920,
+        "warmup:503": 820,
+        "warmup:0": 17,
+        "measurement:200": 16910,
+        "measurement:503": 1653,
+        "measurement:201": 3773,
+        "measurement:0": 32,
+        "cleanup:201": 37,
+        "cleanup:204": 750
+      },
+      "gateway": {
+        "projectDatabaseMetrics": {
+          "path": "raw-results/social-fFYb3T/project-metrics-audit.json",
+          "timedSamples": 120,
+          "seriesCount": 378,
+          "databaseBackends": {
+            "minimum": 6,
+            "mean": 6,
+            "maximum": 6
+          },
+          "databaseConnectionLimit": 60,
+          "cacheHitFraction": 0.8827928195288938,
+          "deadlockDelta": 0,
+          "tempBytesDelta": 0
+        },
+        "kind": "native-supa-desktop-gateway-audit",
+        "version": "0.14.1",
+        "directory": "raw-results/social-fFYb3T",
+        "classification": {
+          "verdict": "slo_failure",
+          "reasons": [
+            "observed_action_slo:listPublic",
+            "observed_action_slo:listOwn",
+            "observed_action_slo:read",
+            "observed_action_slo:create",
+            "observed_action_slo:like",
+            "observed_action_slo:unlike",
+            "observed_action_slo:edit",
+            "observed_rate:logical_failed{phase:measurement}",
+            "observed_rate:http_req_failed{traffic:backend}"
+          ],
+          "certified": false,
+          "generatorHeadroom": "unverified"
+        },
+        "actions": 19290,
+        "failedActions": 1681,
+        "authFailures": 0,
+        "capture": {
+          "gatewayMetricSamples": 588,
+          "timedGatewayMetricSamples": 120,
+          "firstAt": "2026-11-18T18:33:14Z",
+          "lastAt": "2026-11-18T18:43:03Z",
+          "measurementWindow": {
+            "releaseAt": 1795027021642,
+            "measurementAt": 1795027111642,
+            "endAt": 1795027231642
+          },
+          "counterScope": "First-to-last diagnostic snapshots spanning preparation, load and paced sign-outs; raw HTTP counters are separately phase-attributed."
+        },
+        "effectiveLimits": {
+          "connection_limit": 2048,
+          "request_limit": 256,
+          "descriptor_soft_limit": 10496,
+          "descriptor_hard_limit": "9223372036854775807"
+        },
+        "counterDeltas": {
+          "admission_rejections_total": 2473,
+          "upstream_admission_rejections_total": 0
+        },
+        "allPhaseHttp503Responses": 2473,
+        "allPhaseTransportFailures": {
+          "request_timeout": 49
+        },
+        "acceptErrorSeries": [],
+        "requestRejectionDeltaMatchesHttp503": true,
+        "measuredGateway": {
+          "activeRequests": {
+            "minimum": 247,
+            "mean": 255.81666666666666,
+            "maximum": 256
+          },
+          "upstreamConnections": {
+            "minimum": 256,
+            "mean": 256.4166666666667,
+            "maximum": 257
+          },
+          "inboundConnections": {
+            "minimum": 747,
+            "mean": 749.0833333333334,
+            "maximum": 750
+          },
+          "openDescriptors": {
+            "minimum": 1048,
+            "mean": 1050.8416666666667,
+            "maximum": 1056
+          },
+          "minimumSampledDescriptorHeadroomFraction": 0.899390243902439
+        },
+        "responseBodies": {
+          "sampleLimitPerVu": 2,
+          "maximumBodyBytes": 4096,
+          "captured": 1353,
+          "categories": {
+            "gateway_request_capacity": 1353
+          },
+          "distinctBodies": [
+            "{\"error\":\"gateway_request_capacity\"}"
+          ],
+          "examples": [
+            {
+              "event": "backend_503_body",
+              "at": 1795027058008,
+              "ordinal": 382,
+              "phase": "warmup",
+              "method": "GET",
+              "path": "/rest/v1/posts",
+              "body": "{\"error\":\"gateway_request_capacity\"}"
+            },
+            {
+              "event": "backend_503_body",
+              "at": 1795027058010,
+              "ordinal": 528,
+              "phase": "warmup",
+              "method": "GET",
+              "path": "/rest/v1/posts",
+              "body": "{\"error\":\"gateway_request_capacity\"}"
+            },
+            {
+              "event": "backend_503_body",
+              "at": 1795027058020,
+              "ordinal": 39,
+              "phase": "warmup",
+              "method": "GET",
+              "path": "/rest/v1/posts",
+              "body": "{\"error\":\"gateway_request_capacity\"}"
+            },
+            {
+              "event": "backend_503_body",
+              "at": 1795027058028,
+              "ordinal": 741,
+              "phase": "warmup",
+              "method": "PATCH",
+              "path": "/rest/v1/posts",
+              "body": "{\"error\":\"gateway_request_capacity\"}"
+            },
+            {
+              "event": "backend_503_body",
+              "at": 1795027058031,
+              "ordinal": 383,
+              "phase": "warmup",
+              "method": "GET",
+              "path": "/rest/v1/likes",
+              "body": "{\"error\":\"gateway_request_capacity\"}"
+            },
+            {
+              "event": "backend_503_body",
+              "at": 1795027058149,
+              "ordinal": 690,
+              "phase": "warmup",
+              "method": "GET",
+              "path": "/rest/v1/posts",
+              "body": "{\"error\":\"gateway_request_capacity\"}"
+            },
+            {
+              "event": "backend_503_body",
+              "at": 1795027058166,
+              "ordinal": 461,
+              "phase": "warmup",
+              "method": "GET",
+              "path": "/rest/v1/likes",
+              "body": "{\"error\":\"gateway_request_capacity\"}"
+            },
+            {
+              "event": "backend_503_body",
+              "at": 1795027058171,
+              "ordinal": 245,
+              "phase": "warmup",
+              "method": "PATCH",
+              "path": "/rest/v1/posts",
+              "body": "{\"error\":\"gateway_request_capacity\"}"
+            }
+          ],
+          "originalRunBodiesNotReconstructed": true
+        },
+        "host": {
+          "hardware": {
+            "cpu": "Apple M1 Max",
+            "cores": 10,
+            "memoryBytes": 68719476736,
+            "platform": "darwin",
+            "arch": "arm64"
+          },
+          "operatingSystem": "27.2.1",
+          "cpuPercent": {
+            "userPercent": {
+              "minimum": 10.616784630940344,
+              "mean": 14.83580707232714,
+              "maximum": 46.15384615384615
+            },
+            "systemPercent": {
+              "minimum": 6.714140386571719,
+              "mean": 8.560027949846576,
+              "maximum": 15.709969788519636
+            },
+            "idlePercent": {
+              "minimum": 44.02834008097166,
+              "mean": 76.60416497782626,
+              "maximum": 82.50758341759354
+            }
+          },
+          "memorySnapshots": [
+            {
+              "at": "2026-11-18T18:38:35Z",
+              "lines": [
+                "Load Avg: 3.32, 2.38, 2.08 ",
+                "PhysMem: 61G used (2351M wired, 3346M compressor), 2445M unused.",
+                "VM: 503T vsize, 57G framework vsize, 0(0) swapins, 0(0) swapouts."
+              ]
+            },
+            {
+              "at": "2026-11-18T18:38:45Z",
+              "lines": [
+                "Load Avg: 3.04, 2.35, 2.08 ",
+                "PhysMem: 61G used (2351M wired, 3346M compressor), 2379M unused.",
+                "VM: 503T vsize, 57G framework vsize, 0(0) swapins, 0(0) swapouts."
+              ]
+            },
+            {
+              "at": "2026-11-18T18:38:55Z",
+              "lines": [
+                "Load Avg: 2.73, 2.30, 2.06 ",
+                "PhysMem: 61G used (2353M wired, 3346M compressor), 2221M unused.",
+                "VM: 506T vsize, 57G framework vsize, 0(0) swapins, 0(0) swapouts."
+              ]
+            },
+            {
+              "at": "2026-11-18T18:39:05Z",
+              "lines": [
+                "Load Avg: 2.85, 2.34, 2.08 ",
+                "PhysMem: 61G used (2353M wired, 3346M compressor), 2145M unused.",
+                "VM: 506T vsize, 57G framework vsize, 0(0) swapins, 0(0) swapouts."
+              ]
+            },
+            {
+              "at": "2026-11-18T18:39:15Z",
+              "lines": [
+                "Load Avg: 2.41, 2.27, 2.06 ",
+                "PhysMem: 61G used (2351M wired, 3346M compressor), 2075M unused.",
+                "VM: 506T vsize, 57G framework vsize, 0(0) swapins, 0(0) swapouts."
+              ]
+            },
+            {
+              "at": "2026-11-18T18:39:25Z",
+              "lines": [
+                "Load Avg: 2.48, 2.29, 2.07 ",
+                "PhysMem: 61G used (2353M wired, 3346M compressor), 2070M unused.",
+                "VM: 506T vsize, 57G framework vsize, 0(0) swapins, 0(0) swapouts."
+              ]
+            },
+            {
+              "at": "2026-11-18T18:39:35Z",
+              "lines": [
+                "Load Avg: 2.84, 2.38, 2.10 ",
+                "PhysMem: 61G used (2353M wired, 3346M compressor), 2068M unused.",
+                "VM: 503T vsize, 57G framework vsize, 0(0) swapins, 0(0) swapouts."
+              ]
+            },
+            {
+              "at": "2026-11-18T18:39:45Z",
+              "lines": [
+                "Load Avg: 2.71, 2.36, 2.10 ",
+                "PhysMem: 61G used (2351M wired, 3346M compressor), 1962M unused.",
+                "VM: 503T vsize, 57G framework vsize, 0(0) swapins, 0(0) swapouts."
+              ]
+            },
+            {
+              "at": "2026-11-18T18:39:55Z",
+              "lines": [
+                "Load Avg: 2.45, 2.32, 2.08 ",
+                "PhysMem: 61G used (2352M wired, 3346M compressor), 1792M unused.",
+                "VM: 503T vsize, 57G framework vsize, 0(0) swapins, 0(0) swapouts."
+              ]
+            },
+            {
+              "at": "2026-11-18T18:40:05Z",
+              "lines": [
+                "Load Avg: 2.38, 2.31, 2.08 ",
+                "PhysMem: 61G used (2352M wired, 3346M compressor), 1695M unused.",
+                "VM: 503T vsize, 57G framework vsize, 0(0) swapins, 0(0) swapouts."
+              ]
+            },
+            {
+              "at": "2026-11-18T18:40:15Z",
+              "lines": [
+                "Load Avg: 2.32, 2.30, 2.08 ",
+                "PhysMem: 62G used (2355M wired, 3346M compressor), 1619M unused.",
+                "VM: 503T vsize, 57G framework vsize, 0(0) swapins, 0(0) swapouts."
+              ]
+            },
+            {
+              "at": "2026-11-18T18:40:25Z",
+              "lines": [
+                "Load Avg: 2.03, 2.24, 2.06 ",
+                "PhysMem: 62G used (2354M wired, 3346M compressor), 1624M unused.",
+                "VM: 502T vsize, 57G framework vsize, 0(0) swapins, 0(0) swapouts."
+              ]
+            }
+          ],
+          "totalMemoryBytes": 68719476736,
+          "pressureValues": [
+            1
+          ],
+          "maximumSwapMiB": 0
+        },
+        "processes": {
+          "7320": {
+            "executable": "/Applications/Supa Desktop.app/Contents/MacOS/supa-desktop",
+            "parentPid": 1,
+            "meanCpuCores": 0.17426048416882106,
+            "peakRssBytes": 208093184,
+            "role": "manager_gateway"
+          },
+          "7844": {
+            "executable": "/Applications/Supa Desktop.app/Contents/Resources/runtime/supa-wasm",
+            "parentPid": 7320,
+            "meanCpuCores": 0,
+            "peakRssBytes": 225460224,
+            "role": "project_runtime"
+          },
+          "13395": {
+            "executable": "/Applications/Supa Desktop.app/Contents/Resources/runtime/supa-wasm",
+            "parentPid": 7320,
+            "meanCpuCores": 0.6136890172245885,
+            "peakRssBytes": 333660160,
+            "role": "project_runtime"
+          },
+          "13397": {
+            "executable": "/Applications/Supa Desktop.app/Contents/Resources/runtime/supa-wasm",
+            "parentPid": 13395,
+            "meanCpuCores": 0.0929221367894412,
+            "peakRssBytes": 162562048,
+            "role": "runtime_descendant"
+          },
+          "13867": {
+            "executable": "/Applications/Supa Desktop.app/Contents/Resources/runtime/supa-wasm",
+            "parentPid": 7844,
+            "meanCpuCores": 0.0031897391129167563,
+            "peakRssBytes": 99319808,
+            "role": "runtime_descendant"
+          }
+        },
+        "backend": {
+          "cpuCores": {
+            "minimum": 0.8365019011401397,
+            "mean": 0.8839727898833282,
+            "maximum": 1.0312204351930678
+          },
+          "peakRssBytes": 1027506176
+        },
+        "generator": {
+          "cpuCores": {
+            "minimum": 0.445920303605312,
+            "mean": 0.7811658936826269,
+            "maximum": 3.8483412322274906
+          },
+          "peakRssBytes": 6002982912,
+          "pressureGuardFired": false
+        },
+        "processOpenDescriptors": {
+          "7320": {
+            "minimum": 1048,
+            "mean": 1050.8916666666667,
+            "maximum": 1055
+          },
+          "7844": {
+            "minimum": 26,
+            "mean": 26.016666666666666,
+            "maximum": 28
+          },
+          "13395": {
+            "minimum": 803,
+            "mean": 805.4416666666667,
+            "maximum": 808
+          },
+          "13397": {
+            "minimum": 197,
+            "mean": 221.31666666666666,
+            "maximum": 277
+          },
+          "13867": {
+            "minimum": 105,
+            "mean": 105.04166666666667,
+            "maximum": 110
+          }
+        },
+        "afterLoad": {
+          "ipv4HealthStatus": 200,
+          "ipv6HealthStatus": 200,
+          "listeners": "COMMAND    PID  USER   FD   TYPE             DEVICE SIZE/OFF NODE NAME\nsupa-desk 7320 markb   17u  IPv4 0x2938ba2f66597509      0t0  TCP 127.0.0.1:54321 (LISTEN)\nsupa-desk 7320 markb   21u  IPv6 0x9a8e0f2091f6d136      0t0  TCP [::1]:54321 (LISTEN)\n",
+          "fixtureCleanupVerified": true,
+          "readOnlyDatabaseCounts": {
+            "users": 15000,
+            "posts": 150000,
+            "likes": 150000
+          }
+        },
+        "sources": {
+          "collectorSha256": "d7e39a43b3e29e6c5fb91118cec39ecbeec68dcc59c3039c9f64bd68407b8330",
+          "manifestSha256": "9c727b83533d61582f80e57293300ebfe615dac03bec88c0a9a0cc2bcca9c130",
+          "rawMetricsSha256": "6f4d0ce4f9229fc972b236ce56eb531f5f29b8606ad07d5535a7c8c9d1daa1e7",
+          "diagnosticSamplesSha256": "f27014e7304e9b070cc9c80086be7c697ff6b7600708bd8fbd1fc3a2eba746c4",
+          "bodyLogSha256": "3482e5a18d2dff7c2682f2bb9a71e08818c713770ef0753ac498a3c8070cd5b3"
+        },
+        "limitations": [
+          "Diagnostic repeat retains the original workload but adds bounded 503 body logging and metrics sampling.",
+          "Descriptor and CPU/memory peaks are sampled; short spikes and short-lived processes can be missed.",
+          "Native app and generator share the host; no cgroup or dedicated-core isolation.",
+          "Two native projects are running; gateway counters and aggregate backend resources include co-resident activity."
+        ],
+        "auditedAt": "2026-11-18T18:43:06.258Z",
+        "runtimeOpenDescriptors": {
+          "7844": {
+            "minimum": 26,
+            "mean": 26.016666666666666,
+            "maximum": 28
+          },
+          "13395": {
+            "minimum": 803,
+            "mean": 805.4416666666667,
+            "maximum": 808
+          },
+          "13397": {
+            "minimum": 197,
+            "mean": 221.31666666666666,
+            "maximum": 277
+          },
+          "13867": {
+            "minimum": 105,
+            "mean": 105.04166666666667,
+            "maximum": 110
+          }
+        }
+      },
+      "projectDatabaseSeries": {
+        "max_connections_connection_count{supabase_project_ref=\"d6e75d8811c143a292f6405173b4b0fb\",supabase_identifier=\"d6e75d8811c143a292f6405173b4b0fb\",service_type=\"postgresql\",server=\"local\"}": {
+          "name": "max_connections_connection_count",
+          "samples": 120,
+          "first": 60,
+          "last": 60,
+          "minimum": 60,
+          "maximum": 60,
+          "counterResetObserved": false,
+          "mean": 60,
+          "observedDelta": 0
+        },
+        "pg_stat_bgwriter_buffers_alloc_total{supabase_project_ref=\"d6e75d8811c143a292f6405173b4b0fb\",supabase_identifier=\"d6e75d8811c143a292f6405173b4b0fb\",service_type=\"postgresql\",server=\"local\"}": {
+          "name": "pg_stat_bgwriter_buffers_alloc_total",
+          "samples": 120,
+          "first": 646083,
+          "last": 669294,
+          "minimum": 646083,
+          "maximum": 669294,
+          "counterResetObserved": false,
+          "mean": 659556.4,
+          "observedDelta": 23211
+        },
+        "pg_stat_bgwriter_buffers_clean_total{supabase_project_ref=\"d6e75d8811c143a292f6405173b4b0fb\",supabase_identifier=\"d6e75d8811c143a292f6405173b4b0fb\",service_type=\"postgresql\",server=\"local\"}": {
+          "name": "pg_stat_bgwriter_buffers_clean_total",
+          "samples": 120,
+          "first": 302791,
+          "last": 314911,
+          "minimum": 302791,
+          "maximum": 314911,
+          "counterResetObserved": false,
+          "mean": 309717.06666666665,
+          "observedDelta": 12120
+        },
+        "pg_stat_bgwriter_maxwritten_clean_total{supabase_project_ref=\"d6e75d8811c143a292f6405173b4b0fb\",supabase_identifier=\"d6e75d8811c143a292f6405173b4b0fb\",service_type=\"postgresql\",server=\"local\"}": {
+          "name": "pg_stat_bgwriter_maxwritten_clean_total",
+          "samples": 120,
+          "first": 978,
+          "last": 998,
+          "minimum": 978,
+          "maximum": 998,
+          "counterResetObserved": false,
+          "mean": 989.5333333333333,
+          "observedDelta": 20
+        },
+        "pg_stat_database_blks_hit_total{supabase_project_ref=\"d6e75d8811c143a292f6405173b4b0fb\",supabase_identifier=\"d6e75d8811c143a292f6405173b4b0fb\",service_type=\"postgresql\",server=\"local\"}": {
+          "name": "pg_stat_database_blks_hit_total",
+          "samples": 120,
+          "first": 118501091,
+          "last": 118756912,
+          "minimum": 118501091,
+          "maximum": 118756912,
+          "counterResetObserved": false,
+          "mean": 118645708.88333334,
+          "observedDelta": 255821
+        },
+        "pg_stat_database_blks_read_total{supabase_project_ref=\"d6e75d8811c143a292f6405173b4b0fb\",supabase_identifier=\"d6e75d8811c143a292f6405173b4b0fb\",service_type=\"postgresql\",server=\"local\"}": {
+          "name": "pg_stat_database_blks_read_total",
+          "samples": 120,
+          "first": 864128,
+          "last": 898093,
+          "minimum": 864128,
+          "maximum": 898093,
+          "counterResetObserved": false,
+          "mean": 883072.7583333333,
+          "observedDelta": 33965
+        },
+        "pg_stat_database_conflicts_total{supabase_project_ref=\"d6e75d8811c143a292f6405173b4b0fb\",supabase_identifier=\"d6e75d8811c143a292f6405173b4b0fb\",service_type=\"postgresql\",server=\"local\"}": {
+          "name": "pg_stat_database_conflicts_total",
+          "samples": 120,
+          "first": 0,
+          "last": 0,
+          "minimum": 0,
+          "maximum": 0,
+          "counterResetObserved": false,
+          "mean": 0,
+          "observedDelta": 0
+        },
+        "pg_stat_database_deadlocks_total{supabase_project_ref=\"d6e75d8811c143a292f6405173b4b0fb\",supabase_identifier=\"d6e75d8811c143a292f6405173b4b0fb\",service_type=\"postgresql\",server=\"local\"}": {
+          "name": "pg_stat_database_deadlocks_total",
+          "samples": 120,
+          "first": 0,
+          "last": 0,
+          "minimum": 0,
+          "maximum": 0,
+          "counterResetObserved": false,
+          "mean": 0,
+          "observedDelta": 0
+        },
+        "pg_stat_database_num_backends{supabase_project_ref=\"d6e75d8811c143a292f6405173b4b0fb\",supabase_identifier=\"d6e75d8811c143a292f6405173b4b0fb\",service_type=\"postgresql\",server=\"local\"}": {
+          "name": "pg_stat_database_num_backends",
+          "samples": 120,
+          "first": 6,
+          "last": 6,
+          "minimum": 6,
+          "maximum": 6,
+          "counterResetObserved": false,
+          "mean": 6,
+          "observedDelta": 0
+        },
+        "pg_stat_database_temp_bytes_total{supabase_project_ref=\"d6e75d8811c143a292f6405173b4b0fb\",supabase_identifier=\"d6e75d8811c143a292f6405173b4b0fb\",service_type=\"postgresql\",server=\"local\"}": {
+          "name": "pg_stat_database_temp_bytes_total",
+          "samples": 120,
+          "first": 0,
+          "last": 0,
+          "minimum": 0,
+          "maximum": 0,
+          "counterResetObserved": false,
+          "mean": 0,
+          "observedDelta": 0
+        },
+        "pg_stat_database_temp_files_total{supabase_project_ref=\"d6e75d8811c143a292f6405173b4b0fb\",supabase_identifier=\"d6e75d8811c143a292f6405173b4b0fb\",service_type=\"postgresql\",server=\"local\"}": {
+          "name": "pg_stat_database_temp_files_total",
+          "samples": 120,
+          "first": 0,
+          "last": 0,
+          "minimum": 0,
+          "maximum": 0,
+          "counterResetObserved": false,
+          "mean": 0,
+          "observedDelta": 0
+        },
+        "pg_stat_database_tup_deleted_total{supabase_project_ref=\"d6e75d8811c143a292f6405173b4b0fb\",supabase_identifier=\"d6e75d8811c143a292f6405173b4b0fb\",service_type=\"postgresql\",server=\"local\"}": {
+          "name": "pg_stat_database_tup_deleted_total",
+          "samples": 120,
+          "first": 71272,
+          "last": 72175,
+          "minimum": 71272,
+          "maximum": 72175,
+          "counterResetObserved": false,
+          "mean": 71809.20833333333,
+          "observedDelta": 903
+        },
+        "pg_stat_database_tup_fetched_total{supabase_project_ref=\"d6e75d8811c143a292f6405173b4b0fb\",supabase_identifier=\"d6e75d8811c143a292f6405173b4b0fb\",service_type=\"postgresql\",server=\"local\"}": {
+          "name": "pg_stat_database_tup_fetched_total",
+          "samples": 120,
+          "first": 58845590,
+          "last": 59020570,
+          "minimum": 58845590,
+          "maximum": 59020570,
+          "counterResetObserved": false,
+          "mean": 58947954.21666667,
+          "observedDelta": 174980
+        },
+        "pg_stat_database_tup_inserted_total{supabase_project_ref=\"d6e75d8811c143a292f6405173b4b0fb\",supabase_identifier=\"d6e75d8811c143a292f6405173b4b0fb\",service_type=\"postgresql\",server=\"local\"}": {
+          "name": "pg_stat_database_tup_inserted_total",
+          "samples": 120,
+          "first": 477252,
+          "last": 480983,
+          "minimum": 477252,
+          "maximum": 480983,
+          "counterResetObserved": false,
+          "mean": 479434.925,
+          "observedDelta": 3731
+        },
+        "pg_stat_database_tup_returned_total{supabase_project_ref=\"d6e75d8811c143a292f6405173b4b0fb\",supabase_identifier=\"d6e75d8811c143a292f6405173b4b0fb\",service_type=\"postgresql\",server=\"local\"}": {
+          "name": "pg_stat_database_tup_returned_total",
+          "samples": 120,
+          "first": 62821929,
+          "last": 63008691,
+          "minimum": 62821929,
+          "maximum": 63008691,
+          "counterResetObserved": false,
+          "mean": 62930621.63333333,
+          "observedDelta": 186762
+        },
+        "pg_stat_database_tup_updated_total{supabase_project_ref=\"d6e75d8811c143a292f6405173b4b0fb\",supabase_identifier=\"d6e75d8811c143a292f6405173b4b0fb\",service_type=\"postgresql\",server=\"local\"}": {
+          "name": "pg_stat_database_tup_updated_total",
+          "samples": 120,
+          "first": 108302,
+          "last": 109756,
+          "minimum": 108302,
+          "maximum": 109756,
+          "counterResetObserved": false,
+          "mean": 109164.325,
+          "observedDelta": 1454
+        },
+        "pg_stat_database_xact_commit_total{supabase_project_ref=\"d6e75d8811c143a292f6405173b4b0fb\",supabase_identifier=\"d6e75d8811c143a292f6405173b4b0fb\",service_type=\"postgresql\",server=\"local\"}": {
+          "name": "pg_stat_database_xact_commit_total",
+          "samples": 120,
+          "first": 1185238,
+          "last": 1206004,
+          "minimum": 1185238,
+          "maximum": 1206004,
+          "counterResetObserved": false,
+          "mean": 1197411.175,
+          "observedDelta": 20766
+        },
+        "pg_stat_database_xact_rollback_total{supabase_project_ref=\"d6e75d8811c143a292f6405173b4b0fb\",supabase_identifier=\"d6e75d8811c143a292f6405173b4b0fb\",service_type=\"postgresql\",server=\"local\"}": {
+          "name": "pg_stat_database_xact_rollback_total",
+          "samples": 120,
+          "first": 12,
+          "last": 12,
+          "minimum": 12,
+          "maximum": 12,
+          "counterResetObserved": false,
+          "mean": 12,
+          "observedDelta": 0
+        },
+        "supa_desktop_database_checkpoint_buffers_written_total{supabase_project_ref=\"d6e75d8811c143a292f6405173b4b0fb\",supabase_identifier=\"d6e75d8811c143a292f6405173b4b0fb\",service_type=\"postgresql\"}": {
+          "name": "supa_desktop_database_checkpoint_buffers_written_total",
+          "samples": 120,
+          "first": 17967,
+          "last": 18454,
+          "minimum": 17967,
+          "maximum": 18454,
+          "counterResetObserved": false,
+          "mean": 18155.366666666665,
+          "observedDelta": 487
+        },
+        "supa_desktop_database_checkpoint_sync_seconds_total{supabase_project_ref=\"d6e75d8811c143a292f6405173b4b0fb\",supabase_identifier=\"d6e75d8811c143a292f6405173b4b0fb\",service_type=\"postgresql\"}": {
+          "name": "supa_desktop_database_checkpoint_sync_seconds_total",
+          "samples": 120,
+          "first": 7.736,
+          "last": 7.899,
+          "minimum": 7.736,
+          "maximum": 7.899,
+          "counterResetObserved": false,
+          "mean": 7.852816666666667,
+          "observedDelta": 0.16300000000000026
+        },
+        "supa_desktop_database_checkpoint_write_seconds_total{supabase_project_ref=\"d6e75d8811c143a292f6405173b4b0fb\",supabase_identifier=\"d6e75d8811c143a292f6405173b4b0fb\",service_type=\"postgresql\"}": {
+          "name": "supa_desktop_database_checkpoint_write_seconds_total",
+          "samples": 120,
+          "first": 2399.675,
+          "last": 2476.621,
+          "minimum": 2399.675,
+          "maximum": 2476.621,
+          "counterResetObserved": false,
+          "mean": 2454.819633333338,
+          "observedDelta": 76.94599999999991
+        },
+        "supa_desktop_database_checkpoints_requested_total{supabase_project_ref=\"d6e75d8811c143a292f6405173b4b0fb\",supabase_identifier=\"d6e75d8811c143a292f6405173b4b0fb\",service_type=\"postgresql\"}": {
+          "name": "supa_desktop_database_checkpoints_requested_total",
+          "samples": 120,
+          "first": 32,
+          "last": 33,
+          "minimum": 32,
+          "maximum": 33,
+          "counterResetObserved": false,
+          "mean": 32.46666666666667,
+          "observedDelta": 1
+        },
+        "supa_desktop_database_checkpoints_timed_total{supabase_project_ref=\"d6e75d8811c143a292f6405173b4b0fb\",supabase_identifier=\"d6e75d8811c143a292f6405173b4b0fb\",service_type=\"postgresql\"}": {
+          "name": "supa_desktop_database_checkpoints_timed_total",
+          "samples": 120,
+          "first": 16,
+          "last": 16,
+          "minimum": 16,
+          "maximum": 16,
+          "counterResetObserved": false,
+          "mean": 16,
+          "observedDelta": 0
+        },
+        "supa_desktop_database_connections{supabase_project_ref=\"d6e75d8811c143a292f6405173b4b0fb\",supabase_identifier=\"d6e75d8811c143a292f6405173b4b0fb\",service_type=\"postgresql\",state=\"idle_in_transaction\",wait=\"client\"}": {
+          "name": "supa_desktop_database_connections",
+          "samples": 120,
+          "first": 2,
+          "last": 2,
+          "minimum": 2,
+          "maximum": 2,
+          "counterResetObserved": false,
+          "mean": 2,
+          "observedDelta": 0
+        },
+        "supa_desktop_database_connections{supabase_project_ref=\"d6e75d8811c143a292f6405173b4b0fb\",supabase_identifier=\"d6e75d8811c143a292f6405173b4b0fb\",service_type=\"postgresql\",state=\"idle\",wait=\"client\"}": {
+          "name": "supa_desktop_database_connections",
+          "samples": 120,
+          "first": 1,
+          "last": 1,
+          "minimum": 1,
+          "maximum": 1,
+          "counterResetObserved": false,
+          "mean": 1,
+          "observedDelta": 0
+        },
+        "supa_desktop_database_io_reads_total{supabase_project_ref=\"d6e75d8811c143a292f6405173b4b0fb\",supabase_identifier=\"d6e75d8811c143a292f6405173b4b0fb\",service_type=\"postgresql\"}": {
+          "name": "supa_desktop_database_io_reads_total",
+          "samples": 120,
+          "first": 863920,
+          "last": 897961,
+          "minimum": 863920,
+          "maximum": 897961,
+          "counterResetObserved": false,
+          "mean": 882909.3083333333,
+          "observedDelta": 34041
+        },
+        "supa_desktop_database_io_writes_total{supabase_project_ref=\"d6e75d8811c143a292f6405173b4b0fb\",supabase_identifier=\"d6e75d8811c143a292f6405173b4b0fb\",service_type=\"postgresql\"}": {
+          "name": "supa_desktop_database_io_writes_total",
+          "samples": 120,
+          "first": 398765,
+          "last": 419205,
+          "minimum": 398765,
+          "maximum": 419205,
+          "counterResetObserved": false,
+          "mean": 409665.125,
+          "observedDelta": 20440
+        },
+        "supa_desktop_database_tracked_statement_calls{supabase_project_ref=\"d6e75d8811c143a292f6405173b4b0fb\",supabase_identifier=\"d6e75d8811c143a292f6405173b4b0fb\",service_type=\"postgresql\"}": {
+          "name": "supa_desktop_database_tracked_statement_calls",
+          "samples": 120,
+          "first": 1416190,
+          "last": 1457614,
+          "minimum": 1416190,
+          "maximum": 1457614,
+          "counterResetObserved": false,
+          "mean": 1440605.425,
+          "observedDelta": 41424
+        },
+        "supa_desktop_database_tracked_statement_execution_seconds{supabase_project_ref=\"d6e75d8811c143a292f6405173b4b0fb\",supabase_identifier=\"d6e75d8811c143a292f6405173b4b0fb\",service_type=\"postgresql\"}": {
+          "name": "supa_desktop_database_tracked_statement_execution_seconds",
+          "samples": 120,
+          "first": 147.1129009519996,
+          "last": 149.72358886199953,
+          "minimum": 147.1129009519996,
+          "maximum": 149.72358886199953,
+          "counterResetObserved": false,
+          "mean": 148.64864486858275,
+          "observedDelta": 2.610687909999939
+        },
+        "supa_desktop_database_wal_bytes_total{supabase_project_ref=\"d6e75d8811c143a292f6405173b4b0fb\",supabase_identifier=\"d6e75d8811c143a292f6405173b4b0fb\",service_type=\"postgresql\"}": {
+          "name": "supa_desktop_database_wal_bytes_total",
+          "samples": 120,
+          "first": 1194921550,
+          "last": 1239582936,
+          "minimum": 1194921550,
+          "maximum": 1239582936,
+          "counterResetObserved": false,
+          "mean": 1216460429.7583334,
+          "observedDelta": 44661386
+        },
+        "supa_desktop_database_wal_full_page_images_total{supabase_project_ref=\"d6e75d8811c143a292f6405173b4b0fb\",supabase_identifier=\"d6e75d8811c143a292f6405173b4b0fb\",service_type=\"postgresql\"}": {
+          "name": "supa_desktop_database_wal_full_page_images_total",
+          "samples": 120,
+          "first": 119197,
+          "last": 126180,
+          "minimum": 119197,
+          "maximum": 126180,
+          "counterResetObserved": false,
+          "mean": 122500.075,
+          "observedDelta": 6983
+        },
+        "supa_desktop_database_wal_records_total{supabase_project_ref=\"d6e75d8811c143a292f6405173b4b0fb\",supabase_identifier=\"d6e75d8811c143a292f6405173b4b0fb\",service_type=\"postgresql\"}": {
+          "name": "supa_desktop_database_wal_records_total",
+          "samples": 120,
+          "first": 2758539,
+          "last": 2802382,
+          "minimum": 2758539,
+          "maximum": 2802382,
+          "counterResetObserved": false,
+          "mean": 2783008.275,
+          "observedDelta": 43843
+        }
+      },
+      "projectTimedSamples": 120
+    },
+    {
+      "users": 1000,
+      "directory": "social-M3WUay",
+      "result": {
+        "users": 1000,
+        "classification": "slo_failure",
+        "actions": 28710,
+        "failedActions": 11458,
+        "actionFailurePercent": 39.90943921978405,
+        "authFailures": 0,
+        "perActionP95Ms": {
+          "listPublic": 4013.2999999999975,
+          "listOwn": 3935.7,
+          "read": 3863.45,
+          "create": 3856.099999999999,
+          "like": 5823.999999999999,
+          "unlike": 4093.7999999999993,
+          "edit": 3856.7499999999995
+        },
+        "gatewayRejectionDeltas": {
+          "admission_rejections_total": 17699,
+          "upstream_admission_rejections_total": 0
+        },
+        "gateway": {
+          "activeRequests": {
+            "minimum": 256,
+            "mean": 256,
+            "maximum": 256
+          },
+          "upstreamConnections": {
+            "minimum": 256,
+            "mean": 256.4117647058824,
+            "maximum": 257
+          },
+          "inboundConnections": {
+            "minimum": 998,
+            "mean": 999.5294117647059,
+            "maximum": 1000
+          },
+          "openDescriptors": {
+            "minimum": 1299,
+            "mean": 1301.2268907563025,
+            "maximum": 1305
+          },
+          "minimumSampledDescriptorHeadroomFraction": 0.8756669207317074
+        },
+        "database": {
+          "databaseBackends": {
+            "minimum": 6,
+            "mean": 6,
+            "maximum": 6
+          },
+          "databaseConnectionLimit": 60,
+          "cacheHitFraction": 0.9180571062720082,
+          "deadlockDelta": 0,
+          "tempBytesDelta": 0
+        },
+        "hostCpu": {
+          "userPercent": {
+            "minimum": 12.626262626262626,
+            "mean": 18.078783198050296,
+            "maximum": 63.27967806841046
+          },
+          "systemPercent": {
+            "minimum": 6.927710843373494,
+            "mean": 8.77681387665352,
+            "maximum": 14.646464646464647
+          },
+          "idlePercent": {
+            "minimum": 26.358148893360163,
+            "mean": 73.14440292529615,
+            "maximum": 80.16194331983806
+          }
+        },
+        "backend": {
+          "cpuCores": {
+            "minimum": 0.8450704225349764,
+            "mean": 0.9100306413474625,
+            "maximum": 1.080568720379087
+          },
+          "peakRssBytes": 1022361600
+        },
+        "measurementAudit": "raw-results/social-M3WUay/measurement-audit.json",
+        "gatewayAudit": "raw-results/social-M3WUay/gateway-load-audit.json",
+        "projectMetricsAudit": "raw-results/social-M3WUay/project-metrics-audit.json"
+      },
+      "successfulActionsPerSecond": 143.76666666666668,
+      "rawHttp": {
+        "503": {
+          "http_req_duration": {
+            "count": 11447,
+            "mean": 101.26668096444483,
+            "p50": 101.219,
+            "p95": 102.132,
+            "p99": 102.6207,
+            "maximum": 114.894
+          },
+          "http_req_blocked": {
+            "count": 11447,
+            "mean": 0.0024202847907748757,
+            "p50": 0.002,
+            "p95": 0.004,
+            "p99": 0.007,
+            "maximum": 0.509
+          },
+          "http_req_connecting": {
+            "count": 11447,
+            "mean": 0.00018642439067004455,
+            "p50": 0.0,
+            "p95": 0.0,
+            "p99": 0.0,
+            "maximum": 0.48
+          },
+          "http_req_tls_handshaking": {
+            "count": 11447,
+            "mean": 0.0,
+            "p50": 0.0,
+            "p95": 0.0,
+            "p99": 0.0,
+            "maximum": 0
+          },
+          "http_req_sending": {
+            "count": 11447,
+            "mean": 0.009019917882414607,
+            "p50": 0.009,
+            "p95": 0.013,
+            "p99": 0.017,
+            "maximum": 0.155
+          },
+          "http_req_waiting": {
+            "count": 11447,
+            "mean": 101.23737389709095,
+            "p50": 101.192,
+            "p95": 102.1007,
+            "p99": 102.57954,
+            "maximum": 114.871
+          },
+          "http_req_receiving": {
+            "count": 11447,
+            "mean": 0.020287149471477244,
+            "p50": 0.017,
+            "p95": 0.033,
+            "p99": 0.06853999999999906,
+            "maximum": 6.505
+          }
+        },
+        "2xx": {
+          "http_req_duration": {
+            "count": 20356,
+            "mean": 1589.37926739045,
+            "p50": 1138.431,
+            "p95": 4610.540499999999,
+            "p99": 6771.232500000005,
+            "maximum": 9909.179
+          },
+          "http_req_blocked": {
+            "count": 20356,
+            "mean": 0.00247062291216349,
+            "p50": 0.002,
+            "p95": 0.004,
+            "p99": 0.006,
+            "maximum": 0.472
+          },
+          "http_req_connecting": {
+            "count": 20356,
+            "mean": 0.0001675181764590293,
+            "p50": 0.0,
+            "p95": 0.0,
+            "p99": 0.0,
+            "maximum": 0.434
+          },
+          "http_req_tls_handshaking": {
+            "count": 20356,
+            "mean": 0.0,
+            "p50": 0.0,
+            "p95": 0.0,
+            "p99": 0.0,
+            "maximum": 0
+          },
+          "http_req_sending": {
+            "count": 20356,
+            "mean": 0.0093379838868147,
+            "p50": 0.009,
+            "p95": 0.013,
+            "p99": 0.016,
+            "maximum": 0.367
+          },
+          "http_req_waiting": {
+            "count": 20356,
+            "mean": 1589.3244423757124,
+            "p50": 1138.399,
+            "p95": 4610.4662499999995,
+            "p99": 6771.169000000004,
+            "maximum": 9909.154
+          },
+          "http_req_receiving": {
+            "count": 20356,
+            "mean": 0.04548703085085478,
+            "p50": 0.024,
+            "p95": 0.106,
+            "p99": 0.226,
+            "maximum": 4.664
+          }
+        },
+        "0": {
+          "http_req_duration": {
+            "count": 17,
+            "mean": 10000.534058823529,
+            "p50": 10000.401,
+            "p95": 10001.1488,
+            "p99": 10001.50656,
+            "maximum": 10001.596
+          },
+          "http_req_blocked": {
+            "count": 17,
+            "mean": 0.0023529411764705885,
+            "p50": 0.002,
+            "p95": 0.003,
+            "p99": 0.003,
+            "maximum": 0.003
+          },
+          "http_req_connecting": {
+            "count": 17,
+            "mean": 0.0,
+            "p50": 0.0,
+            "p95": 0.0,
+            "p99": 0.0,
+            "maximum": 0
+          },
+          "http_req_tls_handshaking": {
+            "count": 17,
+            "mean": 0.0,
+            "p50": 0.0,
+            "p95": 0.0,
+            "p99": 0.0,
+            "maximum": 0
+          },
+          "http_req_sending": {
+            "count": 17,
+            "mean": 0.009176470588235295,
+            "p50": 0.008,
+            "p95": 0.014199999999999999,
+            "p99": 0.014839999999999999,
+            "maximum": 0.015
+          },
+          "http_req_waiting": {
+            "count": 17,
+            "mean": 10000.524882352942,
+            "p50": 10000.394,
+            "p95": 10001.1424,
+            "p99": 10001.49888,
+            "maximum": 10001.588
+          },
+          "http_req_receiving": {
+            "count": 17,
+            "mean": 0.0,
+            "p50": 0.0,
+            "p95": 0.0,
+            "p99": 0.0,
+            "maximum": 0
+          }
+        }
+      },
+      "successfulHttpCompletedPerSecond": 169.63333333333333,
+      "successfulHttpTenSecondBuckets": {
+        "0": {
+          "count": 1445,
+          "mean": 1314.24920899654,
+          "p50": 1014.818,
+          "p95": 3593.094799999996,
+          "p99": 5136.688479999999,
+          "maximum": 6819.467
+        },
+        "1": {
+          "count": 1714,
+          "mean": 1565.3769597432906,
+          "p50": 1118.6064999999999,
+          "p95": 4408.164799999999,
+          "p99": 6741.219899999983,
+          "maximum": 9152.277
+        },
+        "2": {
+          "count": 1694,
+          "mean": 1588.122479338843,
+          "p50": 1104.3980000000001,
+          "p95": 4532.5828,
+          "p99": 7307.809789999996,
+          "maximum": 9909.179
+        },
+        "3": {
+          "count": 1691,
+          "mean": 1594.9294009461858,
+          "p50": 1137.691,
+          "p95": 4654.5869999999995,
+          "p99": 6622.357999999998,
+          "maximum": 8759.226
+        },
+        "4": {
+          "count": 1708,
+          "mean": 1574.755629391101,
+          "p50": 1200.9765000000002,
+          "p95": 4339.583049999999,
+          "p99": 6454.4220399999995,
+          "maximum": 9426.753
+        },
+        "5": {
+          "count": 1732,
+          "mean": 1597.4925663972285,
+          "p50": 1135.0,
+          "p95": 4713.331749999993,
+          "p99": 6836.641340000001,
+          "maximum": 9849.865
+        },
+        "6": {
+          "count": 1717,
+          "mean": 1588.1886080372742,
+          "p50": 1161.686,
+          "p95": 4468.773599999998,
+          "p99": 6441.672799999994,
+          "maximum": 9885.618
+        },
+        "7": {
+          "count": 1680,
+          "mean": 1595.1270744047617,
+          "p50": 1180.6945,
+          "p95": 4611.569649999998,
+          "p99": 6911.455430000002,
+          "maximum": 9823.205
+        },
+        "8": {
+          "count": 1670,
+          "mean": 1612.738919760479,
+          "p50": 1133.2130000000002,
+          "p95": 4717.008399999999,
+          "p99": 6480.7705799999985,
+          "maximum": 9445.869
+        },
+        "9": {
+          "count": 1681,
+          "mean": 1624.2040898274838,
+          "p50": 1090.414,
+          "p95": 4990.74,
+          "p99": 7355.090000000002,
+          "maximum": 9617.805
+        },
+        "10": {
+          "count": 1675,
+          "mean": 1570.2816262686567,
+          "p50": 1090.728,
+          "p95": 4639.193499999999,
+          "p99": 6496.528019999999,
+          "maximum": 8930.904
+        },
+        "11": {
+          "count": 1679,
+          "mean": 1636.598145324598,
+          "p50": 1133.176,
+          "p95": 4836.260399999999,
+          "p99": 7008.55206,
+          "maximum": 9739.769
+        },
+        "12": {
+          "count": 270,
+          "mean": 2663.144103703704,
+          "p50": 2368.1385,
+          "p95": 6009.876149999998,
+          "p99": 8039.95764,
+          "maximum": 8924.099
+        }
+      },
+      "phaseHttpStatusCounts": {
+        "preparation:200": 2000,
+        "ramp:200": 4338,
+        "ramp:201": 952,
+        "ramp:503": 473,
+        "warmup:503": 5773,
+        "warmup:200": 8700,
+        "warmup:201": 1479,
+        "ramp:0": 3,
+        "warmup:0": 14,
+        "measurement:503": 11447,
+        "measurement:200": 17312,
+        "measurement:201": 3044,
+        "measurement:0": 17,
+        "cleanup:503": 6,
+        "cleanup:201": 42,
+        "cleanup:200": 1,
+        "cleanup:204": 1000
+      },
+      "gateway": {
+        "projectDatabaseMetrics": {
+          "path": "raw-results/social-M3WUay/project-metrics-audit.json",
+          "timedSamples": 119,
+          "seriesCount": 379,
+          "databaseBackends": {
+            "minimum": 6,
+            "mean": 6,
+            "maximum": 6
+          },
+          "databaseConnectionLimit": 60,
+          "cacheHitFraction": 0.9180571062720082,
+          "deadlockDelta": 0,
+          "tempBytesDelta": 0
+        },
+        "kind": "native-supa-desktop-gateway-audit",
+        "version": "0.14.1",
+        "directory": "raw-results/social-M3WUay",
+        "classification": {
+          "verdict": "slo_failure",
+          "reasons": [
+            "observed_action_slo:listPublic",
+            "observed_action_slo:listOwn",
+            "observed_action_slo:read",
+            "observed_action_slo:create",
+            "observed_action_slo:like",
+            "observed_action_slo:unlike",
+            "observed_action_slo:edit",
+            "observed_rate:logical_failed{phase:measurement}",
+            "observed_rate:http_req_failed{traffic:backend}"
+          ],
+          "certified": false,
+          "generatorHeadroom": "unverified"
+        },
+        "actions": 28710,
+        "failedActions": 11458,
+        "authFailures": 0,
+        "capture": {
+          "gatewayMetricSamples": 684,
+          "timedGatewayMetricSamples": 119,
+          "firstAt": "2026-11-18T17:41:25Z",
+          "lastAt": "2026-11-18T17:52:50Z",
+          "measurementWindow": {
+            "releaseAt": 1795023959508,
+            "measurementAt": 1795024049508,
+            "endAt": 1795024169508
+          },
+          "counterScope": "First-to-last diagnostic snapshots spanning preparation, load and paced sign-outs; raw HTTP counters are separately phase-attributed."
+        },
+        "effectiveLimits": {
+          "connection_limit": 2048,
+          "request_limit": 256,
+          "descriptor_soft_limit": 10496,
+          "descriptor_hard_limit": "9223372036854775807"
+        },
+        "counterDeltas": {
+          "admission_rejections_total": 17699,
+          "upstream_admission_rejections_total": 0
+        },
+        "allPhaseHttp503Responses": 17699,
+        "allPhaseTransportFailures": {
+          "request_timeout": 34
+        },
+        "acceptErrorSeries": [],
+        "requestRejectionDeltaMatchesHttp503": true,
+        "measuredGateway": {
+          "activeRequests": {
+            "minimum": 256,
+            "mean": 256,
+            "maximum": 256
+          },
+          "upstreamConnections": {
+            "minimum": 256,
+            "mean": 256.4117647058824,
+            "maximum": 257
+          },
+          "inboundConnections": {
+            "minimum": 998,
+            "mean": 999.5294117647059,
+            "maximum": 1000
+          },
+          "openDescriptors": {
+            "minimum": 1299,
+            "mean": 1301.2268907563025,
+            "maximum": 1305
+          },
+          "minimumSampledDescriptorHeadroomFraction": 0.8756669207317074
+        },
+        "responseBodies": {
+          "sampleLimitPerVu": 2,
+          "maximumBodyBytes": 4096,
+          "captured": 2000,
+          "categories": {
+            "gateway_request_capacity": 2000
+          },
+          "distinctBodies": [
+            "{\"error\":\"gateway_request_capacity\"}"
+          ],
+          "examples": [
+            {
+              "event": "backend_503_body",
+              "at": 1795023984617,
+              "ordinal": 675,
+              "phase": "ramp",
+              "method": "GET",
+              "path": "/rest/v1/likes",
+              "body": "{\"error\":\"gateway_request_capacity\"}"
+            },
+            {
+              "event": "backend_503_body",
+              "at": 1795023984705,
+              "ordinal": 113,
+              "phase": "ramp",
+              "method": "GET",
+              "path": "/rest/v1/posts",
+              "body": "{\"error\":\"gateway_request_capacity\"}"
+            },
+            {
+              "event": "backend_503_body",
+              "at": 1795023984705,
+              "ordinal": 237,
+              "phase": "ramp",
+              "method": "GET",
+              "path": "/rest/v1/posts",
+              "body": "{\"error\":\"gateway_request_capacity\"}"
+            },
+            {
+              "event": "backend_503_body",
+              "at": 1795023984705,
+              "ordinal": 145,
+              "phase": "ramp",
+              "method": "GET",
+              "path": "/rest/v1/posts",
+              "body": "{\"error\":\"gateway_request_capacity\"}"
+            },
+            {
+              "event": "backend_503_body",
+              "at": 1795023984729,
+              "ordinal": 91,
+              "phase": "ramp",
+              "method": "POST",
+              "path": "/rest/v1/posts",
+              "body": "{\"error\":\"gateway_request_capacity\"}"
+            },
+            {
+              "event": "backend_503_body",
+              "at": 1795023984729,
+              "ordinal": 550,
+              "phase": "ramp",
+              "method": "POST",
+              "path": "/rest/v1/likes",
+              "body": "{\"error\":\"gateway_request_capacity\"}"
+            },
+            {
+              "event": "backend_503_body",
+              "at": 1795023984735,
+              "ordinal": 622,
+              "phase": "ramp",
+              "method": "GET",
+              "path": "/rest/v1/posts",
+              "body": "{\"error\":\"gateway_request_capacity\"}"
+            },
+            {
+              "event": "backend_503_body",
+              "at": 1795023984735,
+              "ordinal": 651,
+              "phase": "ramp",
+              "method": "POST",
+              "path": "/rest/v1/likes",
+              "body": "{\"error\":\"gateway_request_capacity\"}"
+            }
+          ],
+          "originalRunBodiesNotReconstructed": true
+        },
+        "host": {
+          "hardware": {
+            "cpu": "Apple M1 Max",
+            "cores": 10,
+            "memoryBytes": 68719476736,
+            "platform": "darwin",
+            "arch": "arm64"
+          },
+          "operatingSystem": "27.2.1",
+          "cpuPercent": {
+            "userPercent": {
+              "minimum": 12.626262626262626,
+              "mean": 18.078783198050296,
+              "maximum": 63.27967806841046
+            },
+            "systemPercent": {
+              "minimum": 6.927710843373494,
+              "mean": 8.77681387665352,
+              "maximum": 14.646464646464647
+            },
+            "idlePercent": {
+              "minimum": 26.358148893360163,
+              "mean": 73.14440292529615,
+              "maximum": 80.16194331983806
+            }
+          },
+          "memorySnapshots": [
+            {
+              "at": "2026-11-18T17:47:36Z",
+              "lines": [
+                "Load Avg: 2.16, 2.67, 3.40 ",
+                "PhysMem: 63G used (2366M wired, 3270M compressor), 92M unused.",
+                "VM: 503T vsize, 57G framework vsize, 0(0) swapins, 0(0) swapouts."
+              ]
+            },
+            {
+              "at": "2026-11-18T17:47:46Z",
+              "lines": [
+                "Load Avg: 2.21, 2.66, 3.39 ",
+                "PhysMem: 63G used (2366M wired, 3270M compressor), 98M unused.",
+                "VM: 503T vsize, 57G framework vsize, 0(0) swapins, 0(0) swapouts."
+              ]
+            },
+            {
+              "at": "2026-11-18T17:47:56Z",
+              "lines": [
+                "Load Avg: 2.48, 2.70, 3.40 ",
+                "PhysMem: 63G used (2366M wired, 3270M compressor), 90M unused.",
+                "VM: 503T vsize, 57G framework vsize, 0(0) swapins, 0(0) swapouts."
+              ]
+            },
+            {
+              "at": "2026-11-18T17:48:06Z",
+              "lines": [
+                "Load Avg: 2.48, 2.70, 3.39 ",
+                "PhysMem: 63G used (2364M wired, 3270M compressor), 73M unused.",
+                "VM: 503T vsize, 57G framework vsize, 0(0) swapins, 0(0) swapouts."
+              ]
+            },
+            {
+              "at": "2026-11-18T17:48:16Z",
+              "lines": [
+                "Load Avg: 2.26, 2.64, 3.36 ",
+                "PhysMem: 63G used (2369M wired, 3270M compressor), 68M unused.",
+                "VM: 503T vsize, 57G framework vsize, 0(0) swapins, 0(0) swapouts."
+              ]
+            },
+            {
+              "at": "2026-11-18T17:48:26Z",
+              "lines": [
+                "Load Avg: 3.11, 2.80, 3.41 ",
+                "PhysMem: 63G used (2357M wired, 3270M compressor), 79M unused.",
+                "VM: 503T vsize, 57G framework vsize, 0(0) swapins, 0(0) swapouts."
+              ]
+            },
+            {
+              "at": "2026-11-18T17:48:35Z",
+              "lines": [
+                "Load Avg: 3.34, 2.85, 3.42 ",
+                "PhysMem: 63G used (2351M wired, 3270M compressor), 74M unused.",
+                "VM: 503T vsize, 57G framework vsize, 0(0) swapins, 0(0) swapouts."
+              ]
+            },
+            {
+              "at": "2026-11-18T17:48:45Z",
+              "lines": [
+                "Load Avg: 3.17, 2.84, 3.41 ",
+                "PhysMem: 63G used (2352M wired, 3306M compressor), 73M unused.",
+                "VM: 503T vsize, 57G framework vsize, 0(0) swapins, 0(0) swapouts."
+              ]
+            },
+            {
+              "at": "2026-11-18T17:48:55Z",
+              "lines": [
+                "Load Avg: 3.32, 2.88, 3.41 ",
+                "PhysMem: 63G used (2350M wired, 3345M compressor), 69M unused.",
+                "VM: 503T vsize, 57G framework vsize, 0(0) swapins, 0(0) swapouts."
+              ]
+            },
+            {
+              "at": "2026-11-18T17:49:05Z",
+              "lines": [
+                "Load Avg: 3.19, 2.87, 3.40 ",
+                "PhysMem: 63G used (2347M wired, 3370M compressor), 63M unused.",
+                "VM: 504T vsize, 57G framework vsize, 0(0) swapins, 0(0) swapouts."
+              ]
+            },
+            {
+              "at": "2026-11-18T17:49:15Z",
+              "lines": [
+                "Load Avg: 3.02, 2.84, 3.39 ",
+                "PhysMem: 63G used (2348M wired, 3404M compressor), 67M unused.",
+                "VM: 507T vsize, 57G framework vsize, 0(0) swapins, 0(0) swapouts."
+              ]
+            },
+            {
+              "at": "2026-11-18T17:49:25Z",
+              "lines": [
+                "Load Avg: 2.95, 2.83, 3.38 ",
+                "PhysMem: 63G used (2344M wired, 3409M compressor), 65M unused.",
+                "VM: 507T vsize, 57G framework vsize, 0(0) swapins, 0(0) swapouts."
+              ]
+            }
+          ],
+          "totalMemoryBytes": 68719476736,
+          "pressureValues": [
+            1
+          ],
+          "maximumSwapMiB": 0
+        },
+        "processes": {
+          "7320": {
+            "executable": "/Applications/Supa Desktop.app/Contents/MacOS/supa-desktop",
+            "parentPid": 1,
+            "meanCpuCores": 0.1871267530027516,
+            "peakRssBytes": 207863808,
+            "role": "manager_gateway"
+          },
+          "7844": {
+            "executable": "/Applications/Supa Desktop.app/Contents/Resources/runtime/supa-wasm",
+            "parentPid": 7320,
+            "meanCpuCores": 8.387572971884863e-05,
+            "peakRssBytes": 225443840,
+            "role": "project_runtime"
+          },
+          "13395": {
+            "executable": "/Applications/Supa Desktop.app/Contents/Resources/runtime/supa-wasm",
+            "parentPid": 7320,
+            "meanCpuCores": 0.6275582097564263,
+            "peakRssBytes": 333021184,
+            "role": "project_runtime"
+          },
+          "13397": {
+            "executable": "/Applications/Supa Desktop.app/Contents/Resources/runtime/supa-wasm",
+            "parentPid": 13395,
+            "meanCpuCores": 0.09217942696101654,
+            "peakRssBytes": 159088640,
+            "role": "runtime_descendant"
+          },
+          "13867": {
+            "executable": "/Applications/Supa Desktop.app/Contents/Resources/runtime/supa-wasm",
+            "parentPid": 7844,
+            "meanCpuCores": 0.0031034019995973897,
+            "peakRssBytes": 96944128,
+            "role": "runtime_descendant"
+          }
+        },
+        "backend": {
+          "cpuCores": {
+            "minimum": 0.8450704225349764,
+            "mean": 0.9100306413474625,
+            "maximum": 1.080568720379087
+          },
+          "peakRssBytes": 1022361600
+        },
+        "generator": {
+          "cpuCores": {
+            "minimum": 0.6172839506172624,
+            "mean": 1.1270564946659005,
+            "maximum": 5.274621212121206
+          },
+          "peakRssBytes": 8064483328,
+          "pressureGuardFired": false
+        },
+        "processOpenDescriptors": {
+          "7320": {
+            "minimum": 1299,
+            "mean": 1301.218487394958,
+            "maximum": 1306
+          },
+          "7844": {
+            "minimum": 26,
+            "mean": 26,
+            "maximum": 26
+          },
+          "13395": {
+            "minimum": 805,
+            "mean": 805.436974789916,
+            "maximum": 806
+          },
+          "13397": {
+            "minimum": 203,
+            "mean": 249.08403361344537,
+            "maximum": 264
+          },
+          "13867": {
+            "minimum": 105,
+            "mean": 105,
+            "maximum": 105
+          }
+        },
+        "afterLoad": {
+          "ipv4HealthStatus": 200,
+          "ipv6HealthStatus": 200,
+          "listeners": "COMMAND    PID  USER   FD   TYPE             DEVICE SIZE/OFF NODE NAME\nsupa-desk 7320 markb   17u  IPv4 0x2938ba2f66597509      0t0  TCP 127.0.0.1:54321 (LISTEN)\nsupa-desk 7320 markb   21u  IPv6 0x9a8e0f2091f6d136      0t0  TCP [::1]:54321 (LISTEN)\n",
+          "fixtureCleanupVerified": true,
+          "sharedDockerSourcesUnchanged": true
+        },
+        "sources": {
+          "collectorSha256": "d7e39a43b3e29e6c5fb91118cec39ecbeec68dcc59c3039c9f64bd68407b8330",
+          "manifestSha256": "2d9924d74a0d58776a036af756b97daaea5ade7ba91b059259c18142c3525fb7",
+          "rawMetricsSha256": "5137f85497de86581fe9863f4fdad3b4a25e9fa5f1c0cfba85575baa534f528b",
+          "diagnosticSamplesSha256": "3da0c5ec8ff12b24356dc623481adb0e7cf9bd3a51cc1a8e85e265d8cdad0df4",
+          "bodyLogSha256": "f3329bc37ae7e953cb842b88e082d12d2ca72325a508ac90367d62a371b84e09"
+        },
+        "limitations": [
+          "Diagnostic repeat retains the original workload but adds bounded 503 body logging and metrics sampling.",
+          "Descriptor and CPU/memory peaks are sampled; short spikes and short-lived processes can be missed.",
+          "Native app and generator share the host; no cgroup or dedicated-core isolation.",
+          "Two native projects are running; gateway counters and aggregate backend resources include co-resident activity."
+        ],
+        "auditedAt": "2026-11-18T17:52:56.514Z",
+        "runtimeOpenDescriptors": {
+          "7844": {
+            "minimum": 26,
+            "mean": 26,
+            "maximum": 26
+          },
+          "13395": {
+            "minimum": 805,
+            "mean": 805.436974789916,
+            "maximum": 806
+          },
+          "13397": {
+            "minimum": 203,
+            "mean": 249.08403361344537,
+            "maximum": 264
+          },
+          "13867": {
+            "minimum": 105,
+            "mean": 105,
+            "maximum": 105
+          }
+        }
+      },
+      "projectDatabaseSeries": {
+        "max_connections_connection_count{supabase_project_ref=\"d6e75d8811c143a292f6405173b4b0fb\",supabase_identifier=\"d6e75d8811c143a292f6405173b4b0fb\",service_type=\"postgresql\",server=\"local\"}": {
+          "name": "max_connections_connection_count",
+          "samples": 119,
+          "first": 60,
+          "last": 60,
+          "minimum": 60,
+          "maximum": 60,
+          "counterResetObserved": false,
+          "mean": 60,
+          "observedDelta": 0
+        },
+        "pg_stat_bgwriter_buffers_alloc_total{supabase_project_ref=\"d6e75d8811c143a292f6405173b4b0fb\",supabase_identifier=\"d6e75d8811c143a292f6405173b4b0fb\",service_type=\"postgresql\",server=\"local\"}": {
+          "name": "pg_stat_bgwriter_buffers_alloc_total",
+          "samples": 119,
+          "first": 560921,
+          "last": 582190,
+          "minimum": 560921,
+          "maximum": 582190,
+          "counterResetObserved": false,
+          "mean": 572963.9159663866,
+          "observedDelta": 21269
+        },
+        "pg_stat_bgwriter_buffers_clean_total{supabase_project_ref=\"d6e75d8811c143a292f6405173b4b0fb\",supabase_identifier=\"d6e75d8811c143a292f6405173b4b0fb\",service_type=\"postgresql\",server=\"local\"}": {
+          "name": "pg_stat_bgwriter_buffers_clean_total",
+          "samples": 119,
+          "first": 274770,
+          "last": 286052,
+          "minimum": 274770,
+          "maximum": 286052,
+          "counterResetObserved": false,
+          "mean": 281250.38655462186,
+          "observedDelta": 11282
+        },
+        "pg_stat_bgwriter_maxwritten_clean_total{supabase_project_ref=\"d6e75d8811c143a292f6405173b4b0fb\",supabase_identifier=\"d6e75d8811c143a292f6405173b4b0fb\",service_type=\"postgresql\",server=\"local\"}": {
+          "name": "pg_stat_bgwriter_maxwritten_clean_total",
+          "samples": 119,
+          "first": 955,
+          "last": 965,
+          "minimum": 955,
+          "maximum": 965,
+          "counterResetObserved": false,
+          "mean": 961.218487394958,
+          "observedDelta": 10
+        },
+        "pg_stat_database_blks_hit_total{supabase_project_ref=\"d6e75d8811c143a292f6405173b4b0fb\",supabase_identifier=\"d6e75d8811c143a292f6405173b4b0fb\",service_type=\"postgresql\",server=\"local\"}": {
+          "name": "pg_stat_database_blks_hit_total",
+          "samples": 119,
+          "first": 107093853,
+          "last": 107329017,
+          "minimum": 107093853,
+          "maximum": 107329017,
+          "counterResetObserved": false,
+          "mean": 107228843.5210084,
+          "observedDelta": 235164
+        },
+        "pg_stat_database_blks_read_total{supabase_project_ref=\"d6e75d8811c143a292f6405173b4b0fb\",supabase_identifier=\"d6e75d8811c143a292f6405173b4b0fb\",service_type=\"postgresql\",server=\"local\"}": {
+          "name": "pg_stat_database_blks_read_total",
+          "samples": 119,
+          "first": 771055,
+          "last": 792045,
+          "minimum": 771055,
+          "maximum": 792045,
+          "counterResetObserved": false,
+          "mean": 782930.7983193278,
+          "observedDelta": 20990
+        },
+        "pg_stat_database_conflicts_total{supabase_project_ref=\"d6e75d8811c143a292f6405173b4b0fb\",supabase_identifier=\"d6e75d8811c143a292f6405173b4b0fb\",service_type=\"postgresql\",server=\"local\"}": {
+          "name": "pg_stat_database_conflicts_total",
+          "samples": 119,
+          "first": 0,
+          "last": 0,
+          "minimum": 0,
+          "maximum": 0,
+          "counterResetObserved": false,
+          "mean": 0,
+          "observedDelta": 0
+        },
+        "pg_stat_database_deadlocks_total{supabase_project_ref=\"d6e75d8811c143a292f6405173b4b0fb\",supabase_identifier=\"d6e75d8811c143a292f6405173b4b0fb\",service_type=\"postgresql\",server=\"local\"}": {
+          "name": "pg_stat_database_deadlocks_total",
+          "samples": 119,
+          "first": 0,
+          "last": 0,
+          "minimum": 0,
+          "maximum": 0,
+          "counterResetObserved": false,
+          "mean": 0,
+          "observedDelta": 0
+        },
+        "pg_stat_database_num_backends{supabase_project_ref=\"d6e75d8811c143a292f6405173b4b0fb\",supabase_identifier=\"d6e75d8811c143a292f6405173b4b0fb\",service_type=\"postgresql\",server=\"local\"}": {
+          "name": "pg_stat_database_num_backends",
+          "samples": 119,
+          "first": 6,
+          "last": 6,
+          "minimum": 6,
+          "maximum": 6,
+          "counterResetObserved": false,
+          "mean": 6,
+          "observedDelta": 0
+        },
+        "pg_stat_database_temp_bytes_total{supabase_project_ref=\"d6e75d8811c143a292f6405173b4b0fb\",supabase_identifier=\"d6e75d8811c143a292f6405173b4b0fb\",service_type=\"postgresql\",server=\"local\"}": {
+          "name": "pg_stat_database_temp_bytes_total",
+          "samples": 119,
+          "first": 0,
+          "last": 0,
+          "minimum": 0,
+          "maximum": 0,
+          "counterResetObserved": false,
+          "mean": 0,
+          "observedDelta": 0
+        },
+        "pg_stat_database_temp_files_total{supabase_project_ref=\"d6e75d8811c143a292f6405173b4b0fb\",supabase_identifier=\"d6e75d8811c143a292f6405173b4b0fb\",service_type=\"postgresql\",server=\"local\"}": {
+          "name": "pg_stat_database_temp_files_total",
+          "samples": 119,
+          "first": 0,
+          "last": 0,
+          "minimum": 0,
+          "maximum": 0,
+          "counterResetObserved": false,
+          "mean": 0,
+          "observedDelta": 0
+        },
+        "pg_stat_database_tup_deleted_total{supabase_project_ref=\"d6e75d8811c143a292f6405173b4b0fb\",supabase_identifier=\"d6e75d8811c143a292f6405173b4b0fb\",service_type=\"postgresql\",server=\"local\"}": {
+          "name": "pg_stat_database_tup_deleted_total",
+          "samples": 119,
+          "first": 58417,
+          "last": 59369,
+          "minimum": 58417,
+          "maximum": 59369,
+          "counterResetObserved": false,
+          "mean": 58968.815126050424,
+          "observedDelta": 952
+        },
+        "pg_stat_database_tup_fetched_total{supabase_project_ref=\"d6e75d8811c143a292f6405173b4b0fb\",supabase_identifier=\"d6e75d8811c143a292f6405173b4b0fb\",service_type=\"postgresql\",server=\"local\"}": {
+          "name": "pg_stat_database_tup_fetched_total",
+          "samples": 119,
+          "first": 52718287,
+          "last": 52896247,
+          "minimum": 52718287,
+          "maximum": 52896247,
+          "counterResetObserved": false,
+          "mean": 52819628.51260504,
+          "observedDelta": 177960
+        },
+        "pg_stat_database_tup_inserted_total{supabase_project_ref=\"d6e75d8811c143a292f6405173b4b0fb\",supabase_identifier=\"d6e75d8811c143a292f6405173b4b0fb\",service_type=\"postgresql\",server=\"local\"}": {
+          "name": "pg_stat_database_tup_inserted_total",
+          "samples": 119,
+          "first": 461133,
+          "last": 464153,
+          "minimum": 461133,
+          "maximum": 464153,
+          "counterResetObserved": false,
+          "mean": 462870.3109243697,
+          "observedDelta": 3020
+        },
+        "pg_stat_database_tup_returned_total{supabase_project_ref=\"d6e75d8811c143a292f6405173b4b0fb\",supabase_identifier=\"d6e75d8811c143a292f6405173b4b0fb\",service_type=\"postgresql\",server=\"local\"}": {
+          "name": "pg_stat_database_tup_returned_total",
+          "samples": 119,
+          "first": 55568939,
+          "last": 55759048,
+          "minimum": 55568939,
+          "maximum": 55759048,
+          "counterResetObserved": false,
+          "mean": 55676591.663865544,
+          "observedDelta": 190109
+        },
+        "pg_stat_database_tup_updated_total{supabase_project_ref=\"d6e75d8811c143a292f6405173b4b0fb\",supabase_identifier=\"d6e75d8811c143a292f6405173b4b0fb\",service_type=\"postgresql\",server=\"local\"}": {
+          "name": "pg_stat_database_tup_updated_total",
+          "samples": 119,
+          "first": 101685,
+          "last": 103138,
+          "minimum": 101685,
+          "maximum": 103138,
+          "counterResetObserved": false,
+          "mean": 102530.78991596638,
+          "observedDelta": 1453
+        },
+        "pg_stat_database_xact_commit_total{supabase_project_ref=\"d6e75d8811c143a292f6405173b4b0fb\",supabase_identifier=\"d6e75d8811c143a292f6405173b4b0fb\",service_type=\"postgresql\",server=\"local\"}": {
+          "name": "pg_stat_database_xact_commit_total",
+          "samples": 119,
+          "first": 1055816,
+          "last": 1076288,
+          "minimum": 1055816,
+          "maximum": 1076288,
+          "counterResetObserved": false,
+          "mean": 1067534.705882353,
+          "observedDelta": 20472
+        },
+        "pg_stat_database_xact_rollback_total{supabase_project_ref=\"d6e75d8811c143a292f6405173b4b0fb\",supabase_identifier=\"d6e75d8811c143a292f6405173b4b0fb\",service_type=\"postgresql\",server=\"local\"}": {
+          "name": "pg_stat_database_xact_rollback_total",
+          "samples": 119,
+          "first": 12,
+          "last": 12,
+          "minimum": 12,
+          "maximum": 12,
+          "counterResetObserved": false,
+          "mean": 12,
+          "observedDelta": 0
+        },
+        "supa_desktop_database_checkpoint_buffers_written_total{supabase_project_ref=\"d6e75d8811c143a292f6405173b4b0fb\",supabase_identifier=\"d6e75d8811c143a292f6405173b4b0fb\",service_type=\"postgresql\"}": {
+          "name": "supa_desktop_database_checkpoint_buffers_written_total",
+          "samples": 119,
+          "first": 16543,
+          "last": 16875,
+          "minimum": 16543,
+          "maximum": 16875,
+          "counterResetObserved": false,
+          "mean": 16762.210084033613,
+          "observedDelta": 332
+        },
+        "supa_desktop_database_checkpoint_sync_seconds_total{supabase_project_ref=\"d6e75d8811c143a292f6405173b4b0fb\",supabase_identifier=\"d6e75d8811c143a292f6405173b4b0fb\",service_type=\"postgresql\"}": {
+          "name": "supa_desktop_database_checkpoint_sync_seconds_total",
+          "samples": 119,
+          "first": 7.086,
+          "last": 7.086,
+          "minimum": 7.086,
+          "maximum": 7.086,
+          "counterResetObserved": false,
+          "mean": 7.08600000000001,
+          "observedDelta": 0
+        },
+        "supa_desktop_database_checkpoint_write_seconds_total{supabase_project_ref=\"d6e75d8811c143a292f6405173b4b0fb\",supabase_identifier=\"d6e75d8811c143a292f6405173b4b0fb\",service_type=\"postgresql\"}": {
+          "name": "supa_desktop_database_checkpoint_write_seconds_total",
+          "samples": 119,
+          "first": 2184.287,
+          "last": 2184.287,
+          "minimum": 2184.287,
+          "maximum": 2184.287,
+          "counterResetObserved": false,
+          "mean": 2184.2870000000044,
+          "observedDelta": 0
+        },
+        "supa_desktop_database_checkpoints_requested_total{supabase_project_ref=\"d6e75d8811c143a292f6405173b4b0fb\",supabase_identifier=\"d6e75d8811c143a292f6405173b4b0fb\",service_type=\"postgresql\"}": {
+          "name": "supa_desktop_database_checkpoints_requested_total",
+          "samples": 119,
+          "first": 30,
+          "last": 31,
+          "minimum": 30,
+          "maximum": 31,
+          "counterResetObserved": false,
+          "mean": 30.69747899159664,
+          "observedDelta": 1
+        },
+        "supa_desktop_database_checkpoints_timed_total{supabase_project_ref=\"d6e75d8811c143a292f6405173b4b0fb\",supabase_identifier=\"d6e75d8811c143a292f6405173b4b0fb\",service_type=\"postgresql\"}": {
+          "name": "supa_desktop_database_checkpoints_timed_total",
+          "samples": 119,
+          "first": 7,
+          "last": 7,
+          "minimum": 7,
+          "maximum": 7,
+          "counterResetObserved": false,
+          "mean": 7,
+          "observedDelta": 0
+        },
+        "supa_desktop_database_connections{supabase_project_ref=\"d6e75d8811c143a292f6405173b4b0fb\",supabase_identifier=\"d6e75d8811c143a292f6405173b4b0fb\",service_type=\"postgresql\",state=\"idle_in_transaction\",wait=\"client\"}": {
+          "name": "supa_desktop_database_connections",
+          "samples": 89,
+          "first": 2,
+          "last": 1,
+          "minimum": 1,
+          "maximum": 2,
+          "counterResetObserved": false,
+          "mean": 1.404494382022472,
+          "observedDelta": -1
+        },
+        "supa_desktop_database_connections{supabase_project_ref=\"d6e75d8811c143a292f6405173b4b0fb\",supabase_identifier=\"d6e75d8811c143a292f6405173b4b0fb\",service_type=\"postgresql\",state=\"idle\",wait=\"client\"}": {
+          "name": "supa_desktop_database_connections",
+          "samples": 119,
+          "first": 1,
+          "last": 2,
+          "minimum": 1,
+          "maximum": 2,
+          "counterResetObserved": false,
+          "mean": 1.4453781512605042,
+          "observedDelta": 1
+        },
+        "supa_desktop_database_io_reads_total{supabase_project_ref=\"d6e75d8811c143a292f6405173b4b0fb\",supabase_identifier=\"d6e75d8811c143a292f6405173b4b0fb\",service_type=\"postgresql\"}": {
+          "name": "supa_desktop_database_io_reads_total",
+          "samples": 119,
+          "first": 770713,
+          "last": 791775,
+          "minimum": 770713,
+          "maximum": 791775,
+          "counterResetObserved": false,
+          "mean": 782629.9411764706,
+          "observedDelta": 21062
+        },
+        "supa_desktop_database_io_writes_total{supabase_project_ref=\"d6e75d8811c143a292f6405173b4b0fb\",supabase_identifier=\"d6e75d8811c143a292f6405173b4b0fb\",service_type=\"postgresql\"}": {
+          "name": "supa_desktop_database_io_writes_total",
+          "samples": 119,
+          "first": 366760,
+          "last": 378656,
+          "minimum": 366760,
+          "maximum": 378656,
+          "counterResetObserved": false,
+          "mean": 373600.82352941175,
+          "observedDelta": 11896
+        },
+        "supa_desktop_database_tracked_statement_calls{supabase_project_ref=\"d6e75d8811c143a292f6405173b4b0fb\",supabase_identifier=\"d6e75d8811c143a292f6405173b4b0fb\",service_type=\"postgresql\"}": {
+          "name": "supa_desktop_database_tracked_statement_calls",
+          "samples": 119,
+          "first": 1262833,
+          "last": 1303659,
+          "minimum": 1262833,
+          "maximum": 1303659,
+          "counterResetObserved": false,
+          "mean": 1286241.050420168,
+          "observedDelta": 40826
+        },
+        "supa_desktop_database_tracked_statement_execution_seconds{supabase_project_ref=\"d6e75d8811c143a292f6405173b4b0fb\",supabase_identifier=\"d6e75d8811c143a292f6405173b4b0fb\",service_type=\"postgresql\"}": {
+          "name": "supa_desktop_database_tracked_statement_execution_seconds",
+          "samples": 119,
+          "first": 132.27465935599975,
+          "last": 134.89734104999974,
+          "minimum": 132.27465935599975,
+          "maximum": 134.89734104999974,
+          "counterResetObserved": false,
+          "mean": 133.77898073097478,
+          "observedDelta": 2.6226816939999935
+        },
+        "supa_desktop_database_wal_bytes_total{supabase_project_ref=\"d6e75d8811c143a292f6405173b4b0fb\",supabase_identifier=\"d6e75d8811c143a292f6405173b4b0fb\",service_type=\"postgresql\"}": {
+          "name": "supa_desktop_database_wal_bytes_total",
+          "samples": 119,
+          "first": 1077693034,
+          "last": 1112940718,
+          "minimum": 1077693034,
+          "maximum": 1112940718,
+          "counterResetObserved": false,
+          "mean": 1098223626.1176472,
+          "observedDelta": 35247684
+        },
+        "supa_desktop_database_wal_full_page_images_total{supabase_project_ref=\"d6e75d8811c143a292f6405173b4b0fb\",supabase_identifier=\"d6e75d8811c143a292f6405173b4b0fb\",service_type=\"postgresql\"}": {
+          "name": "supa_desktop_database_wal_full_page_images_total",
+          "samples": 119,
+          "first": 103245,
+          "last": 108035,
+          "minimum": 103245,
+          "maximum": 108035,
+          "counterResetObserved": false,
+          "mean": 106027.7731092437,
+          "observedDelta": 4790
+        },
+        "supa_desktop_database_wal_records_total{supabase_project_ref=\"d6e75d8811c143a292f6405173b4b0fb\",supabase_identifier=\"d6e75d8811c143a292f6405173b4b0fb\",service_type=\"postgresql\"}": {
+          "name": "supa_desktop_database_wal_records_total",
+          "samples": 119,
+          "first": 2618338,
+          "last": 2648504,
+          "minimum": 2618338,
+          "maximum": 2648504,
+          "counterResetObserved": false,
+          "mean": 2635844.4537815126,
+          "observedDelta": 30166
+        },
+        "supa_desktop_database_connections{supabase_project_ref=\"d6e75d8811c143a292f6405173b4b0fb\",supabase_identifier=\"d6e75d8811c143a292f6405173b4b0fb\",service_type=\"postgresql\",state=\"active\",wait=\"io\"}": {
+          "name": "supa_desktop_database_connections",
+          "samples": 60,
+          "first": 1,
+          "last": 1,
+          "minimum": 1,
+          "maximum": 1,
+          "counterResetObserved": false,
+          "mean": 1,
+          "observedDelta": 0
+        }
+      },
+      "projectTimedSamples": 119
+    }
+  ],
+  "sourceHashes": {
+    "social-4tdYtS/k6-metrics.json.gz": "707fb1a6d4e56b1bc0518516afa2668bc95d916d698f2b913a80823c7176c07f",
+    "social-4tdYtS/measurement-audit.json": "eeb93a1e49c227459906f21296d0e2a82234a36bed48c91cc512bb9777b42503",
+    "social-4tdYtS/gateway-load-audit.json": "2049b606c41968ea11addf1340e32c6e33f697e098fc40467f1a69dfac6e2031",
+    "social-4tdYtS/project-metrics-audit.json": "5e7bba9ac5fa7ba83be058c44c71b91cc0395051825919f4c624f01dadeb6085",
+    "social-4tdYtS/additional-diagnostics.jsonl": "9cc5d3a19309b4e1ef0838dc7df56143ce0a695c8e892f8f4511a0882a9adef1",
+    "social-NdmKc0/k6-metrics.json.gz": "0e76b8623726286db0327fa5e1294978323078dafa53cb90767d6185d48bac35",
+    "social-NdmKc0/measurement-audit.json": "7f61bffbec20e8d516f922c35cbb0014110a518f520bb3b639e34d915333d7ef",
+    "social-NdmKc0/gateway-load-audit.json": "389122f675dbe279aed3daddb782c9cc2ef97c21abcf48587864154a6fc52e6f",
+    "social-NdmKc0/project-metrics-audit.json": "20dbec786df4c05c75620e955fed3ffc7411928e7dc657842914006e389648ac",
+    "social-NdmKc0/additional-diagnostics.jsonl": "5ff15eca75a47dd33b9fcc1d9e0ec843c399c3b91bbcf21583a8088d4cfed11f",
+    "social-fFYb3T/k6-metrics.json.gz": "6f4d0ce4f9229fc972b236ce56eb531f5f29b8606ad07d5535a7c8c9d1daa1e7",
+    "social-fFYb3T/measurement-audit.json": "97fdefc15197e1ca82ded5b1923cb5817f29bd092c1c3612315d6dc752284f0d",
+    "social-fFYb3T/gateway-load-audit.json": "087b8a0f97a671b35064eaa15cd61e3c3f2b2c2f17dc1dcb8ee5b6b713b30fd1",
+    "social-fFYb3T/project-metrics-audit.json": "23478dbbe7faa3d234f1b20cb169606f1c62d9766d2b7ff8d92356a7f57fb870",
+    "social-fFYb3T/additional-diagnostics.jsonl": "f27014e7304e9b070cc9c80086be7c697ff6b7600708bd8fbd1fc3a2eba746c4",
+    "social-M3WUay/k6-metrics.json.gz": "5137f85497de86581fe9863f4fdad3b4a25e9fa5f1c0cfba85575baa534f528b",
+    "social-M3WUay/measurement-audit.json": "1649fd51c0f5139db64214a0c85234879feae5b4a0b80acc28b5122f218c2523",
+    "social-M3WUay/gateway-load-audit.json": "5be44e51be7a5d2ddbb220e947f5b5924ec18aa86f2c670ab72d36e2080bfb05",
+    "social-M3WUay/project-metrics-audit.json": "86e8bfd23ae46db4fa3a49faced4910b363e59bde599538d74b2b5ea4567043e",
+    "social-M3WUay/additional-diagnostics.jsonl": "3da0c5ec8ff12b24356dc623481adb0e7cf9bd3a51cc1a8e85e265d8cdad0df4"
+  }
+}

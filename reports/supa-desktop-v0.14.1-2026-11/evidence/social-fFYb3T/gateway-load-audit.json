@@ -1,0 +1,433 @@
+{
+  "projectDatabaseMetrics": {
+    "path": "raw-results/social-fFYb3T/project-metrics-audit.json",
+    "timedSamples": 120,
+    "seriesCount": 378,
+    "databaseBackends": {
+      "minimum": 6,
+      "mean": 6,
+      "maximum": 6
+    },
+    "databaseConnectionLimit": 60,
+    "cacheHitFraction": 0.8827928195288938,
+    "deadlockDelta": 0,
+    "tempBytesDelta": 0
+  },
+  "kind": "native-supa-desktop-gateway-audit",
+  "version": "0.14.1",
+  "directory": "raw-results/social-fFYb3T",
+  "classification": {
+    "verdict": "slo_failure",
+    "reasons": [
+      "observed_action_slo:listPublic",
+      "observed_action_slo:listOwn",
+      "observed_action_slo:read",
+      "observed_action_slo:create",
+      "observed_action_slo:like",
+      "observed_action_slo:unlike",
+      "observed_action_slo:edit",
+      "observed_rate:logical_failed{phase:measurement}",
+      "observed_rate:http_req_failed{traffic:backend}"
+    ],
+    "certified": false,
+    "generatorHeadroom": "unverified"
+  },
+  "actions": 19290,
+  "failedActions": 1681,
+  "authFailures": 0,
+  "capture": {
+    "gatewayMetricSamples": 588,
+    "timedGatewayMetricSamples": 120,
+    "firstAt": "2026-11-18T18:33:14Z",
+    "lastAt": "2026-11-18T18:43:03Z",
+    "measurementWindow": {
+      "releaseAt": 1795027021642,
+      "measurementAt": 1795027111642,
+      "endAt": 1795027231642
+    },
+    "counterScope": "First-to-last diagnostic snapshots spanning preparation, load and paced sign-outs; raw HTTP counters are separately phase-attributed."
+  },
+  "effectiveLimits": {
+    "connection_limit": 2048,
+    "request_limit": 256,
+    "descriptor_soft_limit": 10496,
+    "descriptor_hard_limit": "9223372036854775807"
+  },
+  "counterDeltas": {
+    "admission_rejections_total": 2473,
+    "upstream_admission_rejections_total": 0
+  },
+  "allPhaseHttp503Responses": 2473,
+  "allPhaseTransportFailures": {
+    "request_timeout": 49
+  },
+  "acceptErrorSeries": [],
+  "requestRejectionDeltaMatchesHttp503": true,
+  "measuredGateway": {
+    "activeRequests": {
+      "minimum": 247,
+      "mean": 255.81666666666666,
+      "maximum": 256
+    },
+    "upstreamConnections": {
+      "minimum": 256,
+      "mean": 256.4166666666667,
+      "maximum": 257
+    },
+    "inboundConnections": {
+      "minimum": 747,
+      "mean": 749.0833333333334,
+      "maximum": 750
+    },
+    "openDescriptors": {
+      "minimum": 1048,
+      "mean": 1050.8416666666667,
+      "maximum": 1056
+    },
+    "minimumSampledDescriptorHeadroomFraction": 0.899390243902439
+  },
+  "responseBodies": {
+    "sampleLimitPerVu": 2,
+    "maximumBodyBytes": 4096,
+    "captured": 1353,
+    "categories": {
+      "gateway_request_capacity": 1353
+    },
+    "distinctBodies": [
+      "{\"error\":\"gateway_request_capacity\"}"
+    ],
+    "examples": [
+      {
+        "event": "backend_503_body",
+        "at": 1795027058008,
+        "ordinal": 382,
+        "phase": "warmup",
+        "method": "GET",
+        "path": "/rest/v1/posts",
+        "body": "{\"error\":\"gateway_request_capacity\"}"
+      },
+      {
+        "event": "backend_503_body",
+        "at": 1795027058010,
+        "ordinal": 528,
+        "phase": "warmup",
+        "method": "GET",
+        "path": "/rest/v1/posts",
+        "body": "{\"error\":\"gateway_request_capacity\"}"
+      },
+      {
+        "event": "backend_503_body",
+        "at": 1795027058020,
+        "ordinal": 39,
+        "phase": "warmup",
+        "method": "GET",
+        "path": "/rest/v1/posts",
+        "body": "{\"error\":\"gateway_request_capacity\"}"
+      },
+      {
+        "event": "backend_503_body",
+        "at": 1795027058028,
+        "ordinal": 741,
+        "phase": "warmup",
+        "method": "PATCH",
+        "path": "/rest/v1/posts",
+        "body": "{\"error\":\"gateway_request_capacity\"}"
+      },
+      {
+        "event": "backend_503_body",
+        "at": 1795027058031,
+        "ordinal": 383,
+        "phase": "warmup",
+        "method": "GET",
+        "path": "/rest/v1/likes",
+        "body": "{\"error\":\"gateway_request_capacity\"}"
+      },
+      {
+        "event": "backend_503_body",
+        "at": 1795027058149,
+        "ordinal": 690,
+        "phase": "warmup",
+        "method": "GET",
+        "path": "/rest/v1/posts",
+        "body": "{\"error\":\"gateway_request_capacity\"}"
+      },
+      {
+        "event": "backend_503_body",
+        "at": 1795027058166,
+        "ordinal": 461,
+        "phase": "warmup",
+        "method": "GET",
+        "path": "/rest/v1/likes",
+        "body": "{\"error\":\"gateway_request_capacity\"}"
+      },
+      {
+        "event": "backend_503_body",
+        "at": 1795027058171,
+        "ordinal": 245,
+        "phase": "warmup",
+        "method": "PATCH",
+        "path": "/rest/v1/posts",
+        "body": "{\"error\":\"gateway_request_capacity\"}"
+      }
+    ],
+    "originalRunBodiesNotReconstructed": true
+  },
+  "host": {
+    "hardware": {
+      "cpu": "Apple M1 Max",
+      "cores": 10,
+      "memoryBytes": 68719476736,
+      "platform": "darwin",
+      "arch": "arm64"
+    },
+    "operatingSystem": "27.2.1",
+    "cpuPercent": {
+      "userPercent": {
+        "minimum": 10.616784630940344,
+        "mean": 14.83580707232714,
+        "maximum": 46.15384615384615
+      },
+      "systemPercent": {
+        "minimum": 6.714140386571719,
+        "mean": 8.560027949846576,
+        "maximum": 15.709969788519636
+      },
+      "idlePercent": {
+        "minimum": 44.02834008097166,
+        "mean": 76.60416497782626,
+        "maximum": 82.50758341759354
+      }
+    },
+    "memorySnapshots": [
+      {
+        "at": "2026-11-18T18:38:35Z",
+        "lines": [
+          "Load Avg: 3.32, 2.38, 2.08 ",
+          "PhysMem: 61G used (2351M wired, 3346M compressor), 2445M unused.",
+          "VM: 503T vsize, 57G framework vsize, 0(0) swapins, 0(0) swapouts."
+        ]
+      },
+      {
+        "at": "2026-11-18T18:38:45Z",
+        "lines": [
+          "Load Avg: 3.04, 2.35, 2.08 ",
+          "PhysMem: 61G used (2351M wired, 3346M compressor), 2379M unused.",
+          "VM: 503T vsize, 57G framework vsize, 0(0) swapins, 0(0) swapouts."
+        ]
+      },
+      {
+        "at": "2026-11-18T18:38:55Z",
+        "lines": [
+          "Load Avg: 2.73, 2.30, 2.06 ",
+          "PhysMem: 61G used (2353M wired, 3346M compressor), 2221M unused.",
+          "VM: 506T vsize, 57G framework vsize, 0(0) swapins, 0(0) swapouts."
+        ]
+      },
+      {
+        "at": "2026-11-18T18:39:05Z",
+        "lines": [
+          "Load Avg: 2.85, 2.34, 2.08 ",
+          "PhysMem: 61G used (2353M wired, 3346M compressor), 2145M unused.",
+          "VM: 506T vsize, 57G framework vsize, 0(0) swapins, 0(0) swapouts."
+        ]
+      },
+      {
+        "at": "2026-11-18T18:39:15Z",
+        "lines": [
+          "Load Avg: 2.41, 2.27, 2.06 ",
+          "PhysMem: 61G used (2351M wired, 3346M compressor), 2075M unused.",
+          "VM: 506T vsize, 57G framework vsize, 0(0) swapins, 0(0) swapouts."
+        ]
+      },
+      {
+        "at": "2026-11-18T18:39:25Z",
+        "lines": [
+          "Load Avg: 2.48, 2.29, 2.07 ",
+          "PhysMem: 61G used (2353M wired, 3346M compressor), 2070M unused.",
+          "VM: 506T vsize, 57G framework vsize, 0(0) swapins, 0(0) swapouts."
+        ]
+      },
+      {
+        "at": "2026-11-18T18:39:35Z",
+        "lines": [
+          "Load Avg: 2.84, 2.38, 2.10 ",
+          "PhysMem: 61G used (2353M wired, 3346M compressor), 2068M unused.",
+          "VM: 503T vsize, 57G framework vsize, 0(0) swapins, 0(0) swapouts."
+        ]
+      },
+      {
+        "at": "2026-11-18T18:39:45Z",
+        "lines": [
+          "Load Avg: 2.71, 2.36, 2.10 ",
+          "PhysMem: 61G used (2351M wired, 3346M compressor), 1962M unused.",
+          "VM: 503T vsize, 57G framework vsize, 0(0) swapins, 0(0) swapouts."
+        ]
+      },
+      {
+        "at": "2026-11-18T18:39:55Z",
+        "lines": [
+          "Load Avg: 2.45, 2.32, 2.08 ",
+          "PhysMem: 61G used (2352M wired, 3346M compressor), 1792M unused.",
+          "VM: 503T vsize, 57G framework vsize, 0(0) swapins, 0(0) swapouts."
+        ]
+      },
+      {
+        "at": "2026-11-18T18:40:05Z",
+        "lines": [
+          "Load Avg: 2.38, 2.31, 2.08 ",
+          "PhysMem: 61G used (2352M wired, 3346M compressor), 1695M unused.",
+          "VM: 503T vsize, 57G framework vsize, 0(0) swapins, 0(0) swapouts."
+        ]
+      },
+      {
+        "at": "2026-11-18T18:40:15Z",
+        "lines": [
+          "Load Avg: 2.32, 2.30, 2.08 ",
+          "PhysMem: 62G used (2355M wired, 3346M compressor), 1619M unused.",
+          "VM: 503T vsize, 57G framework vsize, 0(0) swapins, 0(0) swapouts."
+        ]
+      },
+      {
+        "at": "2026-11-18T18:40:25Z",
+        "lines": [
+          "Load Avg: 2.03, 2.24, 2.06 ",
+          "PhysMem: 62G used (2354M wired, 3346M compressor), 1624M unused.",
+          "VM: 502T vsize, 57G framework vsize, 0(0) swapins, 0(0) swapouts."
+        ]
+      }
+    ],
+    "totalMemoryBytes": 68719476736,
+    "pressureValues": [
+      1
+    ],
+    "maximumSwapMiB": 0
+  },
+  "processes": {
+    "7320": {
+      "executable": "/Applications/Supa Desktop.app/Contents/MacOS/supa-desktop",
+      "parentPid": 1,
+      "meanCpuCores": 0.17426048416882106,
+      "peakRssBytes": 208093184,
+      "role": "manager_gateway"
+    },
+    "7844": {
+      "executable": "/Applications/Supa Desktop.app/Contents/Resources/runtime/supa-wasm",
+      "parentPid": 7320,
+      "meanCpuCores": 0,
+      "peakRssBytes": 225460224,
+      "role": "project_runtime"
+    },
+    "13395": {
+      "executable": "/Applications/Supa Desktop.app/Contents/Resources/runtime/supa-wasm",
+      "parentPid": 7320,
+      "meanCpuCores": 0.6136890172245885,
+      "peakRssBytes": 333660160,
+      "role": "project_runtime"
+    },
+    "13397": {
+      "executable": "/Applications/Supa Desktop.app/Contents/Resources/runtime/supa-wasm",
+      "parentPid": 13395,
+      "meanCpuCores": 0.0929221367894412,
+      "peakRssBytes": 162562048,
+      "role": "runtime_descendant"
+    },
+    "13867": {
+      "executable": "/Applications/Supa Desktop.app/Contents/Resources/runtime/supa-wasm",
+      "parentPid": 7844,
+      "meanCpuCores": 0.0031897391129167563,
+      "peakRssBytes": 99319808,
+      "role": "runtime_descendant"
+    }
+  },
+  "backend": {
+    "cpuCores": {
+      "minimum": 0.8365019011401397,
+      "mean": 0.8839727898833282,
+      "maximum": 1.0312204351930678
+    },
+    "peakRssBytes": 1027506176
+  },
+  "generator": {
+    "cpuCores": {
+      "minimum": 0.445920303605312,
+      "mean": 0.7811658936826269,
+      "maximum": 3.8483412322274906
+    },
+    "peakRssBytes": 6002982912,
+    "pressureGuardFired": false
+  },
+  "processOpenDescriptors": {
+    "7320": {
+      "minimum": 1048,
+      "mean": 1050.8916666666667,
+      "maximum": 1055
+    },
+    "7844": {
+      "minimum": 26,
+      "mean": 26.016666666666666,
+      "maximum": 28
+    },
+    "13395": {
+      "minimum": 803,
+      "mean": 805.4416666666667,
+      "maximum": 808
+    },
+    "13397": {
+      "minimum": 197,
+      "mean": 221.31666666666666,
+      "maximum": 277
+    },
+    "13867": {
+      "minimum": 105,
+      "mean": 105.04166666666667,
+      "maximum": 110
+    }
+  },
+  "afterLoad": {
+    "ipv4HealthStatus": 200,
+    "ipv6HealthStatus": 200,
+    "listeners": "COMMAND    PID  USER   FD   TYPE             DEVICE SIZE/OFF NODE NAME\nsupa-desk 7320 markb   17u  IPv4 0x2938ba2f66597509      0t0  TCP 127.0.0.1:54321 (LISTEN)\nsupa-desk 7320 markb   21u  IPv6 0x9a8e0f2091f6d136      0t0  TCP [::1]:54321 (LISTEN)\n",
+    "fixtureCleanupVerified": true,
+    "readOnlyDatabaseCounts": {
+      "users": 15000,
+      "posts": 150000,
+      "likes": 150000
+    }
+  },
+  "sources": {
+    "collectorSha256": "d7e39a43b3e29e6c5fb91118cec39ecbeec68dcc59c3039c9f64bd68407b8330",
+    "manifestSha256": "9c727b83533d61582f80e57293300ebfe615dac03bec88c0a9a0cc2bcca9c130",
+    "rawMetricsSha256": "6f4d0ce4f9229fc972b236ce56eb531f5f29b8606ad07d5535a7c8c9d1daa1e7",
+    "diagnosticSamplesSha256": "f27014e7304e9b070cc9c80086be7c697ff6b7600708bd8fbd1fc3a2eba746c4",
+    "bodyLogSha256": "3482e5a18d2dff7c2682f2bb9a71e08818c713770ef0753ac498a3c8070cd5b3"
+  },
+  "limitations": [
+    "Diagnostic repeat retains the original workload but adds bounded 503 body logging and metrics sampling.",
+    "Descriptor and CPU/memory peaks are sampled; short spikes and short-lived processes can be missed.",
+    "Native app and generator share the host; no cgroup or dedicated-core isolation.",
+    "Two native projects are running; gateway counters and aggregate backend resources include co-resident activity."
+  ],
+  "auditedAt": "2026-11-18T18:43:06.258Z",
+  "runtimeOpenDescriptors": {
+    "7844": {
+      "minimum": 26,
+      "mean": 26.016666666666666,
+      "maximum": 28
+    },
+    "13395": {
+      "minimum": 803,
+      "mean": 805.4416666666667,
+      "maximum": 808
+    },
+    "13397": {
+      "minimum": 197,
+      "mean": 221.31666666666666,
+      "maximum": 277
+    },
+    "13867": {
+      "minimum": 105,
+      "mean": 105.04166666666667,
+      "maximum": 110
+    }
+  }
+}

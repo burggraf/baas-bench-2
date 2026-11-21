@@ -1,0 +1,370 @@
+{
+  "version": "0.14.1",
+  "projectName": "baas-bench-0.14.1-20261118",
+  "projectId": "d6e75d8811c143a292f6405173b4b0fb",
+  "dataset": {
+    "accounts": 15000,
+    "posts": 150000,
+    "likes": 150000
+  },
+  "nativeMac": true,
+  "docker": false,
+  "highestObservedPassingUsers": 500,
+  "lowestObservedFailingUsers": 625,
+  "exactUpperLimitEstablished": false,
+  "trials": [
+    {
+      "users": 500,
+      "classification": "pass",
+      "actions": 19670,
+      "failedActions": 0,
+      "actionFailurePercent": 0,
+      "authFailures": 0,
+      "perActionP95Ms": {
+        "listPublic": 218,
+        "listOwn": 219.74999999999986,
+        "read": 216,
+        "create": 178,
+        "like": 346,
+        "unlike": 208.6999999999999,
+        "edit": 221
+      },
+      "gatewayRejectionDeltas": {
+        "admission_rejections_total": 0,
+        "upstream_admission_rejections_total": 0
+      },
+      "gateway": {
+        "activeRequests": {
+          "minimum": 0,
+          "mean": 10.25,
+          "maximum": 76
+        },
+        "upstreamConnections": {
+          "minimum": 16,
+          "mean": 21.925,
+          "maximum": 80
+        },
+        "inboundConnections": {
+          "minimum": 500,
+          "mean": 500,
+          "maximum": 500
+        },
+        "openDescriptors": {
+          "minimum": 561,
+          "mean": 566.7333333333333,
+          "maximum": 627
+        },
+        "minimumSampledDescriptorHeadroomFraction": 0.9402629573170732
+      },
+      "database": {
+        "databaseBackends": {
+          "minimum": 6,
+          "mean": 6.25,
+          "maximum": 7
+        },
+        "databaseConnectionLimit": 60,
+        "cacheHitFraction": 0.8828810805567681,
+        "deadlockDelta": 0,
+        "tempBytesDelta": 0
+      },
+      "hostCpu": {
+        "userPercent": {
+          "minimum": 9.490509490509492,
+          "mean": 14.537864101730653,
+          "maximum": 43.93179538615847
+        },
+        "systemPercent": {
+          "minimum": 6.841046277665996,
+          "mean": 9.237212544216558,
+          "maximum": 16.549648946840524
+        },
+        "idlePercent": {
+          "minimum": 39.518555667001,
+          "mean": 76.22492335405279,
+          "maximum": 83.40040241448692
+        }
+      },
+      "backend": {
+        "cpuCores": {
+          "minimum": 0.6427221172020062,
+          "mean": 0.8683995607176521,
+          "maximum": 1.1669829222010006
+        },
+        "peakRssBytes": 996229120
+      },
+      "measurementAudit": "raw-results/social-4tdYtS/measurement-audit.json",
+      "gatewayAudit": "raw-results/social-4tdYtS/gateway-load-audit.json",
+      "projectMetricsAudit": "raw-results/social-4tdYtS/project-metrics-audit.json"
+    },
+    {
+      "users": 625,
+      "classification": "slo_failure",
+      "actions": 15413,
+      "failedActions": 42,
+      "actionFailurePercent": 0.2724972425874262,
+      "authFailures": 0,
+      "perActionP95Ms": {
+        "listPublic": 4839.749999999998,
+        "listOwn": 4996.049999999995,
+        "read": 4717.3,
+        "create": 5003,
+        "like": 7645.799999999999,
+        "unlike": 4928,
+        "edit": 5186
+      },
+      "gatewayRejectionDeltas": {
+        "admission_rejections_total": 5,
+        "upstream_admission_rejections_total": 0
+      },
+      "gateway": {
+        "activeRequests": {
+          "minimum": 202,
+          "mean": 239.73949579831933,
+          "maximum": 256
+        },
+        "upstreamConnections": {
+          "minimum": 214,
+          "mean": 247.34453781512605,
+          "maximum": 256
+        },
+        "inboundConnections": {
+          "minimum": 622,
+          "mean": 624.0252100840336,
+          "maximum": 625
+        },
+        "openDescriptors": {
+          "minimum": 884,
+          "mean": 915.9495798319327,
+          "maximum": 928
+        },
+        "minimumSampledDescriptorHeadroomFraction": 0.9115853658536586
+      },
+      "database": {
+        "databaseBackends": {
+          "minimum": 6,
+          "mean": 6,
+          "maximum": 6
+        },
+        "databaseConnectionLimit": 60,
+        "cacheHitFraction": 0.9167340775494796,
+        "deadlockDelta": 0,
+        "tempBytesDelta": 0
+      },
+      "hostCpu": {
+        "userPercent": {
+          "minimum": 9.218436873747494,
+          "mean": 13.555498874744323,
+          "maximum": 42.59818731117825
+        },
+        "systemPercent": {
+          "minimum": 7.429718875502007,
+          "mean": 9.351581461964722,
+          "maximum": 20.599999999999998
+        },
+        "idlePercent": {
+          "minimum": 48.23766364551863,
+          "mean": 77.09291966329097,
+          "maximum": 82.92929292929293
+        }
+      },
+      "backend": {
+        "cpuCores": {
+          "minimum": 0.8555133079850934,
+          "mean": 0.9176367973280457,
+          "maximum": 1.064638783270576
+        },
+        "peakRssBytes": 1022590976
+      },
+      "measurementAudit": "raw-results/social-NdmKc0/measurement-audit.json",
+      "gatewayAudit": "raw-results/social-NdmKc0/gateway-load-audit.json",
+      "projectMetricsAudit": "raw-results/social-NdmKc0/project-metrics-audit.json"
+    },
+    {
+      "users": 750,
+      "classification": "slo_failure",
+      "actions": 19290,
+      "failedActions": 1681,
+      "actionFailurePercent": 8.71435977190254,
+      "authFailures": 0,
+      "perActionP95Ms": {
+        "listPublic": 4440.049999999999,
+        "listOwn": 4183.149999999999,
+        "read": 4610.749999999999,
+        "create": 4402.349999999999,
+        "like": 7066,
+        "unlike": 3862,
+        "edit": 4084.6999999999985
+      },
+      "gatewayRejectionDeltas": {
+        "admission_rejections_total": 2473,
+        "upstream_admission_rejections_total": 0
+      },
+      "gateway": {
+        "activeRequests": {
+          "minimum": 247,
+          "mean": 255.81666666666666,
+          "maximum": 256
+        },
+        "upstreamConnections": {
+          "minimum": 256,
+          "mean": 256.4166666666667,
+          "maximum": 257
+        },
+        "inboundConnections": {
+          "minimum": 747,
+          "mean": 749.0833333333334,
+          "maximum": 750
+        },
+        "openDescriptors": {
+          "minimum": 1048,
+          "mean": 1050.8416666666667,
+          "maximum": 1056
+        },
+        "minimumSampledDescriptorHeadroomFraction": 0.899390243902439
+      },
+      "database": {
+        "databaseBackends": {
+          "minimum": 6,
+          "mean": 6,
+          "maximum": 6
+        },
+        "databaseConnectionLimit": 60,
+        "cacheHitFraction": 0.8827928195288938,
+        "deadlockDelta": 0,
+        "tempBytesDelta": 0
+      },
+      "hostCpu": {
+        "userPercent": {
+          "minimum": 10.616784630940344,
+          "mean": 14.83580707232714,
+          "maximum": 46.15384615384615
+        },
+        "systemPercent": {
+          "minimum": 6.714140386571719,
+          "mean": 8.560027949846576,
+          "maximum": 15.709969788519636
+        },
+        "idlePercent": {
+          "minimum": 44.02834008097166,
+          "mean": 76.60416497782626,
+          "maximum": 82.50758341759354
+        }
+      },
+      "backend": {
+        "cpuCores": {
+          "minimum": 0.8365019011401397,
+          "mean": 0.8839727898833282,
+          "maximum": 1.0312204351930678
+        },
+        "peakRssBytes": 1027506176
+      },
+      "measurementAudit": "raw-results/social-fFYb3T/measurement-audit.json",
+      "gatewayAudit": "raw-results/social-fFYb3T/gateway-load-audit.json",
+      "projectMetricsAudit": "raw-results/social-fFYb3T/project-metrics-audit.json"
+    },
+    {
+      "users": 1000,
+      "classification": "slo_failure",
+      "actions": 28710,
+      "failedActions": 11458,
+      "actionFailurePercent": 39.90943921978405,
+      "authFailures": 0,
+      "perActionP95Ms": {
+        "listPublic": 4013.2999999999975,
+        "listOwn": 3935.7,
+        "read": 3863.45,
+        "create": 3856.099999999999,
+        "like": 5823.999999999999,
+        "unlike": 4093.7999999999993,
+        "edit": 3856.7499999999995
+      },
+      "gatewayRejectionDeltas": {
+        "admission_rejections_total": 17699,
+        "upstream_admission_rejections_total": 0
+      },
+      "gateway": {
+        "activeRequests": {
+          "minimum": 256,
+          "mean": 256,
+          "maximum": 256
+        },
+        "upstreamConnections": {
+          "minimum": 256,
+          "mean": 256.4117647058824,
+          "maximum": 257
+        },
+        "inboundConnections": {
+          "minimum": 998,
+          "mean": 999.5294117647059,
+          "maximum": 1000
+        },
+        "openDescriptors": {
+          "minimum": 1299,
+          "mean": 1301.2268907563025,
+          "maximum": 1305
+        },
+        "minimumSampledDescriptorHeadroomFraction": 0.8756669207317074
+      },
+      "database": {
+        "databaseBackends": {
+          "minimum": 6,
+          "mean": 6,
+          "maximum": 6
+        },
+        "databaseConnectionLimit": 60,
+        "cacheHitFraction": 0.9180571062720082,
+        "deadlockDelta": 0,
+        "tempBytesDelta": 0
+      },
+      "hostCpu": {
+        "userPercent": {
+          "minimum": 12.626262626262626,
+          "mean": 18.078783198050296,
+          "maximum": 63.27967806841046
+        },
+        "systemPercent": {
+          "minimum": 6.927710843373494,
+          "mean": 8.77681387665352,
+          "maximum": 14.646464646464647
+        },
+        "idlePercent": {
+          "minimum": 26.358148893360163,
+          "mean": 73.14440292529615,
+          "maximum": 80.16194331983806
+        }
+      },
+      "backend": {
+        "cpuCores": {
+          "minimum": 0.8450704225349764,
+          "mean": 0.9100306413474625,
+          "maximum": 1.080568720379087
+        },
+        "peakRssBytes": 1022361600
+      },
+      "measurementAudit": "raw-results/social-M3WUay/measurement-audit.json",
+      "gatewayAudit": "raw-results/social-M3WUay/gateway-load-audit.json",
+      "projectMetricsAudit": "raw-results/social-M3WUay/project-metrics-audit.json"
+    }
+  ],
+  "interpretation": {
+    "immediate503Source": "Gateway active-request admission at 256. Captured bodies matched gateway_request_capacity at 750 and 1,000 users.",
+    "databaseConnectionCeilingReached": false,
+    "underlyingThroughputRootCauseProven": false,
+    "profilingLead": "At 1,000 users, the active/I/O-wait connection series appeared in 60 of 119 project metric scrapes. Idle-in-transaction/client-wait appeared in 89 of 119, peaking at 2. This is a profiling lead rather than a root-cause conclusion.",
+    "625UserFinding": "Latency failed on all seven action types despite a 0.27% logical failure rate. Only five gateway admission rejections occurred; underlying processing latency needs profiling."
+  },
+  "limitations": [
+    "Single short-run observations; no repeated endpoints or soak.",
+    "Host and generator share the M1 Max; no Docker/cgroup isolation.",
+    "A second, mostly idle project remained running. Aggregate gateway/host counters include it; project-labelled PostgreSQL series isolate the benchmark database."
+  ],
+  "cleanupVerified": true,
+  "restoredCounts": {
+    "likes": 150000,
+    "posts": 150000,
+    "users": 15000
+  },
+  "benchmarkWorkersStopped": true,
+  "DockerSourcesUnchanged": true,
+  "completedAt": "2026-11-18T19:16:35.764Z"
+}

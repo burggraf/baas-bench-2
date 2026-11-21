@@ -1,0 +1,87 @@
+{
+  "version": "0.14.1",
+  "classification": {
+    "verdict": "slo_failure",
+    "reasons": [
+      "observed_action_slo:listPublic",
+      "observed_action_slo:listOwn",
+      "observed_action_slo:read",
+      "observed_action_slo:create",
+      "observed_action_slo:like",
+      "observed_action_slo:unlike",
+      "observed_action_slo:edit"
+    ],
+    "certified": false,
+    "generatorHeadroom": "unverified"
+  },
+  "rawCountersAndPercentilesReplayed": true,
+  "preparedUserEvidenceReplayed": true,
+  "sharedDockerSourceUnchanged": true,
+  "allConfiguredUsersCompleted": true,
+  "actions": 15413,
+  "failedActions": 42,
+  "authFailures": 0,
+  "httpStatusCounts": {
+    "preparation:200": 1250,
+    "ramp:200": 3292,
+    "ramp:201": 798,
+    "warmup:201": 2240,
+    "warmup:200": 9957,
+    "measurement:200": 14594,
+    "measurement:201": 3474,
+    "warmup:0": 2,
+    "measurement:0": 37,
+    "measurement:503": 5,
+    "cleanup:200": 7,
+    "cleanup:201": 36,
+    "cleanup:204": 625
+  },
+  "ipv4ApiHealthAfterMeasurement": 200,
+  "perAction": {
+    "listPublic": {
+      "count": 5346,
+      "failures": 16,
+      "p95Ms": 4839.749999999998,
+      "p99Ms": 7501.299999999998
+    },
+    "listOwn": {
+      "count": 2272,
+      "failures": 6,
+      "p95Ms": 4996.049999999995,
+      "p99Ms": 7520.149999999997
+    },
+    "read": {
+      "count": 2328,
+      "failures": 4,
+      "p95Ms": 4717.3,
+      "p99Ms": 6806.419999999999
+    },
+    "create": {
+      "count": 781,
+      "failures": 2,
+      "p95Ms": 5003,
+      "p99Ms": 6628.799999999997
+    },
+    "like": {
+      "count": 2717,
+      "failures": 12,
+      "p95Ms": 7645.799999999999,
+      "p99Ms": 10652.399999999994
+    },
+    "unlike": {
+      "count": 788,
+      "failures": 1,
+      "p95Ms": 4928,
+      "p99Ms": 7114.109999999997
+    },
+    "edit": {
+      "count": 1181,
+      "failures": 1,
+      "p95Ms": 5186,
+      "p99Ms": 8151.399999999998
+    }
+  },
+  "postRunChecksMayStillBeRunning": true,
+  "pointDirectory": "raw-results/social-NdmKc0",
+  "at": "2026-11-18T19:10:22.826Z"
+}

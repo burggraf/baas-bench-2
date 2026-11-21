@@ -1,0 +1,124 @@
+{
+  "scope": "Read-only post-campaign diagnostic; cumulative statistics include fixture preparation and all trials, not measurement-specific.",
+  "data": [
+    {
+      "name": "checkpoint_completion_target",
+      "pending_restart": false,
+      "setting": "0.9",
+      "source": "default",
+      "unit": null
+    },
+    {
+      "name": "checkpoint_timeout",
+      "pending_restart": false,
+      "setting": "300",
+      "source": "default",
+      "unit": "s"
+    },
+    {
+      "name": "effective_cache_size",
+      "pending_restart": false,
+      "setting": "524288",
+      "source": "default",
+      "unit": "8kB"
+    },
+    {
+      "name": "fsync",
+      "pending_restart": false,
+      "setting": "on",
+      "source": "default",
+      "unit": null
+    },
+    {
+      "name": "full_page_writes",
+      "pending_restart": false,
+      "setting": "on",
+      "source": "default",
+      "unit": null
+    },
+    {
+      "name": "max_connections",
+      "pending_restart": false,
+      "setting": "60",
+      "source": "configuration file",
+      "unit": null
+    },
+    {
+      "name": "max_parallel_workers",
+      "pending_restart": false,
+      "setting": "0",
+      "source": "configuration file",
+      "unit": null
+    },
+    {
+      "name": "max_parallel_workers_per_gather",
+      "pending_restart": false,
+      "setting": "0",
+      "source": "configuration file",
+      "unit": null
+    },
+    {
+      "name": "max_wal_size",
+      "pending_restart": false,
+      "setting": "64",
+      "source": "configuration file",
+      "unit": "MB"
+    },
+    {
+      "name": "max_worker_processes",
+      "pending_restart": false,
+      "setting": "4",
+      "source": "configuration file",
+      "unit": null
+    },
+    {
+      "name": "shared_buffers",
+      "pending_restart": false,
+      "setting": "2048",
+      "source": "configuration file",
+      "unit": "8kB"
+    },
+    {
+      "name": "shared_preload_libraries",
+      "pending_restart": false,
+      "setting": "pg_stat_statements, pgaudit, plpgsql, plpgsql_check, pg_cron, pg_net, pgsodium, auto_explain, pg_tle, plan_filter, supabase_vault",
+      "source": "configuration file",
+      "unit": null
+    },
+    {
+      "name": "synchronous_commit",
+      "pending_restart": false,
+      "setting": "on",
+      "source": "default",
+      "unit": null
+    },
+    {
+      "name": "track_io_timing",
+      "pending_restart": false,
+      "setting": "off",
+      "source": "default",
+      "unit": null
+    },
+    {
+      "name": "track_wal_io_timing",
+      "pending_restart": false,
+      "setting": "off",
+      "source": "default",
+      "unit": null
+    },
+    {
+      "name": "wal_buffers",
+      "pending_restart": false,
+      "setting": "64",
+      "source": "default",
+      "unit": "8kB"
+    },
+    {
+      "name": "work_mem",
+      "pending_restart": false,
+      "setting": "4096",
+      "source": "default",
+      "unit": "kB"
+    }
+  ]
+}

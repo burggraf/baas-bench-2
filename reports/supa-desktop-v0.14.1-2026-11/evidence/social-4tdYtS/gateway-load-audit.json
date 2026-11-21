@@ -1,0 +1,342 @@
+{
+  "projectDatabaseMetrics": {
+    "path": "raw-results/social-4tdYtS/project-metrics-audit.json",
+    "timedSamples": 120,
+    "seriesCount": 379,
+    "databaseBackends": {
+      "minimum": 6,
+      "mean": 6.25,
+      "maximum": 7
+    },
+    "databaseConnectionLimit": 60,
+    "cacheHitFraction": 0.8828810805567681,
+    "deadlockDelta": 0,
+    "tempBytesDelta": 0
+  },
+  "kind": "native-supa-desktop-gateway-audit",
+  "version": "0.14.1",
+  "directory": "raw-results/social-4tdYtS",
+  "classification": {
+    "verdict": "pass",
+    "reasons": [
+      "short_run_observation_only; insufficient tails remain uncertified"
+    ],
+    "certified": false,
+    "generatorHeadroom": "unverified"
+  },
+  "actions": 19670,
+  "failedActions": 0,
+  "authFailures": 0,
+  "capture": {
+    "gatewayMetricSamples": 640,
+    "timedGatewayMetricSamples": 120,
+    "firstAt": "2026-11-18T16:32:16Z",
+    "lastAt": "2026-11-18T17:36:03Z",
+    "measurementWindow": {
+      "releaseAt": 1795023051901,
+      "measurementAt": 1795023141901,
+      "endAt": 1795023261901
+    },
+    "counterScope": "First-to-last diagnostic snapshots spanning preparation, load and paced sign-outs; raw HTTP counters are separately phase-attributed."
+  },
+  "effectiveLimits": {
+    "connection_limit": 2048,
+    "request_limit": 256,
+    "descriptor_soft_limit": 10496,
+    "descriptor_hard_limit": "9223372036854775807"
+  },
+  "counterDeltas": {
+    "admission_rejections_total": 0,
+    "upstream_admission_rejections_total": 0
+  },
+  "allPhaseHttp503Responses": 0,
+  "allPhaseTransportFailures": {},
+  "acceptErrorSeries": [],
+  "requestRejectionDeltaMatchesHttp503": true,
+  "measuredGateway": {
+    "activeRequests": {
+      "minimum": 0,
+      "mean": 10.25,
+      "maximum": 76
+    },
+    "upstreamConnections": {
+      "minimum": 16,
+      "mean": 21.925,
+      "maximum": 80
+    },
+    "inboundConnections": {
+      "minimum": 500,
+      "mean": 500,
+      "maximum": 500
+    },
+    "openDescriptors": {
+      "minimum": 561,
+      "mean": 566.7333333333333,
+      "maximum": 627
+    },
+    "minimumSampledDescriptorHeadroomFraction": 0.9402629573170732
+  },
+  "responseBodies": {
+    "sampleLimitPerVu": 2,
+    "maximumBodyBytes": 4096,
+    "captured": 0,
+    "categories": {},
+    "distinctBodies": [],
+    "examples": [],
+    "originalRunBodiesNotReconstructed": true
+  },
+  "host": {
+    "hardware": {
+      "cpu": "Apple M1 Max",
+      "cores": 10,
+      "memoryBytes": 68719476736,
+      "platform": "darwin",
+      "arch": "arm64"
+    },
+    "operatingSystem": "27.2.1",
+    "cpuPercent": {
+      "userPercent": {
+        "minimum": 9.490509490509492,
+        "mean": 14.537864101730653,
+        "maximum": 43.93179538615847
+      },
+      "systemPercent": {
+        "minimum": 6.841046277665996,
+        "mean": 9.237212544216558,
+        "maximum": 16.549648946840524
+      },
+      "idlePercent": {
+        "minimum": 39.518555667001,
+        "mean": 76.22492335405279,
+        "maximum": 83.40040241448692
+      }
+    },
+    "memorySnapshots": [
+      {
+        "at": "2026-11-18T17:32:27Z",
+        "lines": [
+          "Load Avg: 3.67, 4.25, 4.39 ",
+          "PhysMem: 62G used (2497M wired, 3270M compressor), 676M unused.",
+          "VM: 509T vsize, 57G framework vsize, 0(0) swapins, 0(0) swapouts."
+        ]
+      },
+      {
+        "at": "2026-11-18T17:32:37Z",
+        "lines": [
+          "Load Avg: 3.41, 4.18, 4.36 ",
+          "PhysMem: 63G used (2497M wired, 3270M compressor), 569M unused.",
+          "VM: 509T vsize, 57G framework vsize, 0(0) swapins, 0(0) swapouts."
+        ]
+      },
+      {
+        "at": "2026-11-18T17:32:47Z",
+        "lines": [
+          "Load Avg: 4.11, 4.30, 4.40 ",
+          "PhysMem: 63G used (2495M wired, 3270M compressor), 496M unused.",
+          "VM: 510T vsize, 57G framework vsize, 0(0) swapins, 0(0) swapouts."
+        ]
+      },
+      {
+        "at": "2026-11-18T17:32:57Z",
+        "lines": [
+          "Load Avg: 3.80, 4.23, 4.37 ",
+          "PhysMem: 63G used (2488M wired, 3270M compressor), 403M unused.",
+          "VM: 510T vsize, 57G framework vsize, 0(0) swapins, 0(0) swapouts."
+        ]
+      },
+      {
+        "at": "2026-11-18T17:33:07Z",
+        "lines": [
+          "Load Avg: 3.75, 4.20, 4.36 ",
+          "PhysMem: 63G used (2482M wired, 3270M compressor), 317M unused.",
+          "VM: 510T vsize, 57G framework vsize, 0(0) swapins, 0(0) swapouts."
+        ]
+      },
+      {
+        "at": "2026-11-18T17:33:17Z",
+        "lines": [
+          "Load Avg: 3.41, 4.11, 4.33 ",
+          "PhysMem: 63G used (2485M wired, 3270M compressor), 223M unused.",
+          "VM: 510T vsize, 57G framework vsize, 0(0) swapins, 0(0) swapouts."
+        ]
+      },
+      {
+        "at": "2026-11-18T17:33:27Z",
+        "lines": [
+          "Load Avg: 4.37, 4.29, 4.39 ",
+          "PhysMem: 63G used (2474M wired, 3270M compressor), 72M unused.",
+          "VM: 510T vsize, 57G framework vsize, 0(0) swapins, 0(0) swapouts."
+        ]
+      },
+      {
+        "at": "2026-11-18T17:33:37Z",
+        "lines": [
+          "Load Avg: 4.09, 4.23, 4.37 ",
+          "PhysMem: 63G used (2468M wired, 3270M compressor), 77M unused.",
+          "VM: 510T vsize, 57G framework vsize, 0(0) swapins, 0(0) swapouts."
+        ]
+      },
+      {
+        "at": "2026-11-18T17:33:46Z",
+        "lines": [
+          "Load Avg: 3.77, 4.16, 4.34 ",
+          "PhysMem: 63G used (2467M wired, 3270M compressor), 169M unused.",
+          "VM: 508T vsize, 57G framework vsize, 0(0) swapins, 0(0) swapouts."
+        ]
+      },
+      {
+        "at": "2026-11-18T17:33:56Z",
+        "lines": [
+          "Load Avg: 4.59, 4.32, 4.39 ",
+          "PhysMem: 63G used (2464M wired, 3270M compressor), 120M unused.",
+          "VM: 508T vsize, 57G framework vsize, 0(0) swapins, 0(0) swapouts."
+        ]
+      },
+      {
+        "at": "2026-11-18T17:34:06Z",
+        "lines": [
+          "Load Avg: 4.57, 4.33, 4.39 ",
+          "PhysMem: 63G used (2463M wired, 3270M compressor), 77M unused.",
+          "VM: 508T vsize, 57G framework vsize, 0(0) swapins, 0(0) swapouts."
+        ]
+      },
+      {
+        "at": "2026-11-18T17:34:16Z",
+        "lines": [
+          "Load Avg: 4.09, 4.23, 4.36 ",
+          "PhysMem: 63G used (2461M wired, 3270M compressor), 102M unused.",
+          "VM: 508T vsize, 57G framework vsize, 0(0) swapins, 0(0) swapouts."
+        ]
+      }
+    ],
+    "totalMemoryBytes": 68719476736,
+    "pressureValues": [
+      1
+    ],
+    "maximumSwapMiB": 0
+  },
+  "processes": {
+    "7320": {
+      "executable": "/Applications/Supa Desktop.app/Contents/MacOS/supa-desktop",
+      "parentPid": 1,
+      "meanCpuCores": 0.17539557028930974,
+      "peakRssBytes": 179142656,
+      "role": "manager_gateway"
+    },
+    "7844": {
+      "executable": "/Applications/Supa Desktop.app/Contents/Resources/runtime/supa-wasm",
+      "parentPid": 7320,
+      "meanCpuCores": 8.45687417016923e-05,
+      "peakRssBytes": 225443840,
+      "role": "project_runtime"
+    },
+    "13395": {
+      "executable": "/Applications/Supa Desktop.app/Contents/Resources/runtime/supa-wasm",
+      "parentPid": 7320,
+      "meanCpuCores": 0.5911355044948294,
+      "peakRssBytes": 278937600,
+      "role": "project_runtime"
+    },
+    "13397": {
+      "executable": "/Applications/Supa Desktop.app/Contents/Resources/runtime/supa-wasm",
+      "parentPid": 13395,
+      "meanCpuCores": 0.09979111520799451,
+      "peakRssBytes": 224493568,
+      "role": "runtime_descendant"
+    },
+    "13867": {
+      "executable": "/Applications/Supa Desktop.app/Contents/Resources/runtime/supa-wasm",
+      "parentPid": 7844,
+      "meanCpuCores": 0.0032981809263659865,
+      "peakRssBytes": 98566144,
+      "role": "runtime_descendant"
+    }
+  },
+  "backend": {
+    "cpuCores": {
+      "minimum": 0.6427221172020062,
+      "mean": 0.8683995607176521,
+      "maximum": 1.1669829222010006
+    },
+    "peakRssBytes": 996229120
+  },
+  "generator": {
+    "cpuCores": {
+      "minimum": 0.445920303605312,
+      "mean": 0.8131019558603384,
+      "maximum": 3.2163187855787347
+    },
+    "peakRssBytes": 4566188032,
+    "pressureGuardFired": false
+  },
+  "processOpenDescriptors": {
+    "7320": {
+      "minimum": 561,
+      "mean": 567.2583333333333,
+      "maximum": 625
+    },
+    "7844": {
+      "minimum": 26,
+      "mean": 26,
+      "maximum": 26
+    },
+    "13395": {
+      "minimum": 97,
+      "mean": 145.875,
+      "maximum": 277
+    },
+    "13397": {
+      "minimum": 251,
+      "mean": 260.94166666666666,
+      "maximum": 313
+    },
+    "13867": {
+      "minimum": 105,
+      "mean": 105,
+      "maximum": 105
+    }
+  },
+  "afterLoad": {
+    "ipv4HealthStatus": 200,
+    "ipv6HealthStatus": 200,
+    "listeners": "COMMAND    PID  USER   FD   TYPE             DEVICE SIZE/OFF NODE NAME\nsupa-desk 7320 markb   17u  IPv4 0x2938ba2f66597509      0t0  TCP 127.0.0.1:54321 (LISTEN)\nsupa-desk 7320 markb   21u  IPv6 0x9a8e0f2091f6d136      0t0  TCP [::1]:54321 (LISTEN)\n",
+    "fixtureCleanupVerified": true,
+    "sharedDockerSourcesUnchanged": true
+  },
+  "sources": {
+    "collectorSha256": "d7e39a43b3e29e6c5fb91118cec39ecbeec68dcc59c3039c9f64bd68407b8330",
+    "manifestSha256": "f4b50e67527d9e1b0eee3259e9fe9a6dc1cde5a0d65beaf856ecec12415958e2",
+    "rawMetricsSha256": "707fb1a6d4e56b1bc0518516afa2668bc95d916d698f2b913a80823c7176c07f",
+    "diagnosticSamplesSha256": "9cc5d3a19309b4e1ef0838dc7df56143ce0a695c8e892f8f4511a0882a9adef1",
+    "bodyLogSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "limitations": [
+    "Diagnostic repeat retains the original workload but adds bounded 503 body logging and metrics sampling.",
+    "Descriptor and CPU/memory peaks are sampled; short spikes and short-lived processes can be missed.",
+    "Native app and generator share the host; no cgroup or dedicated-core isolation.",
+    "Two native projects are running; gateway counters and aggregate backend resources include co-resident activity."
+  ],
+  "auditedAt": "2026-11-18T17:41:52.403Z",
+  "runtimeOpenDescriptors": {
+    "7844": {
+      "minimum": 26,
+      "mean": 26,
+      "maximum": 26
+    },
+    "13395": {
+      "minimum": 97,
+      "mean": 145.875,
+      "maximum": 277
+    },
+    "13397": {
+      "minimum": 251,
+      "mean": 260.94166666666666,
+      "maximum": 313
+    },
+    "13867": {
+      "minimum": 105,
+      "mean": 105,
+      "maximum": 105
+    }
+  }
+}

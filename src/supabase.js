@@ -1,8 +1,11 @@
 import {createClient} from '@supabase/supabase-js';
 
 // Keep auth, refresh, query construction and response decoding in the official SDK.
-export function supabaseClient(origin, fetch, anonKey) {
-  if(!['http://127.0.0.1:4000','http://supabase:4000'].includes(origin))throw new Error('Unexpected Supabase origin');
+export function supabaseClient(origin, fetch, anonKey, { external = false } = {}) {
+  const validOrigin = external
+    ? /^https?:$/.test(new URL(origin).protocol) && new URL(origin).origin === origin
+    : ['http://127.0.0.1:4000', 'http://supabase:4000'].includes(origin);
+  if (!validOrigin) throw new Error('Unexpected Supabase origin');
   if(typeof anonKey!=='string'||!anonKey)throw new Error('Missing public Supabase API key');
   const sdk=createClient(origin,anonKey,{global:{fetch},db:{retry:false},auth:{autoRefreshToken:false,persistSession:false,detectSessionInUrl:false}});
   let session=null;

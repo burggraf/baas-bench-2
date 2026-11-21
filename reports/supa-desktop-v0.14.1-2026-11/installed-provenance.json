@@ -1,0 +1,169 @@
+{
+  "info": {
+    "CFBundleIdentifier": "app.supa.desktop",
+    "CFBundleShortVersionString": "0.14.1",
+    "CFBundleVersion": "0.14.1"
+  },
+  "distribution.json": {
+    "candidate": {
+      "build_sha256": "fbbfe83f64ac1369a998b18e343b6cae797f93cc054735cb60e35c1113dde943",
+      "bytes": 86992848,
+      "fresh_project_supported": true,
+      "profile": "64a4934-desktop-v3",
+      "sha256": "d4c3527d7fb5d94be4fc41b0db25774cea1ae326e2fde80b70da79146a44d89e",
+      "sealed_executable": {
+        "sha256": "4c17d07a35f3c15b657d2e5af803d1eb7fe51fbb9645bfe0b1fff96f7f755dac",
+        "bytes": 86992848
+      }
+    },
+    "legacy": {
+      "build_sha256": "72d3dacbb8cec968d1737b94cb9094cc9dd99436336c599af450e00a3ae37510",
+      "bytes": 83111744,
+      "fresh_project_supported": false,
+      "profile": "b4397a9-desktop-v1",
+      "sha256": "c8a1a1d9cfe5df92aa1c3ed46208f2e892b3d73c5b95f92b8f45df5416a18eb7"
+    },
+    "schema": 1,
+    "target": "aarch64-apple-darwin",
+    "tools": {
+      "bin/pg_dump": "cac7ec649130a91f4dbce56c7da12c977ab35cc6ffd78d0ce1d5c66c1c075c1f",
+      "bin/pg_restore": "b4329e7ad20a1071e382569e9988e1827253f6ed5816eb425fb5b4e3b3278910",
+      "bin/psql": "dcfcd9bf14d50f7b69ba61a9ad1565a224cc939235f2a417aa7afcbbfe6d65f2",
+      "lib/libcrypto.3.dylib": "a8535e48f347627410b8c82d5c585e15a223506bf71e82d6522bb8b0c7ea588a",
+      "lib/libpq.5.dylib": "b2c17877fdc080d1cca8d115f37447f89302e828c84c15c32483d21ff745a8be",
+      "lib/libssl.3.dylib": "9ba0cc11bd9146a61c654bc46f83b72989002ed7b2789cc83df411a4b8fd0828",
+      "licenses/openssl-3.5.9-LICENSE.txt": "7d5450cb2d142651b8afa315b5f238efc805dad827d91ba367d8516bc9d49e7a",
+      "licenses/postgresql-18.1-COPYRIGHT": "5ed3ce5c9373dff7f98b1fae7a6c7ccd98df7d734d46d24c1bcebf1240be8307",
+      "manifest.json": "01e1a65b3aa3b4718f8e4f1a3a8e9142101e0c6f34e2c7ce3f547fe4313f68de"
+    }
+  },
+  "runtime/build.json": {
+    "armlessDesktop": {
+      "commit": "fa8c3f52394f6e263bf63607a25204042a219773",
+      "patchSha256": "83281c98e6f79ecf1aa47199ba12fa416505b530452f544552e9bfcd6860a5e7",
+      "treeSha256": "9338c3071347b8880ab8b0a28552f6c966a416402e1d4a38ca1041ca22e814de"
+    },
+    "builtAt": "2026-11-17T15:35:26.882Z",
+    "bytes": 86992848,
+    "capabilities": {
+      "addon_protocol": 2,
+      "compute": true,
+      "compute_mode": "user",
+      "edge_functions": true,
+      "embedded_deno": false,
+      "public_egress_ports": [
+        80,
+        443
+      ]
+    },
+    "core_manifest_sha256": "8e53bdbe254258a8ea53842e262cfcdc761b1f39935eb754d724bcf315650fbc",
+    "data_build": "64a4934-desktop-v3",
+    "distributionSigning": {
+      "identity": "78C9A961136D7E560A096259FAA1E9678B7327FC",
+      "timestamp": false,
+      "unsignedSha256": "a5636bc78baed6ed98e1ee39723cbcd4807da7e2b0ebc8699580f8224eb6ab3d"
+    },
+    "extras": {
+      "asset": "supa-wasm-extensions-0.2.0-aarch64-apple-darwin.tar.zst",
+      "bytes": 22992143,
+      "embedded": false,
+      "packages": [
+        "address_standardizer",
+        "http",
+        "hypopg",
+        "index_advisor",
+        "pg_hashids",
+        "pg_jsonschema",
+        "pg_partman",
+        "pg_repack",
+        "pg_stat_monitor",
+        "pgjwt",
+        "pgmq",
+        "pgrouting",
+        "pgtap",
+        "postgis",
+        "postgis_tiger_geocoder",
+        "rum",
+        "vector",
+        "wrappers"
+      ],
+      "protocol": 1,
+      "selection": "explicit",
+      "sha256": "2ddcce591ada3c00f363cd991cf41a2eac3c6240fb9a912fb0db07c71e6d0d7e"
+    },
+    "extras_manifest_sha256": "575c3664246cfd47f563a7a3c360196edd33cbb7f5cdf7913dc153174acc3c27",
+    "inputs": [
+      {
+        "artifact": "guest-auth",
+        "bytes": 71956480,
+        "file": "auth-dist.tar",
+        "sha256": "ececff9f77af39a9751d8366d61a6016d49b1203f45b48aeb545eff6339996e1"
+      },
+      {
+        "artifact": "guest-compute",
+        "bytes": 3102720,
+        "file": "compute-dist.tar",
+        "sha256": "bb98281980281028af6f254a6cb4f81e0412bf953128969a5954511459032ca1"
+      },
+      {
+        "artifact": "guest-postgrest",
+        "bytes": 19312640,
+        "file": "postgrest-dist.tar",
+        "sha256": "4a3f1673386617032154e5bb190417517d5c9b4c55b041732a8734aecd3bc8e0"
+      },
+      {
+        "artifact": "guest-realtime",
+        "bytes": 42629120,
+        "file": "realtime-dist.tar",
+        "sha256": "0c0a73d7625a46a851263db8bda70f736e406370e3bc9abebd14051539b2c8b5"
+      },
+      {
+        "artifact": "guest-storage",
+        "bytes": 61368320,
+        "file": "storage-dist.tar",
+        "sha256": "2b1291fe569087c00f5ca3756344eca1bfef15b70775c61308ab1f7a35df314c"
+      },
+      {
+        "artifact": "postgres-dist-extras",
+        "bytes": 95539200,
+        "file": "postgres-dist-extras.tar",
+        "sha256": "0ae5d88cfa663ccf5e62c8a88c913af1dd0a22847a959500fb47ae1eef683aa0"
+      },
+      {
+        "artifact": "postgres-dist-supabase",
+        "bytes": 30115840,
+        "file": "postgres-dist-supabase.tar",
+        "sha256": "6597694304b5c74f5cee603f76adda0ffdd8ece8d5cda4735c93c2dcf202e585"
+      }
+    ],
+    "logging_protocol": 1,
+    "manifestSha256": "c6c01ad7744b8c307b6fc92bff9d0e8a3c424d3ad70030b24ed2a4f91c14981b",
+    "patch": "desktop-v3-candidate",
+    "patches": {
+      "auth.patch": "1fe1ef39e044fe86c91af490cf65280a845a3b1fe5861c461926d66f5f0d2c6a",
+      "build-isolation.patch": "025a5d438ada2fb3b01d87beb8af5932febab5d2673a5ac08d7d10af994bff53",
+      "compute-native.patch": "d6e140e31902a82a335d59b4b39a669b78b394e860512a8e43f7dde14c375984",
+      "contract.patch": "26fceeafe939b94ebc5958f214622d70bb7f47169caeeb7b245d2a1b40552d7b",
+      "desktop.patch": "f7c596712ff4ad2ae0dd19c38dfad04e9173cee759a6d25c2ea9590cc5718ade",
+      "functions.patch": "d98e712215eeb63c4b3ee4a448548b79918d12db9226a5560ab8b21fd5c8d48e",
+      "logging.patch": "4b4c866b5050026724e5b22a5f2b15c9385cf0ae4e0fc76e4d433feaf9a515b6",
+      "mcp.patch": "6c15092d81b276fbc5ade4944f8bbf175c527fecf44d1681b82e7714d48704b8",
+      "smtp.patch": "8d6936d3bed1b2fd7b48ea504c2419b41e5e55ae538d36e625ecda9c766b7fb8"
+    },
+    "protocol": 3,
+    "qualified": false,
+    "services": {
+      "auth": true,
+      "postgres": true,
+      "postgrest": true,
+      "realtime": true,
+      "storage": true
+    },
+    "sha256": "d4c3527d7fb5d94be4fc41b0db25774cea1ae326e2fde80b70da79146a44d89e",
+    "smtp": true,
+    "target": "aarch64-apple-darwin",
+    "toolchain": "rustc 1.99.0 (b940084d7 2026-09-28)\nbinary: rustc\ncommit-hash: b940084d7eb6a299eb4bfeb8e34901bc051e7ac4\ncommit-date: 2026-09-28\nhost: aarch64-apple-darwin\nrelease: 1.99.0\nLLVM version: 23.1.1",
+    "upstream": "64a4934099dc15e30e63f11a5a1d04c248c8b49c",
+    "variant": "candidate-external-functions"
+  }
+}

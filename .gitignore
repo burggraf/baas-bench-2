@@ -1,5 +1,8 @@
+# Dependencies and generated bundles
 node_modules/
 dist/
+# Raw runs, private fixtures and project credentials stay local.
+# Publish reviewed, sanitized report snapshots under reports/ instead.
 results/
 .fixtures/
 .env
@@ -12,3 +15,10 @@ __pycache__/
 *.pprof
 *.cpuprofile
 *.heapsnapshot
+# Local diagnostics and test caches
+*.log
+.cache/
+coverage/
+*.sqlite
+*.sqlite-shm
+*.sqlite-wal

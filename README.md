@@ -6,6 +6,8 @@ API-only, SDK-based capacity benchmarks for self-hosted backend-as-a-service sys
 
 **Supabase required API stack: 2,000 users** is the highest passing short observation (79,049 actions, zero failures); the user stopped discovery without endpoint repeats or soak. [Published results and exact stack scope](reports/supabase-api-2026-11/REPORT.md). This uses the same one-CPU/four-GiB budget and full 15,000-account recipe as the other M1 Max results.
 
+**Supa Desktop 0.14.1 (separate native experiment):** 500 users passed a short run; 625 failed latency targets, and 750/1,000 failed latency and error targets. This shared-host, uncapped native experiment is separate from the Docker comparison. The [diagnostic report and tuning plan](reports/supa-desktop-v0.14.1-2026-11/REPORT.html) includes sanitized metric summaries, request timings, source references and limitations. Raw captures and credentials remain ignored locally; sustained capacity and the underlying runtime bottleneck remain unverified.
+
 
 **Convex + PostgreSQL (provisional):** 375 users passed the measurement; 400 missed the like-action latency target. The 375-user controller later failed in untimed fixture-cleanup preflight; 350 is the highest pass with a fully completed controller/cleanup lifecycle. Endpoint repeats remain pending. [Observed range, caveats and sanitized evidence](reports/convex-postgres-2026-11/REPORT.md).
 

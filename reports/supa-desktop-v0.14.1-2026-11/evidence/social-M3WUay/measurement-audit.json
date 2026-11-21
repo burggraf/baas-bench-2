@@ -1,0 +1,93 @@
+{
+  "version": "0.14.1",
+  "classification": {
+    "verdict": "slo_failure",
+    "reasons": [
+      "observed_action_slo:listPublic",
+      "observed_action_slo:listOwn",
+      "observed_action_slo:read",
+      "observed_action_slo:create",
+      "observed_action_slo:like",
+      "observed_action_slo:unlike",
+      "observed_action_slo:edit",
+      "observed_rate:logical_failed{phase:measurement}",
+      "observed_rate:http_req_failed{traffic:backend}"
+    ],
+    "certified": false,
+    "generatorHeadroom": "unverified"
+  },
+  "rawCountersAndPercentilesReplayed": true,
+  "preparedUserEvidenceReplayed": true,
+  "sharedDockerSourceUnchanged": true,
+  "allConfiguredUsersCompleted": true,
+  "actions": 28710,
+  "failedActions": 11458,
+  "authFailures": 0,
+  "httpStatusCounts": {
+    "preparation:200": 2000,
+    "ramp:200": 4338,
+    "ramp:201": 952,
+    "ramp:503": 473,
+    "warmup:503": 5773,
+    "warmup:200": 8700,
+    "warmup:201": 1479,
+    "ramp:0": 3,
+    "warmup:0": 14,
+    "measurement:503": 11447,
+    "measurement:200": 17312,
+    "measurement:201": 3044,
+    "measurement:0": 17,
+    "cleanup:503": 6,
+    "cleanup:201": 42,
+    "cleanup:200": 1,
+    "cleanup:204": 1000
+  },
+  "ipv4ApiHealthAfterMeasurement": 200,
+  "perAction": {
+    "listPublic": {
+      "count": 10000,
+      "failures": 3524,
+      "p95Ms": 4013.2999999999975,
+      "p99Ms": 6405.239999999998
+    },
+    "listOwn": {
+      "count": 4267,
+      "failures": 1552,
+      "p95Ms": 3935.7,
+      "p99Ms": 6166.859999999999
+    },
+    "read": {
+      "count": 4292,
+      "failures": 1647,
+      "p95Ms": 3863.45,
+      "p99Ms": 6263.209999999997
+    },
+    "create": {
+      "count": 1443,
+      "failures": 510,
+      "p95Ms": 3856.099999999999,
+      "p99Ms": 6443.28
+    },
+    "like": {
+      "count": 4997,
+      "failures": 2878,
+      "p95Ms": 5823.999999999999,
+      "p99Ms": 8543.159999999998
+    },
+    "unlike": {
+      "count": 1437,
+      "failures": 508,
+      "p95Ms": 4093.7999999999993,
+      "p99Ms": 6695.12
+    },
+    "edit": {
+      "count": 2274,
+      "failures": 839,
+      "p95Ms": 3856.7499999999995,
+      "p99Ms": 5913.459999999998
+    }
+  },
+  "postRunChecksMayStillBeRunning": true,
+  "pointDirectory": "raw-results/social-M3WUay",
+  "at": "2026-11-18T17:52:54.576Z"
+}

@@ -41,7 +41,8 @@
     "convex": "1.50.0",
     "core-js-pure": "3.51.0",
     "pocketbase": "0.28.1",
-    "trailbase": "0.14.3"
+    "trailbase": "0.14.3",
+    "undici": "7.30.2"
   },
   "devDependencies": {
     "esbuild": "0.28.2"

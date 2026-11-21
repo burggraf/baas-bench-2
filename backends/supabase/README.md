@@ -41,3 +41,28 @@ node scripts/supabase.js --prepared-sessions --vus=100 --optimized-setup --valid
 ```
 
 This validation-only recipe contains 1,000 accounts/10,000 posts/10,000 likes and retains the full 120-second application measurement. The controller marks it `capacityEligible:false`; it must not be compared with the fixed 15,000-account capacity series. The same small fixture supports a subsequent 1,000-active-user workflow point. Full comparison points omit `--validation-dataset=1000` and retain the original 15,000-account recipe. A pristine-baseline cloning prototype was deferred to prioritize a working measured test; it is not enabled in the controller.
+
+## Host-native s6e benchmarks
+
+Use a dedicated s6e project with email sign-up and auto-confirm enabled. Apply
+`100-social.sql` as a database administrator so the authenticated account
+deletion RPC can delete its caller from `auth.users`. Then run from the repo
+root with the project's public anon key in the environment:
+
+```sh
+node scripts/s6e-smoke.js 'http://<ref>.supabase.<domain>:55321'
+node scripts/s6e-smoke.js 'http://<ref>.supabase.<domain>:55321' --load
+node scripts/s6e-smoke.js 'http://<ref>.supabase.<domain>:55321' --vus=500
+node scripts/s6e-smoke.js 'http://<ref>.supabase.<domain>:55321' --vus=1000
+node scripts/s6e-smoke.js 'http://<ref>.supabase.<domain>:55321' --vus=2000
+```
+
+The runner uses the official SDK directly from Node.js. It runs conformance,
+seeds and verifies a fixture, measures the seven social actions, and verifies
+that fixture cleanup removes all posts. The default smoke profile uses two
+users. The load profile uses 50 fixture users and measures 25 concurrent users
+for 60 seconds. The 500-, 1,000-, and 2,000-user profiles admit five users per second
+and use the same 60-second measurement. Add `--loopback` on the s6e host to connect
+to `127.0.0.1:55321` while preserving the project hostname for Envoy routing. The summary goes to `results/s6e-native-*/report.json` and fixture credentials stay under
+`.fixtures/`. The existing Compose campaign remains the entry point for the
+published capacity series.

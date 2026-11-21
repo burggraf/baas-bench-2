@@ -1,0 +1,35 @@
+{
+  "scope": "Read-only post-campaign diagnostic; cumulative statistics include fixture preparation and all trials, not measurement-specific.",
+  "data": [
+    {
+      "indexdef": "CREATE INDEX idx_likes_post ON public.likes USING btree (post)",
+      "indexname": "idx_likes_post",
+      "tablename": "likes"
+    },
+    {
+      "indexdef": "CREATE UNIQUE INDEX likes_pkey ON public.likes USING btree (id)",
+      "indexname": "likes_pkey",
+      "tablename": "likes"
+    },
+    {
+      "indexdef": "CREATE UNIQUE INDEX likes_user_post_key ON public.likes USING btree (\"user\", post)",
+      "indexname": "likes_user_post_key",
+      "tablename": "likes"
+    },
+    {
+      "indexdef": "CREATE INDEX idx_posts_feed ON public.posts USING btree (created_at DESC, id DESC)",
+      "indexname": "idx_posts_feed",
+      "tablename": "posts"
+    },
+    {
+      "indexdef": "CREATE INDEX idx_posts_own ON public.posts USING btree (author, created_at DESC, id DESC)",
+      "indexname": "idx_posts_own",
+      "tablename": "posts"
+    },
+    {
+      "indexdef": "CREATE UNIQUE INDEX posts_pkey ON public.posts USING btree (id)",
+      "indexname": "posts_pkey",
+      "tablename": "posts"
+    }
+  ]
+}
